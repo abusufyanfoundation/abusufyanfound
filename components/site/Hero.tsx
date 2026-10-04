@@ -20,7 +20,7 @@ export function Hero() {
 
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
             The Abu Sufyan Al-Alma&apos;iyy Foundation is a non-profit
-            organization dedicated to the distribution of beneficial books to
+            organization dedicated to the donation of the noble Qur&apos;an and beneficial books to
             students of knowledge, with a focus on Islamic sciences and related
             subjects.
           </p>

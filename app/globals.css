@@ -7,6 +7,7 @@
   /* Derived from the two brand colours, used for surfaces and text */
   --color-navy-deep: #011a4a;
   --color-gold-soft: #f4ecd8;
+  --color-gold-deep: #8a6d22;
   --color-paper: #fbf9f4;
   --color-ink: #1b2233;
   --color-muted: #5b6475;
@@ -18,6 +19,7 @@
   --color-navy: var(--color-navy);
   --color-navy-deep: var(--color-navy-deep);
   --color-gold-soft: var(--color-gold-soft);
+  --color-gold-deep: var(--color-gold-deep);
   --color-paper: var(--color-paper);
   --color-ink: var(--color-ink);
   --color-muted: var(--color-muted);
@@ -69,4 +71,15 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+
+@keyframes progress-grow {
+  from {
+    width: 0;
+  }
+}
+
+.animate-progress {
+  animation: progress-grow 900ms ease-out both;
 }
