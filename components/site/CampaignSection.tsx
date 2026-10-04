@@ -84,7 +84,7 @@ export function CampaignSection({
           )}
 
           <div className="flex flex-1 flex-col">
-            <h3 className="font-serif text-3xl text-navy md:text-2xl">
+            <h3 className="font-serif text-2xl text-navy md:text-2xl">
               {campaign.title}
             </h3>
 
@@ -101,7 +101,7 @@ export function CampaignSection({
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={percent}
-                className="h-5 w-full bg-white border border-gold rounded-md"
+                className="h-5 w-full overflow-hidden rounded-md border border-gold bg-white"
               >
                 <div
                   className="animate-progress h-full bg-navy"

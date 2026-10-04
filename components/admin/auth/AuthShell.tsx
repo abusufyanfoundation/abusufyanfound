@@ -15,7 +15,7 @@ export function AuthShell({
       <aside className="flex flex-col justify-between bg-navy px-8 py-8 md:w-5/12 md:px-14 md:py-16">
         <Link href="/" aria-label="Back to the foundation website">
           {/* <Image
-            src="/gold_bg.png"
+            src="/logo.png"
             alt="Abu Sufyan Al-Alma'iyy Foundation"
             width={120}
             height={120}

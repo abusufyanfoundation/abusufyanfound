@@ -1,6 +1,5 @@
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
-import { SelectionBar } from "@/components/site/selection/SelectionBar";
 import { SelectionProvider } from "@/components/site/selection/SelectionProvider";
 
 export default function SiteLayout({
@@ -19,7 +18,6 @@ export default function SiteLayout({
       <Header />
       <main id="main">{children}</main>
       <Footer />
-      <SelectionBar />
     </SelectionProvider>
   );
 }

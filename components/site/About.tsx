@@ -7,7 +7,6 @@ export function About() {
       <Container className="flex flex-col gap-12 lg:flex-row lg:gap-20">
         <div className="lg:basis-5/12">
           <SectionHeading
-          className="text-white"
             eyebrow="About the Foundation"
             title="Knowledge begins with the book in a student's hands."
           />
@@ -20,9 +19,9 @@ export function About() {
             students of knowledge who would otherwise struggle to afford them.
           </p>
           <p>
-            Supporters can offer to make genaral donations or choose specific books, contribute towards their cost, and we place
-            them with students. Every batch is recorded, so those who give can
-            see what their contribution became.
+            Supporters can make a general donation or choose specific books to
+            fund. We place the books with students and record every batch, so
+            those who give can see what their contribution became.
           </p>
           <p>
             Helping a student of knowledge is a good that continues for as long

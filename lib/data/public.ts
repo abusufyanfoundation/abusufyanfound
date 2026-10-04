@@ -34,20 +34,37 @@ export async function getCurrentCampaign(): Promise<CampaignWithStats | null> {
   };
 }
 
-export async function getBooks(campaignId: string): Promise<Book[]> {
+const BOOK_FIELDS =
+  "id, title, author, description, cover_url, price_kobo, available_quantity";
+
+// /books page: search and pagination
+export async function getBooksPage({
+  q,
+  page,
+  pageSize = 12,
+}: {
+  q?: string;
+  page: number;
+  pageSize?: number;
+}): Promise<{ books: Book[]; total: number }> {
   const supabase = createPublicClient();
 
-  const { data, error } = await supabase
-    .from("books")
-    .select(
-      "id, title, author, description, cover_url, price_kobo, available_quantity",
-    )
-    .eq("campaign_id", campaignId)
+  let query = supabase.from("books").select(BOOK_FIELDS, { count: "exact" });
+
+  // Whitelist letters, numbers, spaces, apostrophes and hyphens before it
+  // goes into a filter string
+  const term = q?.replace(/[^\p{L}\p{N}\s'’-]/gu, " ").trim();
+  if (term) query = query.or(`title.ilike.%${term}%,author.ilike.%${term}%`);
+
+  const from = (page - 1) * pageSize;
+
+  const { data, count, error } = await query
     .order("title")
+    .range(from, from + pageSize - 1)
     .returns<Book[]>();
 
-  if (error) console.error("getBooks:", error.message);
-  return data ?? [];
+  if (error) console.error("getBooksPage:", error.message);
+  return { books: data ?? [], total: count ?? 0 };
 }
 
 export async function getImpact(): Promise<ImpactStats | null> {

@@ -8,11 +8,11 @@ export function Hero() {
     <section className="overflow-hidden bg-navy text-white">
       <Container className="flex flex-col gap-12 py-14 md:gap-16 md:py-20 lg:flex-row lg:items-center lg:gap-16 lg:py-28">
         <div className="lg:basis-1/2">
-          <div className="flex items-center gap-4">
-            {/* <p className="text-xs tracking-[0.18em] text-gold font-bold uppercase sm:text-sm">
+          {/* <div className="flex items-center gap-4">
+            <p className="text-xs tracking-[0.18em] text-gold font-bold uppercase sm:text-sm">
               {siteConfig.name}
-            </p> */}
-          </div>
+            </p>
+          </div> */}
 
           <h1 className="mt-8 max-w-2xl font-serif text-4xl leading-[1.1] text-white md:text-6xl">
             Beneficial books for students of knowledge.
@@ -29,7 +29,7 @@ export function Hero() {
             <ButtonLink href={siteConfig.cta.href} variant="gold">
               Support the Foundation
             </ButtonLink>
-            <ButtonLink href="/#books" variant="outline-light">
+            <ButtonLink href="/books" variant="outline-light">
               Explore Books
             </ButtonLink>
           </div>

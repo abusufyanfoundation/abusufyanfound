@@ -32,7 +32,6 @@ export const metadata: Metadata = {
       "Supporting students of knowledge through beneficial Islamic books and materials.",
     url: siteUrl,
   },
-  alternates: { canonical: "/" },
 };
 
 export default function RootLayout({

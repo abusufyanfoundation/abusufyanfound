@@ -20,7 +20,7 @@ export function Header() {
             width={48}
             height={48}
             priority
-            className="h-12 w-auto rounded-lg"
+            className="h-12 w-auto rounded-sm"
           />
           <span
             aria-hidden="true"

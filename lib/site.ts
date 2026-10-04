@@ -16,13 +16,13 @@ export const siteConfig: {
 } = {
   name: "Abu Sufyan Al-Alma'iyy Foundation",
   description:
-    "A charitable Islamic foundation providing beneficial books and study materials to students of knowledge.",
+    "A charitable Islamic foundation providing Qur'an, beneficial books and study materials to students of knowledge.",
 
   nav: [
     { label: "Home", href: "/" },
     { label: "About", href: "/#about" },
     { label: "Our Work", href: "/#our-work" },
-    { label: "Books", href: "/#books" },
+    { label: "Books", href: "/books" },
     { label: "Campaigns", href: "/#campaign" },
     { label: "Impact", href: "/#impact" },
   ],
@@ -40,10 +40,9 @@ export const siteConfig: {
     },
   ],
 
-  // Fill these in when you have them. Empty ones are hidden in the footer.
   contact: {
-    email: null,
-    phone: null,
-    address: null,
+    email: "abusufyanfoundation@gmail.com",
+    phone: "08164758649",
+    address: "Lagos, Nigeria",
   },
 };
