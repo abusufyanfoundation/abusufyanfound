@@ -24,13 +24,13 @@ export const metadata: Metadata = {
     template: "%s | Abu Sufyan Al-Alma'iyy Foundation",
   },
   description:
-    "A charitable Islamic foundation providing beneficial books and materials to students of knowledge.",
+    "A non-profit organisation donating the noble Qur'an and beneficial books to students of knowledge and mosques.",
   openGraph: {
     type: "website",
     siteName: "Abu Sufyan Al-Alma'iyy Foundation",
     title: "Abu Sufyan Al-Alma'iyy Foundation",
     description:
-      "Supporting students of knowledge through beneficial Islamic books and materials.",
+      "A non-profit organisation donating the noble Qur'an and beneficial books to students of knowledge and mosques.",
     url: siteUrl,
   },
 };
@@ -42,7 +42,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${newsreader.variable} ${publicSans.variable}`}>
-     <Analytics/>
+      <Analytics />
       <body>{children}</body>
     </html>
   );

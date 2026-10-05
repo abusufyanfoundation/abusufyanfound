@@ -12,7 +12,7 @@ const PAGE_SIZE = 12;
 export const metadata: Metadata = {
   title: "Books you can pre-fund",
   description:
-    "Choose a beneficial Islamic book to pay for. The Foundation buys it and gives it to a student of knowledge who needs it.",
+    "Choose a book and how many copies. The Foundation buys them and gives them to students of knowledge and mosques in need.",
   alternates: { canonical: "/books" },
 };
 
@@ -40,7 +40,7 @@ export default async function BooksPage({
           <SectionHeading
             eyebrow="Pre-fund a book"
             title="Books you can pre-fund"
-            intro="Choose a book and how many copies. The Foundation buys them and gives them to students who need them."
+            intro="Choose a book and how many copies. The Foundation buys them and gives them to students of knowledge and mosques in need."
           />
 
           <form

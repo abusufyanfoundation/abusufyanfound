@@ -16,8 +16,7 @@ export const siteConfig: {
 } = {
   name: "Abu Sufyan Al-Alma'iyy Foundation",
   description:
-    "A charitable Islamic foundation providing Qur'an, beneficial books and study materials to students of knowledge.",
-
+    "A non-profit organisation donating the noble Qur'an and beneficial books to students of knowledge and mosques.",
   nav: [
     { label: "Home", href: "/" },
     { label: "About", href: "/#about" },

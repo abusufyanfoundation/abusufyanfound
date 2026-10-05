@@ -27,7 +27,11 @@ export function CampaignSection({
     return (
       <section id="campaign" className="bg-gold-soft py-20 md:py-28">
         <Container>
-          <SectionHeading eyebrow="Campaigns" title="Our current campaign" />
+          <SectionHeading
+            eyebrow="Campaigns"
+            title="Our current campaign"
+            intro="A campaign is a general fund with a target. Give any amount you like. You do not choose the books: once the target is reached, the Foundation chooses and buys them, and gives them to students of knowledge and mosques."
+          />
           <div className="mt-10 max-w-xl border-l-2 border-gold pl-6">
             <p className="font-serif text-2xl text-navy">
               There is no active campaign right now.
