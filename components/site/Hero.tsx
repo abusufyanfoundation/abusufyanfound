@@ -14,15 +14,15 @@ export function Hero() {
             </p>
           </div> */}
 
-          <h1 className="mt-8 max-w-2xl font-serif text-4xl leading-[1.1] text-white md:text-6xl">
+          <h1 className="mt-8 max-w-2xl font-display text-4xl leading-[1.1] text-white md:text-6xl">
             Beneficial books for students of knowledge.
           </h1>
 
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
             The Abu Sufyan Al-Alma&apos;iyy Foundation is a non-profit
-            organization dedicated to the donation of the noble Qur&apos;an and beneficial books to
-            students of knowledge and to mosques, with a focus on Islamic sciences and related
-            subjects.
+            organization dedicated to the donation of the noble Qur&apos;an and
+            beneficial books to students of knowledge and to mosques, with a
+            focus on Islamic sciences and related subjects.
           </p>
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row">

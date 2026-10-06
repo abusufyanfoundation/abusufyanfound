@@ -49,7 +49,7 @@ export function MobileMenu({
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
-              className="border-b border-rule py-4 font-serif text-xl text-navy"
+              className="border-b border-rule py-4 font-display text-xl text-navy"
             >
               {item.label}
             </Link>

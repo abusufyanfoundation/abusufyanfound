@@ -26,7 +26,7 @@ export function SectionHeading({
         </p>
       </div>
       <h2
-        className={`mt-5 font-serif text-3xl leading-tight md:text-4xl ${
+        className={`mt-5 font-display text-3xl leading-tight md:text-4xl ${
           dark ? "text-white" : "text-navy"
         }`}
       >
@@ -35,7 +35,7 @@ export function SectionHeading({
       {intro && (
         <p
           className={`mt-4 max-w-xl leading-relaxed ${
-            dark ? "text-white/70" : "text-muted"
+            dark ? "text-white/80" : "text-muted"
           }`}
         >
           {intro}

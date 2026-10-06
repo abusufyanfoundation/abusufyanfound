@@ -49,14 +49,14 @@ export function BookCard({ book }: { book: Book }) {
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-navy p-8 text-center">
-            <span className="font-serif text-2xl leading-snug text-white">
+            <span className="font-display text-2xl leading-snug text-white">
               {book.title}
             </span>
           </div>
         )}
       </div>
 
-      <h3 className="mt-5 font-serif text-2xl leading-snug text-navy">
+      <h3 className="mt-5 font-display text-2xl leading-snug text-navy">
         {book.title}
       </h3>
       <p className="mt-1 text-sm text-muted">{book.author}</p>
@@ -68,7 +68,7 @@ export function BookCard({ book }: { book: Book }) {
       )}
 
       <div className="mt-4 flex items-baseline justify-between border-t border-rule pt-4">
-        <p className="font-serif text-xl text-navy">
+        <p className="font-display text-xl text-navy">
           {formatNaira(book.price_kobo)}
         </p>
         <p className="text-sm text-muted">

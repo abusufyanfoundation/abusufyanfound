@@ -8,25 +8,26 @@ export function About() {
         <div className="lg:basis-5/12">
           <SectionHeading
             eyebrow="About the Foundation"
-            title="Knowledge begins with the book in a student's hands."
+            title="Beneficial books, placed where they will be used."
           />
         </div>
 
         <div className="flex flex-col gap-6 text-lg leading-relaxed text-ink lg:basis-7/12 lg:border-l lg:border-rule lg:pl-16">
           <p>
-            The Abu Sufyan Al-Alma&apos;iyy Foundation is a charitable Islamic
-            initiative. We provide beneficial books and study materials to
-            students of knowledge who would otherwise struggle to afford them.
+            The Abu Sufyan Al-Alma&apos;iyy Foundation is a non-profit
+            organisation dedicated to donating the noble Qur&apos;an and
+            beneficial books to students of knowledge and to mosques, with a
+            focus on the Islamic sciences.
           </p>
           <p>
-            Supporters can make a general donation or choose specific books to
-            fund. We place the books with students and record every batch, so
-            those who give can see what their contribution became.
+            Good books can be costly, and they are not always within reach of a
+            student or a small mosque. We raise funds, buy the books, and place
+            them where they will be read and used.
           </p>
           <p>
-            Helping a student of knowledge is a good that continues for as long
-            as the book is used. We want that giving to be simple, open and
-            trustworthy.
+            Supporters can give in two ways: to a campaign, or by paying for a
+            specific book. Every distribution is recorded, so those who give can
+            see what their contribution became.
           </p>
         </div>
       </Container>

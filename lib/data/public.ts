@@ -11,7 +11,7 @@ export async function getCurrentCampaign(): Promise<CampaignWithStats | null> {
 
   const { data: campaign, error } = await supabase
     .from("campaigns")
-    .select("id, title, slug, description, image_url, target_kobo, deadline")
+    .select("id, title, slug, description, image_url, target_kobo")
     .eq("is_active", true)
     .maybeSingle<Campaign>();
 
@@ -28,9 +28,6 @@ export async function getCurrentCampaign(): Promise<CampaignWithStats | null> {
     ...campaign,
     raised_kobo: stats?.raised_kobo ?? 0,
     supporters: stats?.supporters ?? 0,
-    closed: campaign.deadline
-      ? new Date(campaign.deadline).getTime() < Date.now()
-      : false,
   };
 }
 

@@ -14,7 +14,7 @@ const points = [
   },
   {
     term: "We deliver",
-    text: "The Foundation buys the books and gives them to students in need, and records each distribution.",
+    text: "The Foundation buys the books and gives them to students and mosques in need, and records each distribution.",
   },
 ] as const;
 
@@ -25,8 +25,8 @@ export function BooksSection() {
         <div className="lg:basis-1/2">
           <SectionHeading
             eyebrow="Pre-fund a book"
-            title="Give a student the book they need"
-            intro="Some of the most useful books are also the most expensive. Choose one from our list, pay for it, and the Foundation will buy it and give it to a student of knowledge who needs it."
+            title="Give a student or a mosque the book they need"
+            intro="Some of the most useful books are also the most expensive. Choose one from our list and pay for it. The Foundation buys it and gives it to a student of knowledge or a mosque in need."
           />
 
           <div className="mt-10">
@@ -50,7 +50,7 @@ export function BooksSection() {
               key={point.term}
               className="border-t border-rule py-7 first:border-t-0 first:pt-0"
             >
-              <dt className="font-serif text-2xl text-navy">{point.term}</dt>
+              <dt className="font-display text-2xl text-navy">{point.term}</dt>
               <dd className="mt-2 max-w-md leading-relaxed text-muted">
                 {point.text}
               </dd>

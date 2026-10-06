@@ -5,13 +5,11 @@ export type Campaign = {
   description: string | null;
   image_url: string | null;
   target_kobo: number;
-  deadline: string | null;
 };
 
 export type CampaignWithStats = Campaign & {
   raised_kobo: number;
   supporters: number;
-  closed: boolean;
 };
 
 export type Book = {
@@ -25,9 +23,11 @@ export type Book = {
 };
 
 export type ImpactStats = {
-  funds_raised_kobo: number;
+  campaign_funds_kobo: number;
+  prefund_funds_kobo: number;
   books_distributed: number;
   students_supported: number;
+  mosques_supported: number;
   completed_batches: number;
   active_campaigns: number;
 };

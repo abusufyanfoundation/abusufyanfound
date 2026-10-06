@@ -6,14 +6,14 @@ import type { CampaignWithStats } from "@/lib/types";
 import { Container } from "./Container";
 import { SectionHeading } from "./SectionHeading";
 
-const formatDate = (iso: string) =>
-  new Intl.DateTimeFormat("en-GB", { dateStyle: "long" }).format(new Date(iso));
+const INTRO =
+  "A campaign is a general fund with a target. Give any amount you like. You do not choose the books: once the target is reached, the Foundation chooses and buys them, and gives them to students of knowledge and mosques.";
 
 function Figure({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col-reverse gap-1">
       <dt className="text-sm text-muted">{label}</dt>
-      <dd className="font-serif text-2xl text-navy">{value}</dd>
+      <dd className="font-display text-2xl text-navy">{value}</dd>
     </div>
   );
 }
@@ -30,10 +30,10 @@ export function CampaignSection({
           <SectionHeading
             eyebrow="Campaigns"
             title="Our current campaign"
-            intro="A campaign is a general fund with a target. Give any amount you like. You do not choose the books: once the target is reached, the Foundation chooses and buys them, and gives them to students of knowledge and mosques."
+            intro={INTRO}
           />
           <div className="mt-10 max-w-xl border-l-2 border-gold pl-6">
-            <p className="font-serif text-2xl text-navy">
+            <p className="font-display text-2xl text-navy">
               There is no active campaign right now.
             </p>
             <p className="mt-3 leading-relaxed text-muted">
@@ -67,16 +67,19 @@ export function CampaignSection({
           Math.round((campaign.raised_kobo / campaign.target_kobo) * 100),
         )
       : 0;
-  const { closed } = campaign;
 
   return (
     <section id="campaign" className="bg-gold-soft py-20 md:py-28">
       <Container>
-        <SectionHeading eyebrow="Campaigns" title="Our current campaign" />
+        <SectionHeading
+          eyebrow="Campaigns"
+          title="Our current campaign"
+          intro={INTRO}
+        />
 
-        <div className="mt-12 flex flex-col gap-10 lg:flex-row lg:gap-16">
+        <div className="mt-12 flex flex-col gap-8 lg:flex-row lg:items-stretch">
           {campaign.image_url && (
-            <div className="relative aspect-[4/3] w-full lg:basis-5/12 lg:self-start">
+            <div className="relative aspect-[4/3] w-full lg:aspect-auto lg:min-h-[24rem] lg:basis-5/12">
               <Image
                 src={campaign.image_url}
                 alt={campaign.title}
@@ -87,8 +90,13 @@ export function CampaignSection({
             </div>
           )}
 
-          <div className="flex flex-1 flex-col">
-            <h3 className="font-serif text-2xl text-navy md:text-2xl">
+          {/* Details sit in a card, so the text never stretches across the full width */}
+          <div
+            className={`flex flex-1 flex-col border border-rule bg-white p-6 md:p-10 ${
+              campaign.image_url ? "" : "max-w-3xl"
+            }`}
+          >
+            <h3 className="font-display text-3xl text-navy md:text-4xl">
               {campaign.title}
             </h3>
 
@@ -105,7 +113,7 @@ export function CampaignSection({
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={percent}
-                className="h-5 w-full overflow-hidden rounded-md border border-gold bg-white"
+                className="h-3 w-full overflow-hidden bg-gold-soft"
               >
                 <div
                   className="animate-progress h-full bg-navy"
@@ -127,21 +135,11 @@ export function CampaignSection({
                   label="Supporters"
                   value={String(campaign.supporters)}
                 />
-                {campaign.deadline && (
-                  <Figure
-                    label={closed ? "Closed on" : "Closes on"}
-                    value={formatDate(campaign.deadline)}
-                  />
-                )}
               </dl>
             </div>
 
             <div className="mt-10">
-              {closed ? (
-                <p className="text-sm text-muted">This campaign has closed.</p>
-              ) : (
-                <ButtonLink href="/support">Donate to this campaign</ButtonLink>
-              )}
+              <ButtonLink href="/support">Donate to this campaign</ButtonLink>
             </div>
           </div>
         </div>

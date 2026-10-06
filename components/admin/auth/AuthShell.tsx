@@ -21,11 +21,13 @@ export function AuthShell({
             height={120}
             priority
           /> */}
-          <h3 className="text-xl font-bold text-white!">Abu Sufyan Al-Alma&apos;iyy Foundation</h3>
+          <h3 className="text-xl font-bold text-white!">
+            Abu Sufyan Al-Alma&apos;iyy Foundation
+          </h3>
         </Link>
 
         <div className="hidden md:block">
-          <p className="font-serif text-3xl leading-snug text-white">
+          <p className="font-display text-3xl leading-snug text-white">
             Foundation administration
           </p>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/70">

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Newsreader, Public_Sans } from "next/font/google";
+import { Public_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
-import { Analytics } from "@vercel/analytics/next";
 
-const newsreader = Newsreader({
-  subsets: ["latin"],
-  variable: "--font-newsreader",
+const clashDisplay = localFont({
+  src: "./fonts/ClashDisplay-Variable.woff2",
+  variable: "--font-clash-display",
+  weight: "200 700",
   display: "swap",
 });
 
@@ -41,8 +42,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${publicSans.variable}`}>
-      <Analytics />
+    <html
+      lang="en"
+      className={`${clashDisplay.variable} ${publicSans.variable}`}
+    >
       <body>{children}</body>
     </html>
   );

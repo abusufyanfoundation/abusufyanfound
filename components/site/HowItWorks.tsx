@@ -3,24 +3,20 @@ import { SectionHeading } from "./SectionHeading";
 
 const steps = [
   {
-    title: "Books are selected",
-    text: "The Foundation chooses the books needed for each batch.",
+    title: "You give",
+    text: "Give to a campaign, or pay for a specific book. Both are paid securely online.",
   },
   {
-    title: "Supporters contribute",
-    text: "Supporters give towards the cost of the books they choose.",
+    title: "The Foundation buys the books",
+    text: "For a campaign, once the target is reached. For a pre-funded book, after your payment is confirmed.",
   },
   {
-    title: "Books are acquired",
-    text: "Once funds are received, the books and materials are purchased.",
+    title: "Books are distributed",
+    text: "They go to students of knowledge and mosques in need.",
   },
   {
-    title: "Materials are distributed",
-    text: "Books are handed to selected beneficiaries.",
-  },
-  {
-    title: "Distribution is documented",
-    text: "Each distribution is recorded, so giving can be accounted for.",
+    title: "Distribution is recorded",
+    text: "Each distribution is documented, so giving can be accounted for.",
   },
 ] as const;
 
@@ -31,7 +27,7 @@ export function HowItWorks() {
         <SectionHeading
           tone="dark"
           eyebrow="How it works"
-          title="From selection to documented distribution"
+          title="What happens after you give"
         />
 
         <ol className="mt-14 flex flex-col gap-10 lg:flex-row lg:gap-8">
@@ -40,7 +36,7 @@ export function HowItWorks() {
               key={step.title}
               className="flex-1 border-t border-gold/60 pt-6"
             >
-              <span className="font-serif text-4xl text-gold">
+              <span className="font-display text-4xl text-gold">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <h3 className="mt-4 text-xl text-white">{step.title}</h3>

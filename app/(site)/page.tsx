@@ -7,6 +7,7 @@ import { Hero } from "@/components/site/Hero";
 import { ImpactSection } from "@/components/site/ImpactSection";
 import { WhatWeDo } from "@/components/site/WhatWeDo";
 import { getCurrentCampaign, getImpact } from "@/lib/data/public";
+import { TwoWays } from "@/components/site/TwoWays";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -26,6 +27,7 @@ export default async function HomePage() {
       <Hero />
       <About />
       <WhatWeDo />
+      <TwoWays/>
       {/* <HowItWorks /> */}
       <ImpactSection impact={impact} />
       <CampaignSection campaign={campaign} />

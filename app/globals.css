@@ -25,7 +25,9 @@
   --color-muted: var(--color-muted);
   --color-rule: var(--color-rule);
 
-  --font-serif: var(--font-newsreader), Georgia, serif;
+  --font-display: var(--font-clash-display), system-ui, sans-serif;
+  /* Temporary alias so existing font-serif classes keep working */
+  --font-serif: var(--font-clash-display), system-ui, sans-serif;
   --font-sans: var(--font-public-sans), system-ui, sans-serif;
 }
 
@@ -46,7 +48,7 @@
   h2,
   h3,
   h4 {
-    font-family: var(--font-serif);
+    font-family: var(--font-clash-display), system-ui, sans-serif;
     font-weight: 500;
     letter-spacing: -0.01em;
     color: var(--color-navy);

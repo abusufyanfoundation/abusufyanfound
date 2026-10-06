@@ -24,7 +24,7 @@ export function Header() {
           />
           <span
             aria-hidden="true"
-            className="hidden max-w-[14rem] font-serif text-lg font-semibold leading-tight text-navy sm:block"
+            className="hidden max-w-[14rem] font-display text-lg font-semibold leading-tight text-navy sm:block"
           >
             {siteConfig.name}
           </span>

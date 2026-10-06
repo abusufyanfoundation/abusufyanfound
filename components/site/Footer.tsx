@@ -12,16 +12,27 @@ export function Footer() {
     <footer className="bg-navy-deep text-white">
       <Container className="flex flex-col gap-14 py-16 lg:flex-row lg:justify-between">
         <div className="max-w-sm">
-          <div className="inline-block bg-paper p-2">
+          <Link
+            href="/"
+            aria-label={siteConfig.name}
+            className="flex items-center gap-3"
+          >
             <Image
               src="/logo.png"
-              alt={`${siteConfig.name} logo`}
-              width={64}
-              height={64}
-              className="h-16 w-auto"
+              alt=""
+              width={48}
+              height={48}
+              priority
+              className="h-12 w-auto rounded-sm"
             />
-          </div>
-          <p className="mt-6 text-sm leading-relaxed text-white/70">
+            <span
+              aria-hidden="true"
+              className="hidden max-w-56 font-display text-lg font-normal leading-tight text-white sm:block"
+            >
+              {siteConfig.name}
+            </span>
+          </Link>
+          <p className="mt-6 text-sm leading-relaxed text-white/80">
             {siteConfig.description}
           </p>
           <ButtonLink
