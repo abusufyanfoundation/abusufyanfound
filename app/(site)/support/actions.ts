@@ -42,10 +42,8 @@ export async function startGeneralDonation(
 
   // The campaign is always looked up on the server, never taken from the form
   const campaign = await getCurrentCampaign();
-  if (campaign?.closed) {
-    return {
-      error: "This campaign has closed. Please check back for the next one.",
-    };
+  if (!campaign) {
+    return { error: "No active campaign found." };
   }
 
   const reference = newReference();
