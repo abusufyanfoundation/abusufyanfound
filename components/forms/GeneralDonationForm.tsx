@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState } from "react";
+import { useActionForm } from "@/lib/forms/use-action-form";
 import { startGeneralDonation } from "@/app/(site)/support/actions";
 import { DonorFields } from "./DonorFields";
 import { Notice } from "./Notice";
@@ -9,11 +10,11 @@ import { SubmitButton } from "./SubmitButton";
 const presets = [5000, 10000, 25000, 50000];
 
 export function GeneralDonationForm() {
-  const [state, action] = useActionState(startGeneralDonation, undefined);
+  const { state, pending, onSubmit } = useActionForm(startGeneralDonation);
   const [amount, setAmount] = useState("");
 
   return (
-    <form action={action} className="flex flex-col gap-6">
+    <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <Notice error={state?.error} />
 
       <div className="flex flex-col gap-3">
@@ -57,7 +58,7 @@ export function GeneralDonationForm() {
       <DonorFields />
 
       <div className="flex flex-col items-start gap-3 pt-1">
-        <SubmitButton pendingText="Preparing payment…">
+        <SubmitButton pending={pending} pendingText="Preparing payment…">
           Continue to payment
         </SubmitButton>
         <p className="text-xs text-muted">

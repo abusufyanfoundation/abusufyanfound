@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
+import { useActionForm } from "@/lib/forms/use-action-form";
 import { startBookOrder } from "@/app/(site)/support/actions";
 import { useSelection } from "@/components/site/selection/SelectionProvider";
 import { formatNaira } from "@/lib/money";
@@ -24,7 +25,7 @@ function useHydrated() {
 export function BookCheckoutForm() {
   const hydrated = useHydrated();
   const { items, totalKobo, removeItem } = useSelection();
-  const [state, action] = useActionState(startBookOrder, undefined);
+  const { state, pending, onSubmit } = useActionForm(startBookOrder);
   const list = Object.values(items);
 
   if (!hydrated) {
@@ -51,7 +52,7 @@ export function BookCheckoutForm() {
   }
 
   return (
-    <form action={action} className="flex flex-col gap-6">
+    <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <Notice error={state?.error} />
 
       <div>
@@ -112,7 +113,7 @@ export function BookCheckoutForm() {
       <DonorFields />
 
       <div className="flex flex-col items-start gap-3 pt-1">
-        <SubmitButton pendingText="Preparing payment…">
+        <SubmitButton pending={pending} pendingText="Preparing payment…">
           Continue to payment
         </SubmitButton>
         <p className="text-xs text-muted">
