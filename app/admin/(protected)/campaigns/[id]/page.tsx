@@ -13,7 +13,10 @@ import { completeCampaign, setCampaignActive } from "../actions";
 
 export const metadata = {
   title: "Edit campaign",
-  robots: { index: false, follow: false },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 type Campaign = {
@@ -34,16 +37,25 @@ export default async function EditCampaignPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
+  params: Promise<{
+    id: string;
+  }>;
+
+  searchParams: Promise<{
+    error?: string;
+  }>;
 }) {
   await requireAdmin();
+
   const { id } = await params;
   const { error } = await searchParams;
 
-  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
+  if (!/^[0-9a-f-]{36}$/i.test(id)) {
+    notFound();
+  }
 
   const supabase = await createClient();
+
   const { data: campaign } = await supabase
     .from("campaigns")
     .select(
@@ -52,21 +64,30 @@ export default async function EditCampaignPage({
     .eq("id", id)
     .maybeSingle<Campaign>();
 
-  if (!campaign) notFound();
+  if (!campaign) {
+    notFound();
+  }
 
   const { data: totals } = await supabase
     .from("admin_campaign_totals")
     .select("raised_kobo, supporters")
     .eq("campaign_id", id)
-    .maybeSingle<{ raised_kobo: number; supporters: number }>();
+    .maybeSingle<{
+      raised_kobo: number;
+      supporters: number;
+    }>();
 
   const raised = totals?.raised_kobo ?? 0;
+
   const completed = campaign.completed_at !== null;
 
   return (
     <div className="flex flex-col gap-10">
       <PageHeader
-        back={{ label: "Back to campaigns", href: "/admin/campaigns" }}
+        back={{
+          label: "Back to campaigns",
+          href: "/admin/campaigns",
+        }}
         title={campaign.title}
       />
 
@@ -74,6 +95,7 @@ export default async function EditCampaignPage({
 
       <Panel title="Progress">
         <ProgressBar raisedKobo={raised} targetKobo={campaign.target_kobo} />
+
         <p className="mt-1 text-sm text-muted">
           {formatNaira(raised)} of {formatNaira(campaign.target_kobo)} ·{" "}
           {totals?.supporters ?? 0} supporters
@@ -109,11 +131,13 @@ export default async function EditCampaignPage({
           <div className="mt-5 flex flex-wrap items-start gap-4">
             <form action={setCampaignActive}>
               <input type="hidden" name="id" value={campaign.id} />
+
               <input
                 type="hidden"
                 name="active"
                 value={String(!campaign.is_active)}
               />
+
               <button type="submit" className={outline}>
                 {campaign.is_active ? "Deactivate" : "Activate"}
               </button>
@@ -121,12 +145,20 @@ export default async function EditCampaignPage({
 
             <form action={completeCampaign}>
               <input type="hidden" name="id" value={campaign.id} />
+
               <button type="submit" className={outline}>
                 Mark as completed
               </button>
             </form>
           </div>
         )}
+
+        <Link
+          href={`/admin/campaigns/${campaign.id}/distributions`}
+          className="mt-5 inline-block text-sm text-navy underline decoration-gold underline-offset-4"
+        >
+          View campaign distributions
+        </Link>
 
         {!completed && (
           <p className="mt-4 max-w-md text-xs leading-relaxed text-muted">
@@ -139,6 +171,7 @@ export default async function EditCampaignPage({
 
       <section>
         <h2 className="mb-5 font-display text-xl text-navy">Details</h2>
+
         <CampaignForm
           campaign={{
             id: campaign.id,
