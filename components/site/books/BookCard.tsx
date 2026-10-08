@@ -6,18 +6,18 @@ import { formatNaira } from "@/lib/money";
 import type { Book } from "@/lib/types";
 import { useSelection } from "@/components/site/selection/SelectionProvider";
 
+// The most copies of one book that can be funded in a single order
+const MAX_QTY = 100;
+
 export function BookCard({ book }: { book: Book }) {
   const { items, setItem, removeItem } = useSelection();
   const selected = items[book.id];
 
   const [draft, setDraft] = useState<number>();
   const qty = draft ?? selected?.quantity ?? 1;
-
-  const max = book.available_quantity;
-  const soldOut = max < 1;
   const unchanged = selected?.quantity === qty;
 
-  const change = (n: number) => setDraft(Math.min(max, Math.max(1, n)));
+  const change = (n: number) => setDraft(Math.min(MAX_QTY, Math.max(1, n)));
 
   const confirm = () => {
     setItem({
@@ -25,7 +25,6 @@ export function BookCard({ book }: { book: Book }) {
       title: book.title,
       priceKobo: book.price_kobo,
       quantity: qty,
-      max,
     });
     setDraft(undefined);
   };
@@ -67,54 +66,50 @@ export function BookCard({ book }: { book: Book }) {
         </p>
       )}
 
-      <div className="mt-4 flex items-baseline justify-between border-t border-rule pt-4">
+      <div className="mt-4 border-t border-rule pt-4">
         <p className="font-display text-xl text-navy">
           {formatNaira(book.price_kobo)}
-        </p>
-        <p className="text-sm text-muted">
-          {soldOut ? "Out of stock" : `${max} available`}
+          <span className="text-sm text-muted"> per copy</span>
         </p>
       </div>
 
-      {!soldOut && (
-        <div className="mt-4 flex items-center gap-3">
-          <div className="flex items-center border border-rule bg-white">
-            <button
-              type="button"
-              onClick={() => change(qty - 1)}
-              disabled={qty <= 1}
-              aria-label={`Decrease quantity of ${book.title}`}
-              className="px-3.5 py-2.5 text-lg text-navy disabled:opacity-30"
-            >
-              −
-            </button>
-            <span
-              aria-live="polite"
-              className="min-w-8 text-center text-sm font-medium text-ink"
-            >
-              {qty}
-            </span>
-            <button
-              type="button"
-              onClick={() => change(qty + 1)}
-              disabled={qty >= max}
-              aria-label={`Increase quantity of ${book.title}`}
-              className="px-3.5 py-2.5 text-lg text-navy disabled:opacity-30"
-            >
-              +
-            </button>
-          </div>
-
+      <div className="mt-4 flex items-center gap-3">
+        <div className="flex items-center border border-rule bg-white">
           <button
             type="button"
-            onClick={confirm}
-            disabled={unchanged}
-            className="flex-1 rounded-sm bg-navy px-4 py-3 text-sm font-medium tracking-wide text-white transition-colors hover:bg-navy-deep disabled:bg-gold-soft disabled:text-navy"
+            onClick={() => change(qty - 1)}
+            disabled={qty <= 1}
+            aria-label={`Decrease quantity of ${book.title}`}
+            className="px-3.5 py-2.5 text-lg text-navy disabled:opacity-30"
           >
-            {buttonLabel}
+            −
+          </button>
+          <span
+            aria-live="polite"
+            className="min-w-8 text-center text-sm font-medium text-ink"
+          >
+            {qty}
+          </span>
+          <button
+            type="button"
+            onClick={() => change(qty + 1)}
+            disabled={qty >= MAX_QTY}
+            aria-label={`Increase quantity of ${book.title}`}
+            className="px-3.5 py-2.5 text-lg text-navy disabled:opacity-30"
+          >
+            +
           </button>
         </div>
-      )}
+
+        <button
+          type="button"
+          onClick={confirm}
+          disabled={unchanged}
+          className="flex-1 rounded-sm bg-navy px-4 py-3 text-sm font-medium tracking-wide text-white transition-colors hover:bg-navy-deep disabled:bg-gold-soft disabled:text-navy"
+        >
+          {buttonLabel}
+        </button>
+      </div>
 
       {selected && (
         <button

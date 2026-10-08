@@ -1,7 +1,6 @@
-// Every payment reference for this project starts with this prefix.
-// The shared webhook uses it to tell our payments from the other project's.
+// Our own payment references start with this prefix, which makes them easy
+// to recognise in the Paystack dashboard.
 export const REFERENCE_PREFIX = "ASAF-";
-export const PROJECT_ID = "alalmaiyy-foundation";
 
 export const newReference = () =>
   `${REFERENCE_PREFIX}${crypto
@@ -10,5 +9,6 @@ export const newReference = () =>
     .slice(0, 20)
     .toUpperCase()}`;
 
-export const isOurReference = (reference: string) =>
-  reference.startsWith(REFERENCE_PREFIX) && /^[A-Z0-9-]{6,64}$/.test(reference);
+// A basic sanity check before a reference from a URL or webhook is used
+export const isValidReference = (reference: string) =>
+  /^[A-Za-z0-9_-]{6,64}$/.test(reference);

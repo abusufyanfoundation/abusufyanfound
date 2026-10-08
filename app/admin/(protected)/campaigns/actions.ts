@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { diffFields } from "@/lib/admin/diff";
+import { logAudit } from "@/lib/admin/audit";
 import { uploadImage } from "@/lib/admin/upload";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import type { FormState } from "@/lib/forms/types";
-import { toKobo } from "@/lib/money";
+import { formatNaira, toKobo } from "@/lib/money";
 import { slugify } from "@/lib/slug";
 import { createClient } from "@/lib/supabase/server";
 import { campaignSchema } from "@/lib/validation/admin";
@@ -22,13 +24,22 @@ function refresh() {
   revalidatePath("/support");
   revalidatePath("/admin");
   revalidatePath("/admin/campaigns");
+  revalidatePath("/admin/activity");
 }
+
+type Existing = {
+  title: string;
+  description: string | null;
+  target_kobo: number;
+  is_active: boolean;
+  image_url: string | null;
+};
 
 export async function saveCampaign(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  await requireAdmin();
+  const actor = await requireAdmin();
 
   const parsed = campaignSchema.safeParse({
     title: formData.get("title"),
@@ -58,12 +69,50 @@ export async function saveCampaign(
   };
 
   if (id) {
+    const { data: before } = await supabase
+      .from("campaigns")
+      .select("title, description, target_kobo, is_active, image_url")
+      .eq("id", id)
+      .maybeSingle<Existing>();
+
     const { error } = await supabase.from("campaigns").update(row).eq("id", id);
     if (error) {
       return {
         error: isActiveConflict(error.message) ? ACTIVE_CONFLICT : GENERIC,
       };
     }
+
+    if (before) {
+      const changes = diffFields(
+        {
+          Title: before.title,
+          Description: before.description ?? "",
+          Target: formatNaira(before.target_kobo),
+          Active: before.is_active ? "Yes" : "No",
+          Image: before.image_url ? "Set" : "None",
+        },
+        {
+          Title: row.title,
+          Description: row.description ?? "",
+          Target: formatNaira(row.target_kobo),
+          Active: row.is_active ? "Yes" : "No",
+          Image: upload.url ? "Replaced" : before.image_url ? "Set" : "None",
+        },
+      ).filter(
+        (c) => !(c.field === "Image" && c.from === "Set" && c.to === "Set"),
+      );
+
+      if (changes.length > 0) {
+        await logAudit(supabase, actor, {
+          action: "campaign.updated",
+          entity: "campaign",
+          entityId: id,
+          summary: `Updated campaign “${input.title}”`,
+          details: { changes },
+        });
+      }
+    }
+
     refresh();
     revalidatePath(`/admin/campaigns/${id}`);
     return { message: "Campaign saved." };
@@ -78,12 +127,23 @@ export async function saveCampaign(
       .single();
 
     if (!error && data) {
+      await logAudit(supabase, actor, {
+        action: "campaign.created",
+        entity: "campaign",
+        entityId: data.id,
+        summary: `Created campaign “${input.title}”`,
+        details: {
+          target: formatNaira(row.target_kobo),
+          active: row.is_active,
+        },
+      });
       refresh();
       redirect(`/admin/campaigns/${data.id}`);
     }
 
-    if (error && isActiveConflict(error.message))
+    if (error && isActiveConflict(error.message)) {
       return { error: ACTIVE_CONFLICT };
+    }
 
     // Slug already taken: add a short suffix and try again
     if (error?.message.includes("slug")) {
@@ -96,11 +156,17 @@ export async function saveCampaign(
 }
 
 export async function setCampaignActive(formData: FormData) {
-  await requireAdmin();
+  const actor = await requireAdmin();
 
   const id = String(formData.get("id") ?? "");
   const active = formData.get("active") === "true";
   const supabase = await createClient();
+
+  const { data: current } = await supabase
+    .from("campaigns")
+    .select("title")
+    .eq("id", id)
+    .maybeSingle<{ title: string }>();
 
   let query = supabase
     .from("campaigns")
@@ -108,6 +174,15 @@ export async function setCampaignActive(formData: FormData) {
     .eq("id", id);
   if (active) query = query.is("completed_at", null);
   const { error } = await query;
+
+  if (!error) {
+    await logAudit(supabase, actor, {
+      action: active ? "campaign.activated" : "campaign.deactivated",
+      entity: "campaign",
+      entityId: id,
+      summary: `${active ? "Activated" : "Deactivated"} campaign “${current?.title ?? "Unknown"}”`,
+    });
+  }
 
   refresh();
   revalidatePath(`/admin/campaigns/${id}`);
@@ -122,16 +197,31 @@ export async function setCampaignActive(formData: FormData) {
 }
 
 export async function completeCampaign(formData: FormData) {
-  await requireAdmin();
+  const actor = await requireAdmin();
 
   const id = String(formData.get("id") ?? "");
   const supabase = await createClient();
+
+  const { data: current } = await supabase
+    .from("campaigns")
+    .select("title")
+    .eq("id", id)
+    .maybeSingle<{ title: string }>();
 
   const { error } = await supabase
     .from("campaigns")
     .update({ completed_at: new Date().toISOString(), is_active: false })
     .eq("id", id)
     .is("completed_at", null);
+
+  if (!error) {
+    await logAudit(supabase, actor, {
+      action: "campaign.completed",
+      entity: "campaign",
+      entityId: id,
+      summary: `Marked campaign “${current?.title ?? "Unknown"}” as completed`,
+    });
+  }
 
   refresh();
   revalidatePath(`/admin/campaigns/${id}`);

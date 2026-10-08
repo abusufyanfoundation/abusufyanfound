@@ -19,7 +19,6 @@ export type Book = {
   description: string | null;
   cover_url: string | null;
   price_kobo: number;
-  available_quantity: number;
 };
 
 export type ImpactStats = {

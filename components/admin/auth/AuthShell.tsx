@@ -1,4 +1,5 @@
-// import Image from "next/image";
+import { siteConfig } from "@/lib/site";
+import Image from "next/image";
 import Link from "next/link";
 
 export function AuthShell({
@@ -13,17 +14,25 @@ export function AuthShell({
   return (
     <main className="flex min-h-screen flex-col md:flex-row">
       <aside className="flex flex-col justify-between bg-navy px-8 py-8 md:w-5/12 md:px-14 md:py-16">
-        <Link href="/" aria-label="Back to the foundation website">
-          {/* <Image
+        <Link
+          href="/"
+          aria-label="Back to foundation homepage"
+          className="flex items-center gap-3"
+        >
+          <Image
             src="/logo.png"
-            alt="Abu Sufyan Al-Alma'iyy Foundation"
-            width={120}
-            height={120}
+            alt=""
+            width={48}
+            height={48}
             priority
-          /> */}
-          <h3 className="text-xl font-bold text-white!">
-            Abu Sufyan Al-Alma&apos;iyy Foundation
-          </h3>
+            className="h-12 w-auto rounded-sm"
+          />
+          <span
+            aria-hidden="true"
+            className="max-w-56 font-display text-lg font-normal leading-tight text-white sm:block"
+          >
+            {siteConfig.name}
+          </span>
         </Link>
 
         <div className="hidden md:block">

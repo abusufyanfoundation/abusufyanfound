@@ -91,7 +91,7 @@ export function BookCheckoutForm() {
 
         <div className="mt-3 flex items-center justify-between gap-4">
           <p className="text-xs text-muted">
-            Prices and availability are checked again when you continue.
+            Prices are checked again when you continue.
           </p>
           <Link
             href="/books"

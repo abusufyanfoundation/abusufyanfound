@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import type { AuthState } from "@/lib/auth/types";
+import { logAudit } from "@/lib/admin/audit";
 
 const schema = z.object({
   email: z.string().trim().email(),
@@ -32,7 +33,7 @@ export async function signIn(
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+   .select("role, full_name")
     .eq("id", data.user.id)
     .single();
 
@@ -40,6 +41,16 @@ export async function signIn(
     await supabase.auth.signOut();
     return { error: "This account does not have administrator access." };
   }
+
+  await logAudit(
+    supabase,
+    { user: data.user, profile },
+    {
+      action: "auth.sign_in",
+      entity: "session",
+      summary: "Signed in",
+    },
+  );
 
   redirect("/admin");
 }

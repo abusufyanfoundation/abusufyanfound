@@ -13,8 +13,9 @@ export default async function NewBookPage() {
   return (
     <div className="flex flex-col gap-10">
       <PageHeader
+        back={{ label: "Back to books", href: "/admin/books" }}
         title="Add a book"
-        intro="Books you mark as Available appear on the website for supporters to pre-fund."
+        intro="Books you mark as Listed appear on the website for supporters to pre-fund. A book is only bought once a donor has paid for it."
       />
       <BookForm />
     </div>

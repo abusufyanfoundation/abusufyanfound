@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import {
   EmptyState,
   PageHeader,
@@ -77,10 +78,6 @@ export default async function AdminCampaignsPage() {
             {rows.map((c) => {
               const t = byId.get(c.id);
               const raised = t?.raised_kobo ?? 0;
-              const percent =
-                c.target_kobo > 0
-                  ? Math.min(100, Math.round((raised / c.target_kobo) * 100))
-                  : 0;
               return (
                 <tr key={c.id}>
                   <td className={td}>
@@ -94,9 +91,14 @@ export default async function AdminCampaignsPage() {
                   <td className={td}>
                     <StatusText status={campaignStatus(c)} />
                   </td>
-                  <td className={td}>
+                  <td className={`${td} min-w-48`}>
                     {formatNaira(raised)} of {formatNaira(c.target_kobo)}
-                    <span className="text-muted"> ({percent}%)</span>
+                    <div className="mt-2">
+                      <ProgressBar
+                        raisedKobo={raised}
+                        targetKobo={c.target_kobo}
+                      />
+                    </div>
                   </td>
                   <td className={td}>{t?.supporters ?? 0}</td>
                   <td className={td}>{formatDate(c.created_at)}</td>

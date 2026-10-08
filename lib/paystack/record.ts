@@ -5,7 +5,6 @@ import { verifyTransaction, type PaystackTransaction } from "./verify";
 
 export type RecordResult =
   | "success"
-  | "needs_refund"
   | "already_processed"
   | "pending"
   | "failed"
@@ -24,7 +23,6 @@ const pickRaw = (tx: PaystackTransaction) => ({
   paid_at: tx.paid_at ?? null,
   gateway_response: tx.gateway_response ?? null,
   fees: tx.fees ?? null,
-  subaccount: tx.subaccount?.subaccount_code ?? null,
 });
 
 // The only place a payment is marked as paid.
@@ -33,6 +31,14 @@ export async function verifyAndRecord(
   reference: string,
 ): Promise<RecordResult> {
   const admin = createAdminClient();
+
+  // Ignore references we have no record of
+  const { data: known } = await admin
+    .from("payments")
+    .select("id")
+    .eq("reference", reference)
+    .maybeSingle();
+  if (!known) return "not_found";
 
   let tx: PaystackTransaction;
   try {
@@ -44,33 +50,20 @@ export async function verifyAndRecord(
 
   if (tx.status === "failed") {
     await admin.rpc("mark_payment_failed", { p_reference: reference });
-    revalidatePath("/books");
     return "failed";
   }
 
-  // abandoned / ongoing / pending: the expiry job releases stock if it never completes
+  // abandoned / ongoing / pending: it may still complete, or the hourly
+  // clean-up marks it abandoned
   if (tx.status !== "success") return "pending";
 
-  // Safety checks before money is recorded
-  const expectedSub = process.env.PAYSTACK_SUBACCOUNT_CODE;
-  const actualSub = tx.subaccount?.subaccount_code;
-
-  if (
-    tx.currency !== "NGN" ||
-    (expectedSub && actualSub && actualSub !== expectedSub)
-  ) {
-    console.error("verifyAndRecord: unexpected currency or subaccount", {
+  if (tx.currency !== "NGN") {
+    console.error(
+      "verifyAndRecord: unexpected currency",
       reference,
-      currency: tx.currency,
-      actualSub,
-    });
-    return "mismatch";
-  }
-  if (expectedSub && !actualSub) {
-    console.warn(
-      "verifyAndRecord: verify response had no subaccount",
-      reference,
+      tx.currency,
     );
+    return "mismatch";
   }
 
   const { data, error } = await admin.rpc("mark_payment_success", {
@@ -89,15 +82,12 @@ export async function verifyAndRecord(
     return "error";
   }
 
-  // Refresh pages that show totals or stock
+  // Refresh pages that show totals
   revalidatePath("/");
-  revalidatePath("/books");
 
   switch (data as string) {
     case "SUCCESS":
       return "success";
-    case "SUCCESS_NEEDS_REFUND":
-      return "needs_refund";
     case "ALREADY_PROCESSED":
       return "already_processed";
     case "NOT_FOUND":

@@ -18,7 +18,6 @@ type PaymentView = {
   paid_at: string | null;
   donation: { type: "general" | "book" } | null;
   order: {
-    needs_refund: boolean;
     order_items: {
       quantity: number;
       unit_price_kobo: number;
@@ -56,7 +55,7 @@ export default async function ConfirmationPage({
     const { data } = await admin
       .from("payments")
       .select(
-        "reference, amount_kobo, status, paid_at, donation:donations(type), order:orders(needs_refund, order_items(quantity, unit_price_kobo, book:books(title)))",
+        "reference, amount_kobo, status, paid_at, donation:donations(type), order:orders(order_items(quantity, unit_price_kobo, book:books(title)))",
       )
       .eq("reference", reference)
       .maybeSingle<PaymentView>();
@@ -118,17 +117,6 @@ export default async function ConfirmationPage({
                 ? "This can take a minute. If you have already paid, please check again shortly. You will not be charged twice."
                 : "No money was taken, or the payment was declined. You can try again whenever you are ready."}
           </p>
-
-          {success && payment.order?.needs_refund && (
-            <p
-              role="status"
-              className="mt-6 border-l-2 border-gold bg-gold-soft px-4 py-3 text-sm leading-relaxed text-ink"
-            >
-              Your payment was received, but while you were paying, the last
-              copies of one or more books were taken. The Foundation will
-              contact you to resolve this. Please keep your reference below.
-            </p>
-          )}
 
           <dl className="mt-10">
             <Row

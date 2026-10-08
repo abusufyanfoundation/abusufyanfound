@@ -12,7 +12,6 @@ export type SelectedItem = {
   title: string;
   priceKobo: number;
   quantity: number;
-  max: number;
 };
 
 type Items = Record<string, SelectedItem>;

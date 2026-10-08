@@ -13,6 +13,7 @@ export default async function NewCampaignPage() {
   return (
     <div className="flex flex-col gap-10">
       <PageHeader
+        back={{ label: "Back to campaigns", href: "/admin/campaigns" }}
         title="New campaign"
         intro="A campaign is a general fund with a target. Donors give any amount and do not choose books."
       />

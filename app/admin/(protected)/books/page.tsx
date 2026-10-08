@@ -9,6 +9,7 @@ import {
   th,
 } from "@/components/admin/ui";
 import { cleanSearch, parsePage } from "@/lib/admin/filters";
+import { BOOK_STATUSES, bookStatusLabel } from "@/lib/admin/labels";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatNaira } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
@@ -19,21 +20,16 @@ export const metadata = {
 };
 
 const PAGE_SIZE = 20;
-const STATUSES = ["draft", "available", "unavailable"] as const;
 
 type BookRow = {
   id: string;
   title: string;
   author: string;
   price_kobo: number;
-  available_quantity: number;
-  initial_quantity: number;
-  status: (typeof STATUSES)[number];
+  status: string;
 };
 
-type Sales = { book_id: string; reserved_qty: number; purchased_qty: number };
-
-const label = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+type Funding = { book_id: string; funded_qty: number; distributed_qty: number };
 
 export default async function AdminBooksPage({
   searchParams,
@@ -44,17 +40,14 @@ export default async function AdminBooksPage({
   const sp = await searchParams;
 
   const q = cleanSearch(sp.q);
-  const status = STATUSES.find((s) => s === sp.status);
+  const status = BOOK_STATUSES.find((s) => s === sp.status);
   const page = parsePage(sp.page);
 
   const supabase = await createClient();
 
   let query = supabase
     .from("books")
-    .select(
-      "id, title, author, price_kobo, available_quantity, initial_quantity, status",
-      { count: "exact" },
-    );
+    .select("id, title, author, price_kobo, status", { count: "exact" });
   if (status) query = query.eq("status", status);
   if (q) query = query.or(`title.ilike.%${q}%,author.ilike.%${q}%`);
 
@@ -67,16 +60,16 @@ export default async function AdminBooksPage({
   const rows = data ?? [];
   const ids = rows.map((b) => b.id);
 
-  const sales = ids.length
+  const funding = ids.length
     ? ((
         await supabase
-          .from("admin_book_sales")
-          .select("book_id, reserved_qty, purchased_qty")
+          .from("admin_book_funding")
+          .select("book_id, funded_qty, distributed_qty")
           .in("book_id", ids)
-          .returns<Sales[]>()
+          .returns<Funding[]>()
       ).data ?? [])
     : [];
-  const salesById = new Map(sales.map((s) => [s.book_id, s]));
+  const fundingById = new Map(funding.map((f) => [f.book_id, f]));
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
   const filtered = Boolean(q || status);
@@ -85,7 +78,7 @@ export default async function AdminBooksPage({
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Books"
-        intro="The books supporters can pre-fund. Only Available books appear on the website."
+        intro="The books supporters can pre-fund. Only Listed books appear on the website, and a book is bought only after a donor has paid for it."
         action={{ label: "Add a book", href: "/admin/books/new" }}
       />
 
@@ -115,9 +108,9 @@ export default async function AdminBooksPage({
           className="border border-rule bg-white px-3.5 py-2.5 text-sm text-ink focus:border-navy"
         >
           <option value="">All statuses</option>
-          {STATUSES.map((s) => (
+          {BOOK_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {label(s)}
+              {bookStatusLabel(s)}
             </option>
           ))}
         </select>
@@ -151,14 +144,13 @@ export default async function AdminBooksPage({
                 <th className={th}>Book</th>
                 <th className={th}>Status</th>
                 <th className={th}>Price</th>
-                <th className={th}>In stock</th>
-                <th className={th}>Reserved</th>
-                <th className={th}>Purchased</th>
+                <th className={th}>Copies funded</th>
+                <th className={th}>Distributed</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-rule">
               {rows.map((b) => {
-                const s = salesById.get(b.id);
+                const f = fundingById.get(b.id);
                 return (
                   <tr key={b.id}>
                     <td className={td}>
@@ -173,18 +165,11 @@ export default async function AdminBooksPage({
                       </span>
                     </td>
                     <td className={td}>
-                      <StatusText status={label(b.status)} />
+                      <StatusText status={bookStatusLabel(b.status)} />
                     </td>
                     <td className={td}>{formatNaira(b.price_kobo)}</td>
-                    <td className={td}>
-                      {b.available_quantity}
-                      <span className="text-muted">
-                        {" "}
-                        of {b.initial_quantity}
-                      </span>
-                    </td>
-                    <td className={td}>{s?.reserved_qty ?? 0}</td>
-                    <td className={td}>{s?.purchased_qty ?? 0}</td>
+                    <td className={td}>{f?.funded_qty ?? 0}</td>
+                    <td className={td}>{f?.distributed_qty ?? 0}</td>
                   </tr>
                 );
               })}

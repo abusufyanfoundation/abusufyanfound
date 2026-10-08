@@ -9,8 +9,6 @@ type InitializeArgs = {
 };
 
 export async function initializeTransaction(args: InitializeArgs) {
-  const subaccount = process.env.PAYSTACK_SUBACCOUNT_CODE;
-
   const res = await fetch("https://api.paystack.co/transaction/initialize", {
     method: "POST",
     headers: {
@@ -23,9 +21,7 @@ export async function initializeTransaction(args: InitializeArgs) {
       currency: "NGN",
       reference: args.reference,
       callback_url: args.callbackUrl,
-      metadata: { project: "alalmaiyy-foundation", ...args.metadata },
-      // Routes settlement to this project's bank account
-      ...(subaccount ? { subaccount, bearer: "subaccount" } : {}),
+      metadata: args.metadata,
     }),
     cache: "no-store",
   });

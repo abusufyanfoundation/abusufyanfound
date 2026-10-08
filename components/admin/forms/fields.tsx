@@ -1,5 +1,5 @@
 const control =
-  "w-full border border-rule bg-white px-3.5 py-3 text-base text-ink transition-colors focus:border-navy";
+  "w-full border border-rule bg-white px-3.5 py-3 text-base text-ink transition-colors focus:border-navy disabled:cursor-not-allowed disabled:bg-paper disabled:text-muted";
 
 function Shell({
   label,
@@ -160,7 +160,7 @@ export function FileField({
         name={name}
         type="file"
         accept="image/jpeg,image/png,image/webp"
-        className="text-sm text-ink file:mr-4 file:border file:border-navy file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-navy"
+        className="text-sm text-ink disabled:opacity-60 file:mr-4 file:border file:border-navy file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-navy"
       />
     </Shell>
   );

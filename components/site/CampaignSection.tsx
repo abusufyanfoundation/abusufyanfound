@@ -1,37 +1,31 @@
-import Image from "next/image";
-import { ButtonLink } from "@/components/ui/ButtonLink";
-import { formatNaira } from "@/lib/money";
 import { siteConfig } from "@/lib/site";
 import type { CampaignWithStats } from "@/lib/types";
+import { CampaignCard } from "./CampaignCard";
 import { Container } from "./Container";
 import { SectionHeading } from "./SectionHeading";
 
 const INTRO =
   "A campaign is a general fund with a target. Give any amount you like. You do not choose the books: once the target is reached, the Foundation chooses and buys them, and gives them to students of knowledge and mosques.";
 
-function Figure({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col-reverse gap-1">
-      <dt className="text-sm text-muted">{label}</dt>
-      <dd className="font-display text-2xl text-navy">{value}</dd>
-    </div>
-  );
-}
-
 export function CampaignSection({
   campaign,
 }: {
   campaign: CampaignWithStats | null;
 }) {
-  if (!campaign) {
-    return (
-      <section id="campaign" className="bg-gold-soft py-20 md:py-28">
-        <Container>
-          <SectionHeading
-            eyebrow="Campaigns"
-            title="Our current campaign"
-            intro={INTRO}
-          />
+  return (
+    <section id="campaign" className="bg-gold-soft py-20 md:py-28">
+      <Container>
+        <SectionHeading
+          eyebrow="Campaigns"
+          title="Our current campaign"
+          intro={INTRO}
+        />
+
+        {campaign ? (
+          <div className="mt-12">
+            <CampaignCard campaign={campaign} />
+          </div>
+        ) : (
           <div className="mt-10 max-w-xl border-l-2 border-gold pl-6">
             <p className="font-display text-2xl text-navy">
               There is no active campaign right now.
@@ -55,94 +49,7 @@ export function CampaignSection({
               ))}
             </ul>
           </div>
-        </Container>
-      </section>
-    );
-  }
-
-  const percent =
-    campaign.target_kobo > 0
-      ? Math.min(
-          100,
-          Math.round((campaign.raised_kobo / campaign.target_kobo) * 100),
-        )
-      : 0;
-
-  return (
-    <section id="campaign" className="bg-gold-soft py-20 md:py-28">
-      <Container>
-        <SectionHeading
-          eyebrow="Campaigns"
-          title="Our current campaign"
-          intro={INTRO}
-        />
-
-        <div className="mt-12 flex flex-col gap-8 lg:flex-row lg:items-stretch">
-          {campaign.image_url && (
-            <div className="relative aspect-[4/3] w-full lg:aspect-auto lg:min-h-[24rem] lg:basis-5/12">
-              <Image
-                src={campaign.image_url}
-                alt={campaign.title}
-                fill
-                sizes="(min-width: 1024px) 40vw, 100vw"
-                className="object-cover"
-              />
-            </div>
-          )}
-
-          {/* Details sit in a card, so the text never stretches across the full width */}
-          <div
-            className={`flex flex-1 flex-col border border-rule bg-white p-6 md:p-10 ${
-              campaign.image_url ? "" : "max-w-3xl"
-            }`}
-          >
-            <h3 className="font-display text-3xl text-navy md:text-4xl">
-              {campaign.title}
-            </h3>
-
-            {campaign.description && (
-              <p className="mt-4 max-w-xl whitespace-pre-line leading-relaxed text-ink">
-                {campaign.description}
-              </p>
-            )}
-
-            <div className="mt-8">
-              <div
-                role="progressbar"
-                aria-label="Campaign progress"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={percent}
-                className="h-3 w-full overflow-hidden bg-gold-soft"
-              >
-                <div
-                  className="animate-progress h-full bg-navy"
-                  style={{ width: `${percent}%` }}
-                />
-              </div>
-              <p className="mt-2 text-sm text-muted">{percent}% of target</p>
-
-              <dl className="mt-6 flex flex-wrap gap-x-10 gap-y-5">
-                <Figure
-                  label="Raised"
-                  value={formatNaira(campaign.raised_kobo)}
-                />
-                <Figure
-                  label="Target"
-                  value={formatNaira(campaign.target_kobo)}
-                />
-                <Figure
-                  label="Supporters"
-                  value={String(campaign.supporters)}
-                />
-              </dl>
-            </div>
-
-            <div className="mt-10">
-              <ButtonLink href="/support">Donate to this campaign</ButtonLink>
-            </div>
-          </div>
-        </div>
+        )}
       </Container>
     </section>
   );

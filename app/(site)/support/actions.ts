@@ -42,9 +42,6 @@ export async function startGeneralDonation(
 
   // The campaign is always looked up on the server, never taken from the form
   const campaign = await getCurrentCampaign();
-  if (!campaign) {
-    return { error: "No active campaign found." };
-  }
 
   const reference = newReference();
   const amountKobo = toKobo(input.amountNaira);
@@ -119,27 +116,20 @@ export async function startBookOrder(
   });
 
   if (error) {
-    const match = /OUT_OF_STOCK:([0-9a-f-]{36})/.exec(error.message);
+    // A book in the selection has since been hidden or removed from the list
+    const match = /BOOK_UNAVAILABLE:([0-9a-f-]{36})/.exec(error.message);
     if (match) {
       const { data: book } = await admin
         .from("books")
-        .select("title, available_quantity, status")
+        .select("title")
         .eq("id", match[1])
-        .maybeSingle<{
-          title: string;
-          available_quantity: number;
-          status: string;
-        }>();
+        .maybeSingle<{ title: string }>();
 
-      if (book) {
-        const left = book.available_quantity;
-        return {
-          error:
-            book.status !== "available" || left < 1
-              ? `“${book.title}” is no longer available. Please remove it from your selection.`
-              : `Only ${left} ${left === 1 ? "copy" : "copies"} of “${book.title}” ${left === 1 ? "is" : "are"} left. Please change your selection.`,
-        };
-      }
+      return {
+        error: book
+          ? `“${book.title}” is no longer on our list. Please remove it from your selection.`
+          : "One of the books in your selection is no longer on our list. Please choose your books again.",
+      };
     }
     console.error("create_book_order:", error.message);
     return { error: GENERIC };
@@ -160,7 +150,6 @@ export async function startBookOrder(
     authorizationUrl = tx.authorization_url;
   } catch (e) {
     console.error("initializeTransaction (books):", e);
-    // Gives the reserved copies straight back
     await admin.rpc("mark_payment_failed", { p_reference: reference });
     return { error: GENERIC };
   }

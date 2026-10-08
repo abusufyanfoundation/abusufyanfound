@@ -1,18 +1,15 @@
 import { notFound } from "next/navigation";
 import { BookForm } from "@/components/admin/BookForm";
-import { StockForm } from "@/components/admin/StockForm";
 import {
   PageHeader,
   Panel,
   Stat,
+  StatGrid,
   StatusText,
-  TableWrap,
-  td,
-  th,
 } from "@/components/admin/ui";
-import { stockReason } from "@/lib/admin/labels";
+import { bookStatusLabel } from "@/lib/admin/labels";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { formatDateTime } from "@/lib/format";
+import { formatNaira } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = {
@@ -27,20 +24,8 @@ type Book = {
   description: string | null;
   cover_url: string | null;
   price_kobo: number;
-  available_quantity: number;
-  initial_quantity: number;
   status: string;
 };
-
-type Movement = {
-  id: string;
-  created_at: string;
-  delta: number;
-  reason: string;
-  note: string | null;
-};
-
-const label = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export default async function EditBookPage({
   params,
@@ -55,84 +40,48 @@ export default async function EditBookPage({
 
   const { data: book } = await supabase
     .from("books")
-    .select(
-      "id, title, author, description, cover_url, price_kobo, available_quantity, initial_quantity, status",
-    )
+    .select("id, title, author, description, cover_url, price_kobo, status")
     .eq("id", id)
     .maybeSingle<Book>();
   if (!book) notFound();
 
-  const [sales, history] = await Promise.all([
-    supabase
-      .from("admin_book_sales")
-      .select("reserved_qty, purchased_qty")
-      .eq("book_id", id)
-      .maybeSingle<{ reserved_qty: number; purchased_qty: number }>(),
-    supabase
-      .from("book_inventory")
-      .select("id, created_at, delta, reason, note")
-      .eq("book_id", id)
-      .order("created_at", { ascending: false })
-      .limit(10)
-      .returns<Movement[]>(),
-  ]);
+  const { data: funding } = await supabase
+    .from("admin_book_funding")
+    .select("funded_qty, distributed_qty")
+    .eq("book_id", id)
+    .maybeSingle<{ funded_qty: number; distributed_qty: number }>();
+
+  const funded = funding?.funded_qty ?? 0;
+  const distributed = funding?.distributed_qty ?? 0;
 
   return (
     <div className="flex flex-col gap-10">
-      <PageHeader title={book.title} intro={book.author} />
+      <PageHeader
+        back={{ label: "Back to books", href: "/admin/books" }}
+        title={book.title}
+        intro={book.author}
+      />
 
-      <Panel title="Stock">
+      <Panel title="Funding">
         <p className="mb-5 text-sm text-ink">
-          Status: <StatusText status={label(book.status)} />
+          Status: <StatusText status={bookStatusLabel(book.status)} />
         </p>
 
-        <dl className="mb-8 flex flex-wrap gap-x-8 gap-y-6">
-          <Stat label="Available now" value={String(book.available_quantity)} />
-          <Stat label="Total listed" value={String(book.initial_quantity)} />
+        <StatGrid>
+          <Stat label="Price per copy" value={formatNaira(book.price_kobo)} />
+          <Stat label="Copies funded" value={String(funded)} />
+          <Stat label="Distributed" value={String(distributed)} />
           <Stat
-            label="Reserved (awaiting payment)"
-            value={String(sales.data?.reserved_qty ?? 0)}
+            label="Still to deliver"
+            value={String(Math.max(0, funded - distributed))}
           />
-          <Stat
-            label="Purchased"
-            value={String(sales.data?.purchased_qty ?? 0)}
-          />
-        </dl>
+        </StatGrid>
 
-        <StockForm bookId={book.id} />
+        <p className="mt-5 max-w-lg text-xs leading-relaxed text-muted">
+          Copies are bought only after a donor has paid for them. &ldquo;Copies
+          funded&rdquo; counts paid orders.
+        </p>
       </Panel>
-
-      <section>
-        <h2 className="mb-4 font-display text-xl text-navy">
-          Recent stock changes
-        </h2>
-        {history.data && history.data.length > 0 ? (
-          <TableWrap>
-            <thead className="border-b border-rule bg-paper">
-              <tr>
-                <th className={th}>Date</th>
-                <th className={th}>Change</th>
-                <th className={th}>Reason</th>
-                <th className={th}>Note</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-rule">
-              {history.data.map((m) => (
-                <tr key={m.id}>
-                  <td className={td}>{formatDateTime(m.created_at)}</td>
-                  <td className={td}>
-                    {m.delta > 0 ? `+${m.delta}` : m.delta}
-                  </td>
-                  <td className={td}>{stockReason(m.reason)}</td>
-                  <td className={td}>{m.note ?? "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </TableWrap>
-        ) : (
-          <p className="text-sm text-muted">No stock changes recorded yet.</p>
-        )}
-      </section>
 
       <section>
         <h2 className="mb-5 font-display text-xl text-navy">Details</h2>

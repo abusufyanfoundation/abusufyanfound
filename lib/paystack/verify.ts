@@ -10,7 +10,6 @@ export type PaystackTransaction = {
   paid_at?: string | null;
   gateway_response?: string | null;
   fees?: number | null;
-  subaccount?: { subaccount_code?: string } | null;
 };
 
 export async function verifyTransaction(

@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { StatCard, StatGrid } from "@/components/ui/StatCard";
+import { BiChevronLeft } from "react-icons/bi";
+
+export { StatGrid };
 
 export const th =
   "px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted";
@@ -9,22 +13,34 @@ export function PageHeader({
   title,
   intro,
   action,
+  back,
 }: {
   title: string;
   intro?: string;
   action?: { label: string; href: string };
+  back?: { label: string; href: string };
 }) {
   return (
-    <div className="flex flex-col gap-4 border-b border-rule pb-6 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 className="text-3xl">{title}</h1>
-        {intro && <p className="mt-2 max-w-xl text-sm text-muted">{intro}</p>}
-      </div>
-      {action && (
-        <ButtonLink href={action.href} className="self-start sm:self-auto">
-          {action.label}
-        </ButtonLink>
+    <div>
+      {back && (
+        <Link
+          href={back.href}
+          className="flex items-center mb-5 text-sm text-muted transition-colors hover:text-navy hover:scale-101"
+        >
+          <BiChevronLeft className="text-2xl" /> {back.label}
+        </Link>
       )}
+      <div className="flex flex-col gap-4 border-b border-rule pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-3xl">{title}</h1>
+          {intro && <p className="mt-2 max-w-xl text-sm text-muted">{intro}</p>}
+        </div>
+        {action && (
+          <ButtonLink href={action.href} className="self-start sm:self-auto">
+            {action.label}
+          </ButtonLink>
+        )}
+      </div>
     </div>
   );
 }
@@ -40,19 +56,16 @@ export function Panel({
 }) {
   return (
     <section className={`border border-rule bg-white p-6 ${className}`}>
-      {title && <h2 className="mb-4 font-display text-xl text-navy">{title}</h2>}
+      {title && (
+        <h2 className="mb-4 font-display text-xl text-navy">{title}</h2>
+      )}
       {children}
     </section>
   );
 }
 
 export function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex basis-40 flex-1 flex-col-reverse gap-1 border-l border-gold pl-5">
-      <dt className="text-sm text-muted">{label}</dt>
-      <dd className="font-display text-3xl text-navy">{value}</dd>
-    </div>
-  );
+  return <StatCard label={label} value={value} />;
 }
 
 export function EmptyState({
@@ -90,13 +103,13 @@ export function TableWrap({ children }: { children: React.ReactNode }) {
 
 const tone: Record<string, string> = {
   Active: "font-medium text-navy",
-  Available: "font-medium text-navy",
+  Listed: "font-medium text-navy",
   Paid: "font-medium text-navy",
   Completed: "font-medium text-gold-deep",
   Inactive: "text-muted",
   Draft: "text-muted",
+  Hidden: "text-muted",
   Pending: "text-gold-deep",
-  Unavailable: "text-red-700",
 };
 
 export function StatusText({ status }: { status: string }) {

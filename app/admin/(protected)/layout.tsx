@@ -3,6 +3,7 @@ import Link from "next/link";
 import { signOut } from "@/app/admin/actions";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { siteConfig } from "@/lib/site";
 
 export default async function AdminLayout({
   children,
@@ -19,15 +20,22 @@ export default async function AdminLayout({
             <Link
               href="/admin"
               aria-label="Admin overview"
-              className="inline-block bg-paper p-1.5"
+              className="flex items-center gap-3"
             >
               <Image
                 src="/logo.png"
                 alt=""
-                width={40}
-                height={40}
-                className="h-10 w-auto"
+                width={48}
+                height={48}
+                priority
+                className="h-12 w-auto rounded-sm"
               />
+              <span
+                aria-hidden="true"
+                className="max-w-56 font-display text-lg font-normal leading-tight text-white sm:block"
+              >
+                {siteConfig.name}
+              </span>
             </Link>
             <form action={signOut} className="lg:hidden">
               <button
