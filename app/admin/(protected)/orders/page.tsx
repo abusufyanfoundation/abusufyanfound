@@ -13,7 +13,7 @@ import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
 const STATUSES = [
-  "pending",
+  "pending_payment",
   "paid",
   "processing",
   "ready_for_distribution",
@@ -33,12 +33,8 @@ type Order = {
   id: string;
   created_at: string;
   status: string;
-
-  donation: {
-    donor_name: string;
-    donor_email: string | null;
-  } | null;
-
+  donor_name: string;
+  donor_email: string | null;
   order_items: {
     quantity: number;
 
@@ -120,10 +116,8 @@ export default async function OrdersPage() {
         id,
         created_at,
         status,
-        donation:donations(
-          donor_name,
-          donor_email
-        ),
+        donor_name,
+        donor_email,
         order_items(
           quantity,
           book:books(title)
@@ -167,12 +161,12 @@ export default async function OrdersPage() {
                 <td className={td}>{formatDateTime(order.created_at)}</td>
 
                 <td className={td}>
-                  {order.donation?.donor_name ?? "—"}
+                  {order.donor_name ?? "—"}
 
                   <br />
 
                   <span className="text-xs text-muted">
-                    {order.donation?.donor_email ?? ""}
+                    {order.donor_email ?? ""}
                   </span>
                 </td>
 

@@ -5,18 +5,16 @@ import { logAudit } from "@/lib/admin/audit";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createClient } from "@/lib/supabase/server";
 
+const TYPES = ["student", "mosque", "school"];
+
 export async function createBeneficiary(formData: FormData) {
   const actor = await requireAdmin();
 
   const name = String(formData.get("name") ?? "").trim();
-
   const type = String(formData.get("type") ?? "");
-
   const location = String(formData.get("location") ?? "").trim();
 
-  const notes = String(formData.get("notes") ?? "").trim();
-
-  if (!name || !["student", "mosque"].includes(type)) {
+  if (!name || !TYPES.includes(type)) {
     return;
   }
 
@@ -28,7 +26,6 @@ export async function createBeneficiary(formData: FormData) {
       name,
       type,
       location: location || null,
-      notes: notes || null,
     })
     .select("id")
     .single<{

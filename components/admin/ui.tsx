@@ -110,6 +110,11 @@ const tone: Record<string, string> = {
   Draft: "text-muted",
   Hidden: "text-muted",
   Pending: "text-gold-deep",
+  Open: "font-medium text-navy",
+  Approved: "font-medium text-navy",
+  Closed: "text-muted",
+  Rejected: "text-muted",
+  Fulfilled: "font-medium text-gold-deep",
 };
 
 export function StatusText({ status }: { status: string }) {

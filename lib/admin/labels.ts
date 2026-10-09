@@ -21,4 +21,10 @@ export const ENTITY_LABELS: Record<string, string> = {
   beneficiary: "Beneficiaries",
   donation: "Donations",
   session: "Sign-ins",
+  batch: "Batches",
+  application: "Applications",
+  book_request: "Book requests",
 };
+
+export const titleCase = (value: string) =>
+  value.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());

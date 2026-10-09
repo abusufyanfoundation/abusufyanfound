@@ -1,9 +1,19 @@
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
-import { PageHeader, Panel, TableWrap, td, th } from "@/components/admin/ui";
+import {
+  EmptyState,
+  PageHeader,
+  Panel,
+  TableWrap,
+  td,
+  th,
+} from "@/components/admin/ui";
 import { logAudit } from "@/lib/admin/audit";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function recordDistribution(formData: FormData) {
   "use server";
@@ -11,43 +21,58 @@ async function recordDistribution(formData: FormData) {
   const actor = await requireAdmin();
 
   const campaignId = String(formData.get("campaign_id") ?? "");
-
   const beneficiaryId = String(formData.get("beneficiary_id") ?? "");
-
-  const bookId = String(formData.get("book_id") ?? "");
-
+  // "batch:<uuid>" for a batch book, "book:<uuid>" for a catalogue book
+  const [kind, bookId] = String(formData.get("book") ?? "").split(":");
   const quantity = Number(formData.get("quantity"));
-
   const notes = String(formData.get("notes") ?? "").trim();
 
   if (
-    !campaignId ||
-    !beneficiaryId ||
-    !bookId ||
+    !UUID.test(campaignId) ||
+    !UUID.test(beneficiaryId) ||
+    !UUID.test(bookId ?? "") ||
+    (kind !== "batch" && kind !== "book") ||
     !Number.isInteger(quantity) ||
-    quantity < 1
+    quantity < 1 ||
+    quantity > 100000
   ) {
     return;
   }
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  const { data: distribution, error } = await supabase
     .from("distributions")
     .insert({
       campaign_id: campaignId,
       beneficiary_id: beneficiaryId,
-      book_id: bookId,
-      quantity,
       notes: notes || null,
+      recorded_by: actor.user.id,
     })
     .select("id")
     .single<{
       id: string;
     }>();
 
-  if (error || !data) {
+  if (error || !distribution) {
     console.error("recordDistribution:", error?.message);
+
+    return;
+  }
+
+  const { error: itemError } = await supabase
+    .from("distribution_items")
+    .insert({
+      distribution_id: distribution.id,
+      quantity,
+      ...(kind === "batch" ? { batch_book_id: bookId } : { book_id: bookId }),
+    });
+
+  if (itemError) {
+    console.error("recordDistribution item:", itemError.message);
+
+    // do not leave an empty distribution behind
+    await supabase.from("distributions").delete().eq("id", distribution.id);
 
     return;
   }
@@ -60,23 +85,20 @@ async function recordDistribution(formData: FormData) {
     details: {
       campaign_id: campaignId,
       beneficiary_id: beneficiaryId,
-      book_id: bookId,
+      [kind === "batch" ? "batch_book_id" : "book_id"]: bookId,
       quantity,
     },
   });
 
   revalidatePath(`/admin/campaigns/${campaignId}`);
-
   revalidatePath(`/admin/campaigns/${campaignId}/distributions`);
-
   revalidatePath("/admin");
   revalidatePath("/admin/activity");
 }
 
 type DistributionRow = {
   id: string;
-  quantity: number;
-  created_at: string;
+  distributed_at: string;
   notes: string | null;
 
   beneficiary: {
@@ -84,9 +106,11 @@ type DistributionRow = {
     type: string;
   } | null;
 
-  book: {
-    title: string;
-  } | null;
+  distribution_items: {
+    quantity: number;
+    book: { title: string } | null;
+    batch_book: { title: string } | null;
+  }[];
 };
 
 type Option = {
@@ -108,47 +132,56 @@ export default async function DistributionsPage({
 
   const supabase = await createClient();
 
-  const [campaign, beneficiaries, books, distributions] = await Promise.all([
-    supabase.from("campaigns").select("id, title").eq("id", id).maybeSingle<{
-      id: string;
-      title: string;
-    }>(),
+  const [campaign, beneficiaries, books, batchBooks, distributions] =
+    await Promise.all([
+      supabase.from("campaigns").select("id, title").eq("id", id).maybeSingle<{
+        id: string;
+        title: string;
+      }>(),
 
-    supabase
-      .from("beneficiaries")
-      .select("id, name")
-      .order("name")
-      .returns<Option[]>(),
+      supabase
+        .from("beneficiaries")
+        .select("id, name")
+        .order("name")
+        .returns<Option[]>(),
 
-    supabase
-      .from("books")
-      .select("id, title")
-      .order("title")
-      .returns<Option[]>(),
+      supabase
+        .from("books")
+        .select("id, title")
+        .order("title")
+        .returns<Option[]>(),
 
-    supabase
-      .from("distributions")
-      .select(
-        `
-          id,
-          quantity,
-          created_at,
-          notes,
-          beneficiary:beneficiaries(
-            name,
-            type
-          ),
-          book:books(
-            title
-          )
-        `,
-      )
-      .eq("campaign_id", id)
-      .order("created_at", {
-        ascending: false,
-      })
-      .returns<DistributionRow[]>(),
-  ]);
+      supabase
+        .from("batch_books")
+        .select("id, title, batches!inner(campaign_id)")
+        .eq("batches.campaign_id", id)
+        .order("title")
+        .returns<Option[]>(),
+
+      supabase
+        .from("distributions")
+        .select(
+          `
+            id,
+            distributed_at,
+            notes,
+            beneficiary:beneficiaries(
+              name,
+              type
+            ),
+            distribution_items(
+              quantity,
+              book:books(title),
+              batch_book:batch_books(title)
+            )
+          `,
+        )
+        .eq("campaign_id", id)
+        .order("distributed_at", {
+          ascending: false,
+        })
+        .returns<DistributionRow[]>(),
+    ]);
 
   if (!campaign.data) {
     notFound();
@@ -190,16 +223,28 @@ export default async function DistributionsPage({
             Book
             <select
               required
-              name="book_id"
+              name="book"
               className="mt-1 w-full border border-rule bg-white px-3 py-2 text-sm text-ink"
             >
               <option value="">Select book</option>
 
-              {(books.data ?? []).map((book) => (
-                <option key={book.id} value={book.id}>
-                  {book.title}
-                </option>
-              ))}
+              {(batchBooks.data ?? []).length > 0 && (
+                <optgroup label="Books in this campaign's batches">
+                  {(batchBooks.data ?? []).map((book) => (
+                    <option key={book.id} value={`batch:${book.id}`}>
+                      {book.title}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+
+              <optgroup label="Catalogue books">
+                {(books.data ?? []).map((book) => (
+                  <option key={book.id} value={`book:${book.id}`}>
+                    {book.title}
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </label>
 
@@ -232,34 +277,50 @@ export default async function DistributionsPage({
         </form>
       </Panel>
 
-      <TableWrap>
-        <thead className="border-b border-rule bg-paper">
-          <tr>
-            <th className={th}>Book</th>
-            <th className={th}>Beneficiary</th>
-            <th className={th}>Quantity</th>
-            <th className={th}>Notes</th>
-          </tr>
-        </thead>
-
-        <tbody className="divide-y divide-rule">
-          {(distributions.data ?? []).map((distribution) => (
-            <tr key={distribution.id}>
-              <td className={td}>
-                {distribution.book?.title ?? "Unknown book"}
-              </td>
-
-              <td className={td}>
-                {distribution.beneficiary?.name ?? "Unknown beneficiary"}
-              </td>
-
-              <td className={td}>{distribution.quantity}</td>
-
-              <td className={td}>{distribution.notes ?? "—"}</td>
+      {distributions.data?.length ? (
+        <TableWrap>
+          <thead className="border-b border-rule bg-paper">
+            <tr>
+              <th className={th}>Date</th>
+              <th className={th}>Beneficiary</th>
+              <th className={th}>Books</th>
+              <th className={th}>Notes</th>
             </tr>
-          ))}
-        </tbody>
-      </TableWrap>
+          </thead>
+
+          <tbody className="divide-y divide-rule">
+            {distributions.data.map((distribution) => (
+              <tr key={distribution.id}>
+                <td className={td}>
+                  {formatDateTime(distribution.distributed_at)}
+                </td>
+
+                <td className={td}>
+                  {distribution.beneficiary?.name ?? "Unknown beneficiary"}
+                </td>
+
+                <td className={td}>
+                  {distribution.distribution_items.map((item, index) => (
+                    <div key={index}>
+                      {item.quantity} ×{" "}
+                      {item.batch_book?.title ??
+                        item.book?.title ??
+                        "Unknown book"}
+                    </div>
+                  ))}
+                </td>
+
+                <td className={td}>{distribution.notes ?? "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </TableWrap>
+      ) : (
+        <EmptyState
+          title="No distributions yet"
+          text="Recorded distributions for this campaign will appear here."
+        />
+      )}
     </div>
   );
 }

@@ -7,6 +7,9 @@ export type AuditEntity =
   | "order"
   | "beneficiary"
   | "donation"
+  | "batch"
+  | "application"
+  | "book_request"
   | "session";
 
 export type AuditEntry = {

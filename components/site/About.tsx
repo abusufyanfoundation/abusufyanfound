@@ -14,12 +14,6 @@ export function About() {
 
         <div className="flex flex-col gap-6 text-lg leading-relaxed text-ink lg:basis-7/12 lg:border-l lg:border-rule lg:pl-16">
           <p>
-            The Abu Sufyan Al-Alma&apos;iyy Foundation is a non-profit
-            organisation dedicated to donating the noble Qur&apos;an and
-            beneficial books to students of knowledge and to mosques, with a
-            focus on the Islamic sciences.
-          </p>
-          <p>
             Good books can be costly, and they are not always within reach of a
             student or a small mosque. We raise funds, buy the books, and place
             them where they will be read and used.

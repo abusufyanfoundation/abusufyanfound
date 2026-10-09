@@ -16,7 +16,8 @@ type Beneficiary = {
   name: string;
   type: string;
   location: string | null;
-  book: string | null;
+  application_id: string | null;
+  book_request_id: string | null;
   created_at: string;
 };
 
@@ -26,6 +27,13 @@ const label = (value: string) => {
     .replace(/\b\w/g, (character) => character.toUpperCase());
 };
 
+const source = (b: Beneficiary) =>
+  b.application_id
+    ? "Application"
+    : b.book_request_id
+      ? "Book request"
+      : "Added by admin";
+
 export default async function BeneficiariesPage() {
   await requireAdmin();
 
@@ -33,7 +41,9 @@ export default async function BeneficiariesPage() {
 
   const { data, error } = await supabase
     .from("beneficiaries")
-    .select("id, name, type, location, book, created_at")
+    .select(
+      "id, name, type, location, application_id, book_request_id, created_at",
+    )
     .order("created_at", {
       ascending: false,
     })
@@ -43,7 +53,7 @@ export default async function BeneficiariesPage() {
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Beneficiaries"
-        intro="Keep the students and mosques served by the Foundation in one place."
+        intro="Keep the students, mosques and schools served by the Foundation in one place."
       />
 
       <Panel title="Add beneficiary">
@@ -67,22 +77,15 @@ export default async function BeneficiariesPage() {
               <option value="student">Student</option>
 
               <option value="mosque">Mosque</option>
+
+              <option value="school">School</option>
             </select>
           </label>
 
-          <label className="text-sm text-muted">
+          <label className="text-sm text-muted md:col-span-2">
             Location
             <input
               name="location"
-              className="mt-1 w-full border border-rule px-3 py-2 text-sm text-ink"
-            />
-          </label>
-
-          <label className="text-sm text-muted">
-            Book
-            <textarea
-              name="book"
-              rows={3}
               className="mt-1 w-full border border-rule px-3 py-2 text-sm text-ink"
             />
           </label>
@@ -110,6 +113,7 @@ export default async function BeneficiariesPage() {
               <th className={th}>Name</th>
               <th className={th}>Type</th>
               <th className={th}>Location</th>
+              <th className={th}>Source</th>
               <th className={th}>Added</th>
             </tr>
           </thead>
@@ -117,19 +121,13 @@ export default async function BeneficiariesPage() {
           <tbody className="divide-y divide-rule">
             {data.map((beneficiary) => (
               <tr key={beneficiary.id}>
-                <td className={td}>
-                  <p>{beneficiary.name}</p>
-
-                  {beneficiary.book && (
-                    <p className="mt-1 max-w-sm text-xs text-muted">
-                      {beneficiary.book}
-                    </p>
-                  )}
-                </td>
+                <td className={td}>{beneficiary.name}</td>
 
                 <td className={td}>{label(beneficiary.type)}</td>
 
                 <td className={td}>{beneficiary.location ?? "N/A"}</td>
+
+                <td className={td}>{source(beneficiary)}</td>
 
                 <td className={td}>{formatDateTime(beneficiary.created_at)}</td>
               </tr>
@@ -139,7 +137,7 @@ export default async function BeneficiariesPage() {
       ) : (
         <EmptyState
           title="No beneficiaries yet"
-          text="Add the first student or mosque above."
+          text="Add the first student, mosque or school above."
         />
       )}
     </div>
