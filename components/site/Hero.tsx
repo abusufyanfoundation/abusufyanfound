@@ -19,10 +19,10 @@ export function Hero() {
           </h1>
 
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-            The Abu Sufyan Al-Alma&apos;iyy Foundation is a non-profit
-            organization dedicated to the donation of the noble Qur&apos;an and
-            beneficial books to students of knowledge and to mosques, with a
-            focus on Islamic sciences and related subjects.
+            The Abu Sufyan Al-Alma&apos;iyy Foundation is a non-profit foundation
+            dedicated to the donation of the noble Qur&apos;an and beneficial Islamic
+            books to students of knowledge, Islamic schools, and to mosques to
+            promote the understanding of Islam amongst all.
           </p>
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row">

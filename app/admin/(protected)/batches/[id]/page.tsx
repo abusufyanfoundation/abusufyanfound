@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BatchBookForm } from "@/components/admin/BatchBookForm";
 import { BatchForm } from "@/components/admin/BatchForm";
+import { BatchLocationForm } from "@/components/admin/BatchLocationForm";
 import { FormMessage } from "@/components/admin/auth/FormMessage";
 import {
   PageHeader,
@@ -15,7 +16,12 @@ import { titleCase } from "@/lib/admin/labels";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { toInputDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
-import { deleteBatchBook, setBatchStatus, updateBatchBook } from "../actions";
+import {
+  deleteBatchBook,
+  deleteBatchLocation,
+  setBatchStatus,
+  updateBatchBook,
+} from "../actions";
 
 export const metadata = {
   title: "Batch",
@@ -40,6 +46,12 @@ type Book = {
   quantity_available: number;
 };
 
+type Location = {
+  id: string;
+  name: string;
+  address: string;
+};
+
 type Item = {
   batch_book_id: string;
   quantity_requested: number;
@@ -51,7 +63,7 @@ const outline =
   "border border-navy px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-navy hover:text-white";
 
 const TRANSITIONS: Record<string, { status: string; label: string }[]> = {
-  draft: [{ status: "open", label: "Open for applications" }],
+  draft: [{ status: "open", label: "Open applications" }],
   open: [
     { status: "closed", label: "Close applications" },
     { status: "fulfilled", label: "Mark as fulfilled" },
@@ -88,7 +100,7 @@ export default async function BatchPage({
 
   const supabase = await createClient();
 
-  const [batchRes, booksRes, itemsRes] = await Promise.all([
+  const [batchRes, booksRes, itemsRes, locationsRes] = await Promise.all([
     supabase
       .from("batches")
       .select(
@@ -109,12 +121,19 @@ export default async function BatchPage({
       )
       .eq("applications.batch_id", id)
       .returns<Item[]>(),
+    supabase
+      .from("batch_locations")
+      .select("id, name, address")
+      .eq("batch_id", id)
+      .order("created_at")
+      .returns<Location[]>(),
   ]);
 
   const batch = batchRes.data;
   if (!batch) notFound();
 
   const books = booksRes.data ?? [];
+  const locations = locationsRes.data ?? [];
 
   const stats = new Map<string, { allocated: number; pending: number }>();
   for (const item of itemsRes.data ?? []) {
@@ -211,7 +230,7 @@ export default async function BatchPage({
                       )}
                     </td>
                     <td className={td}>
-                      <form
+                      {/* <form
                         action={updateBatchBook}
                         className="flex items-center gap-2"
                       >
@@ -231,7 +250,9 @@ export default async function BatchPage({
                         >
                           Save
                         </button>
-                      </form>
+                      </form> */}
+
+                      {book.quantity_available}
                     </td>
                     <td className={td}>{s.allocated}</td>
                     <td className={td}>{s.pending}</td>
@@ -265,6 +286,51 @@ export default async function BatchPage({
           <BatchBookForm batchId={batch.id} />
         </section>
       )}
+
+      <section>
+        <h2 className="mb-2 font-display text-xl text-navy">
+          Pickup locations
+        </h2>
+        <p className="mb-5 max-w-2xl text-sm text-muted">
+          Applicants see these while applying. Students must choose one to
+          collect their books from. Mosques and schools can choose one too, or
+          ask for delivery to their own address.
+        </p>
+
+        {locations.length > 0 ? (
+          <ul className="mb-8 max-w-2xl divide-y divide-rule border-y border-rule">
+            {locations.map((l) => (
+              <li
+                key={l.id}
+                className="flex items-start justify-between gap-4 py-3"
+              >
+                <div>
+                  <p className="text-sm font-medium text-ink">{l.name}</p>
+                  <p className="text-sm text-muted">{l.address}</p>
+                </div>
+                <form action={deleteBatchLocation}>
+                  <input type="hidden" name="id" value={l.id} />
+                  <input type="hidden" name="batchId" value={batch.id} />
+                  <button
+                    type="submit"
+                    className="text-sm text-muted underline underline-offset-4 hover:text-navy"
+                  >
+                    Remove
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mb-8 text-sm text-muted">
+            No locations yet. Add at least one before opening this batch.
+          </p>
+        )}
+
+        {batch.status !== "fulfilled" && (
+          <BatchLocationForm batchId={batch.id} />
+        )}
+      </section>
 
       <section>
         <h2 className="mb-5 font-display text-xl text-navy">Details</h2>

@@ -16,13 +16,13 @@ export const siteConfig: {
 } = {
   name: "Abu Sufyan Al-Alma'iyy Foundation",
   description:
-    "A non-profit organisation donating the noble Qur'an and beneficial books to students of knowledge and mosques.",
+    "The Abu Sufyan Al-Alma'iyy Foundation is a non-profit foundation dedicated to the donation of the noble Qur'an and beneficial Islamic books to students of knowledge, Islamic schools, and to mosques to promote the understanding of Islam amongst all.",
   nav: [
     { label: "Home", href: "/" },
     { label: "About", href: "/#about" },
     { label: "Our Work", href: "/#our-work" },
-    { label: "Books", href: "/books" },
-    { label: "Campaigns", href: "/#campaign" },
+    { label: "Sponsor a Book", href: "/books" },
+    { label: "Apply for Books", href: "/apply" },
     { label: "Impact", href: "/#impact" },
   ],
 
@@ -45,7 +45,6 @@ export const siteConfig: {
     address: "Lagos, Nigeria",
   },
 };
-
 
 // Public address of the website, without a trailing slash
 export const siteUrl = (

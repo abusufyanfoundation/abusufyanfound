@@ -190,7 +190,9 @@ export default async function BookRequestsPage({
             <tr>
               <th className={th}>Requester</th>
               <th className={th}>Book</th>
+              <th className={th}>Status</th>
               <th className={th}>Review</th>
+              <th className={th}>Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-rule">
@@ -228,7 +230,11 @@ export default async function BookRequestsPage({
                     </p>
                   )}
                 </td>
-
+                <td className={td}>
+                  <div className="mt-2">
+                    <p className="text-sm">{titleCase(r.status)}</p>
+                  </div>
+                </td>
                 <td className={td}>
                   <form action={updateRequest} className="flex flex-col gap-2">
                     <input type="hidden" name="id" value={r.id} />
@@ -247,22 +253,20 @@ export default async function BookRequestsPage({
 
                     <input
                       name="notes"
-                      placeholder="Notes (admins only)"
+                      placeholder="Notes (visible to admins only)"
                       defaultValue={r.admin_notes ?? ""}
                       className="border border-rule px-2 py-2 text-sm"
                     />
-
-                    <button
-                      type="submit"
-                      className="w-fit text-sm text-navy underline decoration-gold underline-offset-4"
-                    >
-                      Save
-                    </button>
                   </form>
+                </td>
 
-                  <div className="mt-2">
-                    <StatusText status={titleCase(r.status)} />
-                  </div>
+                <td className={td}>
+                  <button
+                    type="submit"
+                    className="w-fit text-sm text-white bg-gold-deep py-2 px-3 underline-offset-4 hover:bg-gold-deep/90"
+                  >
+                    Save
+                  </button>
                 </td>
               </tr>
             ))}

@@ -7,7 +7,11 @@ import { diffFields } from "@/lib/admin/diff";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import type { FormState } from "@/lib/forms/types";
 import { createClient } from "@/lib/supabase/server";
-import { batchBookSchema, batchSchema } from "@/lib/validation/admin";
+import {
+  batchBookSchema,
+  batchLocationSchema,
+  batchSchema,
+} from "@/lib/validation/admin";
 
 const GENERIC = "The batch could not be saved. Please try again.";
 
@@ -168,6 +172,18 @@ export async function setBatchStatus(formData: FormData) {
 
     if (!count)
       return back("error", "Add at least one book before opening this batch.");
+
+    const { count: locationCount } = await supabase
+      .from("batch_locations")
+      .select("id", { count: "exact", head: true })
+      .eq("batch_id", id);
+
+    if (!locationCount) {
+      return back(
+        "error",
+        "Add at least one pickup location before opening this batch.",
+      );
+    }
   }
 
   const { error } = await supabase
@@ -329,4 +345,102 @@ export async function deleteBatchBook(formData: FormData) {
 
   refresh(batchId);
   return back("notice", "Book removed.");
+}
+
+export async function addBatchLocation(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const actor = await requireAdmin();
+
+  const batchId = String(formData.get("batchId") ?? "");
+
+  const parsed = batchLocationSchema.safeParse({
+    name: formData.get("locationName"),
+    address: formData.get("locationAddress"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("batch_locations").insert({
+    batch_id: batchId,
+    name: parsed.data.name,
+    address: parsed.data.address,
+  });
+  if (error)
+    return { error: "The location could not be added. Please try again." };
+
+  await logAudit(supabase, actor, {
+    action: "batch.location_added",
+    entity: "batch",
+    entityId: batchId,
+    summary: `Added pickup location “${parsed.data.name}” to a batch`,
+  });
+
+  refresh(batchId);
+  return { message: "Location added." };
+}
+
+export async function deleteBatchLocation(formData: FormData) {
+  const actor = await requireAdmin();
+
+  const id = String(formData.get("id") ?? "");
+  const batchId = String(formData.get("batchId") ?? "");
+
+  const back = (key: "error" | "notice", message: string): never =>
+    redirect(`/admin/batches/${batchId}?${key}=${encodeURIComponent(message)}`);
+
+  const supabase = await createClient();
+
+  const [{ data: location }, { data: batch }, { count }] = await Promise.all([
+    supabase
+      .from("batch_locations")
+      .select("name")
+      .eq("id", id)
+      .eq("batch_id", batchId)
+      .maybeSingle<{ name: string }>(),
+    supabase
+      .from("batches")
+      .select("status")
+      .eq("id", batchId)
+      .maybeSingle<{ status: string }>(),
+    supabase
+      .from("batch_locations")
+      .select("id", { count: "exact", head: true })
+      .eq("batch_id", batchId),
+  ]);
+
+  if (!location) return back("error", "That location could not be found.");
+
+  if (batch?.status === "open" && (count ?? 0) <= 1) {
+    return back(
+      "error",
+      "An open batch needs at least one location. Close the batch first.",
+    );
+  }
+
+  const { error } = await supabase
+    .from("batch_locations")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    return back(
+      "error",
+      error.code === "23503"
+        ? "People have already chosen this location in their applications, so it cannot be removed."
+        : "The location could not be removed.",
+    );
+  }
+
+  await logAudit(supabase, actor, {
+    action: "batch.location_removed",
+    entity: "batch",
+    entityId: batchId,
+    summary: `Removed pickup location “${location.name}” from a batch`,
+  });
+
+  refresh(batchId);
+  return back("notice", "Location removed.");
 }

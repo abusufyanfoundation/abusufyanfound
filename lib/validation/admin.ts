@@ -49,3 +49,16 @@ export const batchBookSchema = z.object({
     .min(1, "Enter at least 1 copy")
     .max(100000, "That is too many copies"),
 });
+
+export const batchLocationSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Please enter a name for the location")
+    .max(150),
+  address: z
+    .string()
+    .trim()
+    .min(3, "Please enter the address or directions")
+    .max(300),
+});

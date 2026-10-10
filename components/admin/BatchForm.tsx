@@ -73,12 +73,13 @@ export function BatchForm({
         />
 
         <TextField
-          label="Copies allowed per applicant (per book)"
+          label="Copies of each book a school can request"
           name="maxCopies"
           type="number"
           min={1}
           step={1}
-          defaultValue={batch?.maxCopies ?? 5}
+          defaultValue={batch?.maxCopies ?? 10}
+          hint="Students and mosques can always request 1 copy of each book. Schools can request up to this number, for example for a whole class."
         />
 
         <TextField

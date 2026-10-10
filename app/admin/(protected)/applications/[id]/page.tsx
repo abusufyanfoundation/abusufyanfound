@@ -38,6 +38,8 @@ type Application = {
   reviewed_at: string | null;
   fulfilled_at: string | null;
   batch: { id: string; title: string } | null;
+  fulfilment_method: string | null;
+  pickup_location: { name: string; address: string } | null;
   application_items: {
     id: string;
     quantity_requested: number;
@@ -81,8 +83,9 @@ export default async function ApplicationPage({
     .select(
       `id, reference, status, applicant_type, applicant_name, organisation_name, email, phone,
        state, city, address, verifier_name, verifier_phone, admin_notes,
-       created_at, reviewed_at, fulfilled_at,
+       created_at, reviewed_at, fulfilled_at, fulfilment_method,
        batch:batches(id, title),
+       pickup_location:batch_locations(name, address),
        application_items(id, quantity_requested, quantity_approved, batch_book:batch_books(title))`,
     )
     .eq("id", id)
@@ -114,6 +117,16 @@ export default async function ApplicationPage({
             value={`${app.address}, ${app.city}, ${app.state}`}
           />
           <Detail label="Batch" value={app.batch?.title ?? null} />
+          <Detail
+            label="Receiving the books"
+            value={
+              app.fulfilment_method === "delivery"
+                ? "Delivery to their mosque or school (your decision)"
+                : app.pickup_location
+                  ? `Collect from ${app.pickup_location.name}, ${app.pickup_location.address}`
+                  : null
+            }
+          />
           <Detail label="Reference person" value={app.verifier_name} />
           <Detail label="Reference phone" value={app.verifier_phone} />
         </dl>

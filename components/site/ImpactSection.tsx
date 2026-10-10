@@ -52,8 +52,7 @@ export function ImpactSection({ impact }: { impact: ImpactStats | null }) {
 
         {nothingYet && (
           <p className="mt-10 max-w-xl text-sm leading-relaxed text-muted">
-            The Foundation is just beginning. These figures will update as
-            campaigns are funded and distributions are recorded.
+            Figures will update shortly...
           </p>
         )}
       </Container>

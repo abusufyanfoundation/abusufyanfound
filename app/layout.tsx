@@ -25,14 +25,14 @@ export const metadata: Metadata = {
     template: "%s | Abu Sufyan Al-Alma'iyy Foundation",
   },
   description:
-    "A non-profit organisation donating the noble Qur'an and beneficial books to students of knowledge and mosques.",
+    "The Abu Sufyan Al-Alma'iyy Foundation is a non-profit foundation dedicated to the donation of the noble Qur'an and beneficial Islamic books to students of knowledge, Islamic schools, and to mosques to promote the understanding of Islam amongst all.",
   openGraph: {
     type: "website",
     siteName: "Abu Sufyan Al-Alma'iyy Foundation",
     title: "Abu Sufyan Al-Alma'iyy Foundation",
     description:
-      "A non-profit organisation donating the noble Qur'an and beneficial books to students of knowledge and mosques.",
-    url: siteUrl,
+        "The Abu Sufyan Al-Alma'iyy Foundation is a non-profit foundation dedicated to the donation of the noble Qur'an and beneficial Islamic books to students of knowledge, Islamic schools, and to mosques to promote the understanding of Islam amongst all.",
+      url: siteUrl,
   },
 };
 
