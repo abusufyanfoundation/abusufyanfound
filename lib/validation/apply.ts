@@ -55,13 +55,21 @@ const needsOrganisation = (
   }
 };
 
+// Optional for students. Normalised when given, and "" marks a number that is not valid.
+const optionalPhone = z
+  .string()
+  .trim()
+  .optional()
+  .transform((v) => (v ? (normalisePhone(v) ?? "") : undefined));
+
 export const applicationSchema = z
   .object({
     batchId: z.string().uuid(),
     ...contact,
     applicantName: required("your full name", 2, 120),
-    verifierName: required("your reference person's name", 2, 120),
-    verifierPhone: phone,
+    verifierName: z.string().trim().max(120).optional(),
+    verifierRole: z.string().trim().max(120).optional(),
+    verifierPhone: optionalPhone,
     fulfilmentMethod: z.enum(["pickup", "delivery"], {
       error: "Please choose how you will receive the books",
     }),
@@ -73,7 +81,8 @@ export const applicationSchema = z
           quantity: z.number().int().min(1).max(100),
         }),
       )
-      .min(1, "Please choose at least one book"),
+      .min(1, "Please choose the book you are applying for")
+      .max(1, "You can apply for only one book in each batch"),
   })
   .superRefine(needsOrganisation)
   .superRefine((v, ctx) => {
@@ -91,8 +100,40 @@ export const applicationSchema = z
         message: "Please choose where you will collect your books",
       });
     }
-  });
 
+    // Mosques and schools need a reference person. Students do not.
+    if (v.applicantType !== "student") {
+      if (!v.verifierName) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["verifierName"],
+          message: "Please enter your reference person's name",
+        });
+      }
+      if (!v.verifierRole) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["verifierRole"],
+          message: "Please enter your reference person's position or relationship",
+        });
+      }
+      if (!v.verifierPhone) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["verifierPhone"],
+          message:
+            "Please enter a valid Nigerian phone number for your reference person",
+        });
+      } else if (v.verifierPhone === v.phone) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["verifierPhone"],
+          message:
+            "Your reference person's phone number must be different from yours",
+        });
+      }
+    }
+  });
 export const bookRequestSchema = z
   .object({
     ...contact,

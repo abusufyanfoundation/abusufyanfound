@@ -52,7 +52,7 @@ export function ApplyForm({ batchId, maxCopies, books, locations }: Props) {
       <ApplicantTypeFieldset
         value={type}
         onChange={setType}
-        schoolLimit={`Schools can request up to ${maxCopies} copies of a book.`}
+        schoolLimit={`Schools can request up to ${maxCopies} copies of the book they choose, for example one for each student in a class.`}
       />
 
       {organisation && (
@@ -107,55 +107,58 @@ export function ApplyForm({ batchId, maxCopies, books, locations }: Props) {
 
       <fieldset className="flex flex-col gap-3">
         <legend className="text-sm font-medium text-ink">
-          Books you are applying for
+          Choose one book
         </legend>
         <p className="text-xs text-muted">
-          {school
-            ? `Enter how many copies of each book you need, up to ${maxCopies}. Leave a book at 0 if you do not need it.`
-            : "Tick each book you need. You will receive 1 copy of each."}
+          You can apply for only one book in each batch.
         </p>
 
-        <ul className="divide-y divide-rule border-y border-rule">
+        <ul className="flex flex-col gap-3">
           {books.map((book) => (
-            <li
-              key={`${type}-${book.id}`}
-              className="flex items-center justify-between gap-4 py-3"
-            >
-              <label htmlFor={`qty_${book.id}`} className="flex-1">
-                <span className="font-display text-lg text-navy">
-                  {book.title}
-                </span>
-                {book.author && (
-                  <span className="block text-sm text-muted">
-                    {book.author}
+            <li key={book.id}>
+              <label className={choice}>
+                <input
+                  type="radio"
+                  name="bookId"
+                  value={book.id}
+                  required
+                  className="mt-1 h-4 w-4 accent-navy"
+                />
+                <span>
+                  <span className="block font-display text-lg text-navy">
+                    {book.title}
                   </span>
-                )}
+                  {book.author && (
+                    <span className="block text-muted">{book.author}</span>
+                  )}
+                </span>
               </label>
-
-              {school ? (
-                <input
-                  id={`qty_${book.id}`}
-                  name={`qty_${book.id}`}
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  max={maxCopies}
-                  step={1}
-                  defaultValue={0}
-                  className="w-24 border border-rule bg-white px-3 py-2 text-base text-ink focus:border-navy"
-                />
-              ) : (
-                <input
-                  id={`qty_${book.id}`}
-                  name={`qty_${book.id}`}
-                  type="checkbox"
-                  value="1"
-                  className="h-5 w-5 accent-navy"
-                />
-              )}
             </li>
           ))}
         </ul>
+
+        {school && (
+          <div className="mt-2 flex flex-col gap-1.5">
+            <label htmlFor="quantity" className="text-sm font-medium text-ink">
+              How many copies of this book?
+            </label>
+            <input
+              id="quantity"
+              name="quantity"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={maxCopies}
+              step={1}
+              defaultValue={1}
+              required
+              className={`${control} w-32`}
+            />
+            <p className="text-xs text-muted">
+              Up to {maxCopies}. For example, one for each student in a class.
+            </p>
+          </div>
+        )}
       </fieldset>
 
       <div className="flex flex-col gap-6 border-t border-rule pt-6">
@@ -215,12 +218,12 @@ export function ApplyForm({ batchId, maxCopies, books, locations }: Props) {
           <fieldset className="flex flex-col gap-3">
             <legend className="text-sm font-medium text-ink">
               {student
-                ? "Where will you collect your books?"
+                ? "Where will you collect your book?"
                 : "Collection location"}
             </legend>
             <p className="text-xs text-muted">
               {student
-                ? "Books are collected in person from one of these locations. By choosing one, you confirm that you will come there to collect your books."
+                ? "Books are collected in person from one of these locations. By choosing one, you confirm that you will come there to collect your book."
                 : "Choose the location you will collect from."}
             </p>
 
@@ -250,16 +253,51 @@ export function ApplyForm({ batchId, maxCopies, books, locations }: Props) {
       </div>
 
       <div className="flex flex-col gap-6 border-t border-rule pt-6">
-        <p className="text-sm text-ink">
-          Please give someone who can confirm your application, such as your
-          teacher, imam or head of school. We may contact them.
-        </p>
-        <Field label="Reference person's name" name="verifierName" />
-        <Field
-          label="Reference person's phone number"
-          name="verifierPhone"
-          type="tel"
-        />
+        <h3 className="font-display text-xl text-navy">Verification</h3>
+
+        {student ? (
+          <p className="text-sm text-ink">
+            We may call you on the phone number you gave to confirm your
+            application.
+          </p>
+        ) : (
+          <>
+            <p className="text-sm text-ink">
+              We will contact you and your reference person to confirm this
+              application.
+            </p>
+
+            <Field
+              key={`vn-${type}`}
+              label={
+                type === "mosque"
+                  ? "Reference person's name (the imam or a mosque official)"
+                  : "Reference person's name (the mudeer, head of school or class teacher)"
+              }
+              name="verifierName"
+            />
+            <Field
+              key={`vr-${type}`}
+              label={
+                type === "mosque"
+                  ? "Their position or relationship to the mosque"
+                  : "Their position or relationship to the school"
+              }
+              name="verifierRole"
+              hint={
+                type === "mosque"
+                  ? "For example: Imam, Chairman, Secretary."
+                  : "For example: Mudeer, Head teacher, Class teacher."
+              }
+            />
+            <Field
+              label="Their phone number"
+              name="verifierPhone"
+              type="tel"
+              hint="This must be a different number from yours."
+            />
+          </>
+        )}
       </div>
 
       {/* Hidden from people. Bots that fill it are ignored. */}
@@ -279,7 +317,8 @@ export function ApplyForm({ batchId, maxCopies, books, locations }: Props) {
         </SubmitButton>
         <p className="text-xs text-muted">
           Applications are reviewed by the Foundation. Applying does not
-          guarantee that you will receive the books.
+          guarantee that you will receive the book. You can apply only once for
+          each batch.
         </p>
       </div>
     </form>

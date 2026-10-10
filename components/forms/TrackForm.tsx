@@ -103,7 +103,7 @@ export function TrackForm() {
         <Field
           label="Reference code"
           name="reference"
-          //   hint="Starts with APP- or REQ-. You saw it after you submitted."
+          hint="Enter the reference code you received after submitting. It starts with ASAF-"
         />
         <Field
           label="Phone number you used"

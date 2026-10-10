@@ -14,8 +14,11 @@ export default async function ApplyConfirmationPage({
 }) {
   const { reference } = await searchParams;
   const valid =
-    reference && /^(APP|REQ)-[A-Z0-9]{8}$/.test(reference) ? reference : null;
-  const isRequest = valid?.startsWith("REQ-");
+    reference &&
+    /^(ASAF-(b\d+|rq)-\d{3,}|(APP|REQ)-[A-Z0-9]{8})$/i.test(reference)
+      ? reference
+      : null;
+  const isRequest = valid ? /^(REQ-|ASAF-rq-)/i.test(valid) : false;
 
   return (
     <section className="py-16 md:py-28">
@@ -31,8 +34,8 @@ export default async function ApplyConfirmationPage({
 
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">
             The Foundation will review it and get in touch if it needs anything
-            more. Please keep your reference code safe. You will need it, with your
-            phone number, to check the status.
+            more. Please keep your reference code safe. You will need it, with
+            your phone number, to check the status.
           </p>
 
           {valid && (

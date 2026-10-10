@@ -31,6 +31,7 @@ export const metadata = {
 type Batch = {
   id: string;
   title: string;
+  batch_number: number;
   description: string | null;
   status: string;
   max_copies_per_applicant: number;
@@ -104,7 +105,7 @@ export default async function BatchPage({
     supabase
       .from("batches")
       .select(
-        "id, title, description, status, max_copies_per_applicant, opens_at, closes_at, campaign:campaigns(title, completed_at)",
+        "id, batch_number, title, description, status, max_copies_per_applicant, opens_at, closes_at, campaign:campaigns(title, completed_at)",
       )
       .eq("id", id)
       .maybeSingle<Batch>(),
@@ -158,6 +159,7 @@ export default async function BatchPage({
       <PageHeader
         back={{ label: "Back to batches", href: "/admin/batches" }}
         title={batch.title}
+        intro={`Batch ${batch.batch_number}. Applications under this batch are numbered ASAF-b${batch.batch_number}-001, 002 and so on.`}
       />
 
       {error && <FormMessage error={error} />}

@@ -37,14 +37,12 @@ export async function submitApplication(
 
   if (!(await allowRequest("apply", 10, 3600))) return { error: TOO_MANY };
 
-  const items: { batchBookId: string; quantity: number }[] = [];
-  for (const [key, value] of formData.entries()) {
-    if (!key.startsWith("qty_")) continue;
-    const quantity = Number(value);
-    if (Number.isInteger(quantity) && quantity > 0) {
-      items.push({ batchBookId: key.slice(4), quantity });
-    }
-  }
+  // Each person picks one book. Only schools choose how many copies of it.
+  const bookId = text(formData, "bookId");
+  const quantity =
+    formData.get("applicantType") === "school"
+      ? Number(formData.get("quantity"))
+      : 1;
 
   const parsed = applicationSchema.safeParse({
     batchId: formData.get("batchId"),
@@ -56,11 +54,15 @@ export async function submitApplication(
     state: formData.get("state"),
     city: formData.get("city"),
     address: formData.get("address"),
-    verifierName: formData.get("verifierName"),
-    verifierPhone: formData.get("verifierPhone"),
+    verifierName: text(formData, "verifierName"),
+    verifierRole: text(formData, "verifierRole"),
+    verifierPhone: text(formData, "verifierPhone"),
     fulfilmentMethod: formData.get("fulfilmentMethod"),
     locationId: text(formData, "locationId"),
-    items,
+    items:
+      bookId && Number.isInteger(quantity) && quantity > 0
+        ? [{ batchBookId: bookId, quantity }]
+        : [],
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const input = parsed.data;
@@ -77,8 +79,9 @@ export async function submitApplication(
     p_state: input.state,
     p_city: input.city,
     p_address: input.address,
-    p_verifier_name: input.verifierName,
-    p_verifier_phone: input.verifierPhone,
+    p_verifier_name: input.verifierName ?? null,
+    p_verifier_phone: input.verifierPhone ?? null,
+    p_verifier_role: input.verifierRole ?? null,
     p_method: input.fulfilmentMethod,
     p_location_id:
       input.fulfilmentMethod === "pickup" ? (input.locationId ?? null) : null,
@@ -155,15 +158,15 @@ export async function trackSubmission(
   _prev: TrackState,
   formData: FormData,
 ): Promise<TrackState> {
-    if (!(await allowRequest("track", 30, 600))) return { error: TOO_MANY };
+  if (!(await allowRequest("track", 30, 600))) return { error: TOO_MANY };
   const reference = String(formData.get("reference") ?? "")
     .trim()
     .toUpperCase();
   const phone = normalisePhone(String(formData.get("phone") ?? ""));
 
-  if (!/^(APP|REQ)-[A-Z0-9]{8}$/.test(reference)) {
-    return { error: "Please enter your reference, for example APP-1A2B3C4D." };
-  }
+   if (!/^(ASAF-(B\d+|RQ)-\d{3,}|(APP|REQ)-[A-Z0-9]{8})$/.test(reference)) {
+     return { error: "Please enter your reference, for example ASAF-b3-001." };
+   }
   if (!phone)
     return { error: "Please enter the phone number you applied with." };
 

@@ -33,6 +33,7 @@ type Application = {
   address: string;
   verifier_name: string | null;
   verifier_phone: string | null;
+  verifier_role: string | null;
   admin_notes: string | null;
   created_at: string;
   reviewed_at: string | null;
@@ -82,7 +83,7 @@ export default async function ApplicationPage({
     .from("applications")
     .select(
       `id, reference, status, applicant_type, applicant_name, organisation_name, email, phone,
-       state, city, address, verifier_name, verifier_phone, admin_notes,
+       state, city, address, verifier_name, verifier_role, verifier_phone, admin_notes,
        created_at, reviewed_at, fulfilled_at, fulfilment_method,
        batch:batches(id, title),
        pickup_location:batch_locations(name, address),
@@ -128,7 +129,8 @@ export default async function ApplicationPage({
             }
           />
           <Detail label="Reference person" value={app.verifier_name} />
-          <Detail label="Reference phone" value={app.verifier_phone} />
+          <Detail label="Reference position" value={app.verifier_role} />
+          <Detail label="Reference phone" value={app.verifier_phone} />{" "}
         </dl>
       </Panel>
 
