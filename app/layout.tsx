@@ -31,9 +31,10 @@ export const metadata: Metadata = {
     siteName: "Abu Sufyan Al-Alma'iyy Foundation",
     title: "Abu Sufyan Al-Alma'iyy Foundation",
     description:
-        "The Abu Sufyan Al-Alma'iyy Foundation is a non-profit foundation dedicated to the donation of the noble Qur'an and beneficial Islamic books to students of knowledge, Islamic schools, and to mosques to promote the understanding of Islam amongst all.",
-      url: siteUrl,
+      "The Abu Sufyan Al-Alma'iyy Foundation is a non-profit foundation dedicated to the donation of the noble Qur'an and beneficial Islamic books to students of knowledge, Islamic schools, and to mosques to promote the understanding of Islam amongst all.",
+    url: siteUrl,
   },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({

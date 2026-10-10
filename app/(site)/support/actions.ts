@@ -11,6 +11,7 @@ import {
   bookOrderSchema,
   generalDonationSchema,
 } from "@/lib/validation/checkout";
+import { allowRequest } from "@/lib/rate-limit";
 
 const GENERIC =
   "Something went wrong while starting your payment. Please try again.";
@@ -33,6 +34,12 @@ export async function startGeneralDonation(
   _prev: CheckoutState,
   formData: FormData,
 ): Promise<CheckoutState> {
+    if (!(await allowRequest("checkout", 20, 600))) {
+      return {
+        error:
+          "Too many attempts from this connection. Please wait a few minutes and try again.",
+      };
+    }
   const parsed = generalDonationSchema.safeParse({
     ...donorFields(formData),
     amountNaira: Number(formData.get("amount")),
@@ -85,6 +92,12 @@ export async function startBookOrder(
   _prev: CheckoutState,
   formData: FormData,
 ): Promise<CheckoutState> {
+    if (!(await allowRequest("checkout", 20, 600))) {
+      return {
+        error:
+          "Too many attempts from this connection. Please wait a few minutes and try again.",
+      };
+    }
   let items: unknown;
   try {
     items = JSON.parse(String(formData.get("items") ?? "[]"));

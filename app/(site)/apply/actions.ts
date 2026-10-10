@@ -9,6 +9,10 @@ import {
   bookRequestSchema,
   normalisePhone,
 } from "@/lib/validation/apply";
+import { allowRequest } from "@/lib/rate-limit";
+
+const TOO_MANY =
+  "Too many attempts from this connection. Please wait a little and try again.";
 
 const GENERIC = "Something went wrong. Please try again in a moment.";
 
@@ -30,6 +34,8 @@ export async function submitApplication(
   formData: FormData,
 ): Promise<FormState> {
   if (isBot(formData)) redirect("/apply/confirmation?reference=APP-00000000");
+
+  if (!(await allowRequest("apply", 10, 3600))) return { error: TOO_MANY };
 
   const items: { batchBookId: string; quantity: number }[] = [];
   for (const [key, value] of formData.entries()) {
@@ -97,6 +103,8 @@ export async function submitBookRequest(
 ): Promise<FormState> {
   if (isBot(formData)) redirect("/apply/confirmation?reference=REQ-00000000");
 
+  if (!(await allowRequest("request", 10, 3600))) return { error: TOO_MANY };
+
   const parsed = bookRequestSchema.safeParse({
     applicantType: formData.get("applicantType"),
     requesterName: formData.get("requesterName"),
@@ -147,6 +155,7 @@ export async function trackSubmission(
   _prev: TrackState,
   formData: FormData,
 ): Promise<TrackState> {
+    if (!(await allowRequest("track", 30, 600))) return { error: TOO_MANY };
   const reference = String(formData.get("reference") ?? "")
     .trim()
     .toUpperCase();
