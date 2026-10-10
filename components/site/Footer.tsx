@@ -22,7 +22,6 @@ export function Footer() {
               alt=""
               width={48}
               height={48}
-              priority
               className="h-12 w-auto rounded-sm"
             />
             <span

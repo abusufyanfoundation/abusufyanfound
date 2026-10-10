@@ -7,7 +7,7 @@ import { SectionHeading } from "@/components/site/SectionHeading";
 import { getOpenBatch } from "@/lib/data/apply";
 import { BiChevronLeft } from "react-icons/bi";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Apply for this batch",

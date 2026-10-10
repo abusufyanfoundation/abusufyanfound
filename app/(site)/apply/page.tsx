@@ -7,7 +7,7 @@ import { getOpenBatches } from "@/lib/data/apply";
 import { formatDate } from "@/lib/format";
 import { EmptyState } from "@/components/admin/ui";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Apply for books",
@@ -25,7 +25,7 @@ export default async function ApplyPage() {
     <section className="py-16 md:py-24 ">
       <Container>
         <SectionHeading
-        className="-mt-8"
+          className="-mt-8"
           title="Apply for books"
           intro="When a campaign is completed, the Foundation buys the books and gives them to students of knowledge, mosques and schools. Choose an open batch below to apply."
         />
@@ -61,8 +61,9 @@ export default async function ApplyPage() {
                   )}
                 </p>
                 <p className="mt-1 text-sm text-muted">
-                 Note: Individuals and mosques can request a maximum of 1 copy of a book. Schools
-                  can request up to {batch.max_copies_per_applicant}.
+                  Note: Individuals and mosques can request a maximum of 1 copy
+                  of a book. Schools can request up to{" "}
+                  {batch.max_copies_per_applicant}.
                 </p>
                 <div className="mt-6">
                   <ButtonLink href={`/apply/${batch.id}`}>
@@ -75,7 +76,7 @@ export default async function ApplyPage() {
         )}
 
         {/* <div className="mt-14 max-w-xl flex min-h-28 flex-col justify-between gap-3 border border-rule border-t-2 border-t-gold p-5"> */}
-         {/* <h2 className="text-2xl"> Other options</h2> */}
+        {/* <h2 className="text-2xl"> Other options</h2> */}
         <div className="mt-12 flex flex-wrap gap-x-8 gap-y-3 text-sm">
           <Link href="/apply/request" className={link}>
             Request a book that is not on the list

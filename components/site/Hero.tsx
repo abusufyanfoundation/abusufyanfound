@@ -44,7 +44,7 @@ export function Hero() {
             height={800}
             priority
             sizes="(min-width: 1024px) 50vw, 100vw"
-            className="relative h-auto w-full rounded-2xl"
+            className="relative h-auto w-full rounded-sm"
           />
         </div>
       </Container>

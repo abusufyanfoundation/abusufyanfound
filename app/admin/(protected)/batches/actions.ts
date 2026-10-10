@@ -28,7 +28,7 @@ function refresh(id?: string) {
   revalidatePath("/admin");
   revalidatePath("/admin/batches");
   revalidatePath("/admin/activity");
-  revalidatePath("/apply");
+  revalidatePath("/apply", "layout");
   if (id) revalidatePath(`/admin/batches/${id}`);
 }
 

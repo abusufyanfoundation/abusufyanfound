@@ -1,6 +1,8 @@
+import { Analytics } from "@vercel/analytics/next";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 import { SelectionProvider } from "@/components/site/selection/SelectionProvider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default function SiteLayout({
   children,
@@ -18,6 +20,8 @@ export default function SiteLayout({
       <Header />
       <main id="main">{children}</main>
       <Footer />
+      <Analytics />
+      <SpeedInsights />
     </SelectionProvider>
   );
 }
