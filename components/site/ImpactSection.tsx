@@ -25,7 +25,7 @@ export function ImpactSection({ impact }: { impact: ImpactStats | null }) {
       value: impact ? formatNaira(impact.prefund_funds_kobo) : "—",
     },
     { label: "Books distributed", value: count(impact?.books_distributed) },
-    { label: "Students supported", value: count(impact?.students_supported) },
+    { label: "Individuals supported", value: count(impact?.students_supported) },
     { label: "Mosques supported", value: count(impact?.mosques_supported) },
   //   { label: "Active campaigns", value: count(impact?.active_campaigns) },
   ];

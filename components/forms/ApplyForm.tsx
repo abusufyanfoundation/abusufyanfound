@@ -26,10 +26,10 @@ const choice =
 
 export function ApplyForm({ batchId, maxCopies, books, locations }: Props) {
   const { state, pending, onSubmit } = useActionForm(submitApplication);
-  const [type, setType] = useState<ApplicantType>("student");
+  const [type, setType] = useState<ApplicantType>("individual");
   const [wantsDelivery, setWantsDelivery] = useState<boolean | null>(null);
 
-  const student = type === "student";
+  const student = type === "individual";
   const school = type === "school";
   const organisation = !student;
 

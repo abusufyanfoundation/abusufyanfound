@@ -294,7 +294,7 @@ export default async function BatchPage({
           Pickup locations
         </h2>
         <p className="mb-5 max-w-2xl text-sm text-muted">
-          Applicants see these while applying. Students must choose one to
+          Applicants see these while applying. Individuals must choose one to
           collect their books from. Mosques and schools can choose one too, or
           ask for delivery to their own address.
         </p>

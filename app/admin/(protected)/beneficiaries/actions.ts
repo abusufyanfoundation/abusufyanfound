@@ -5,7 +5,7 @@ import { logAudit } from "@/lib/admin/audit";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createClient } from "@/lib/supabase/server";
 
-const TYPES = ["student", "mosque", "school"];
+const TYPES = ["individual", "mosque", "school"];
 
 export async function createBeneficiary(formData: FormData) {
   const actor = await requireAdmin();

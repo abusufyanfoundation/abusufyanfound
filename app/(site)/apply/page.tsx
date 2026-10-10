@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Apply for books",
   description:
-    "Students of knowledge, mosques and schools can apply for books the Foundation has bought with its campaign funds.",
+    "Individuals, and mosques and schools can apply for books the Foundation has bought with its campaign funds.",
   alternates: { canonical: "/apply" },
 };
 
@@ -61,7 +61,7 @@ export default async function ApplyPage() {
                   )}
                 </p>
                 <p className="mt-1 text-sm text-muted">
-                 Note:  Individuals and mosques can request a maximum of 1 copy of a book. Schools
+                 Note: Individuals and mosques can request a maximum of 1 copy of a book. Schools
                   can request up to {batch.max_copies_per_applicant}.
                 </p>
                 <div className="mt-6">

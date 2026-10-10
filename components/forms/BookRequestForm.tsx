@@ -16,10 +16,10 @@ const control =
 
 export function BookRequestForm() {
   const { state, pending, onSubmit } = useActionForm(submitBookRequest);
-  const [type, setType] = useState<ApplicantType>("student");
+  const [type, setType] = useState<ApplicantType>("individual");
 
   const school = type === "school";
-  const organisation = type !== "student";
+  const organisation = type !== "individual";
 
   return (
     <form onSubmit={onSubmit} className="relative flex flex-col gap-6">

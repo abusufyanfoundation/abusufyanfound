@@ -18,10 +18,17 @@ const phone = z
   )
   .transform((v) => normalisePhone(v) as string);
 
+// Optional for individuals. Normalised when given, and "" marks a number that is not valid.
+const optionalPhone = z
+  .string()
+  .trim()
+  .optional()
+  .transform((v) => (v ? (normalisePhone(v) ?? "") : undefined));
+
 const required = (what: string, min = 2, max = 200) =>
   z.string().trim().min(min, `Please enter ${what}`).max(max);
 
-const applicantType = z.enum(["student", "mosque", "school"], {
+const applicantType = z.enum(["individual", "mosque", "school"], {
   error: "Please choose who is applying",
 });
 
@@ -43,7 +50,7 @@ const needsOrganisation = (
   v: { applicantType: string; organisationName?: string },
   ctx: z.RefinementCtx,
 ) => {
-  if (v.applicantType !== "student" && !v.organisationName) {
+  if (v.applicantType !== "individual" && !v.organisationName) {
     ctx.addIssue({
       code: "custom",
       path: ["organisationName"],
@@ -54,13 +61,6 @@ const needsOrganisation = (
     });
   }
 };
-
-// Optional for students. Normalised when given, and "" marks a number that is not valid.
-const optionalPhone = z
-  .string()
-  .trim()
-  .optional()
-  .transform((v) => (v ? (normalisePhone(v) ?? "") : undefined));
 
 export const applicationSchema = z
   .object({
@@ -86,11 +86,11 @@ export const applicationSchema = z
   })
   .superRefine(needsOrganisation)
   .superRefine((v, ctx) => {
-    if (v.fulfilmentMethod === "delivery" && v.applicantType === "student") {
+    if (v.fulfilmentMethod === "delivery" && v.applicantType === "individual") {
       ctx.addIssue({
         code: "custom",
         path: ["fulfilmentMethod"],
-        message: "Students collect their books in person",
+        message: "Individuals collect their books in person",
       });
     }
     if (v.fulfilmentMethod === "pickup" && !v.locationId) {
@@ -101,8 +101,8 @@ export const applicationSchema = z
       });
     }
 
-    // Mosques and schools need a reference person. Students do not.
-    if (v.applicantType !== "student") {
+    // Mosques and schools need a reference person. Individuals do not.
+    if (v.applicantType !== "individual") {
       if (!v.verifierName) {
         ctx.addIssue({
           code: "custom",
@@ -114,7 +114,8 @@ export const applicationSchema = z
         ctx.addIssue({
           code: "custom",
           path: ["verifierRole"],
-          message: "Please enter your reference person's position or relationship",
+          message:
+            "Please enter your reference person's position or relationship",
         });
       }
       if (!v.verifierPhone) {
@@ -134,6 +135,7 @@ export const applicationSchema = z
       }
     }
   });
+
 export const bookRequestSchema = z
   .object({
     ...contact,
@@ -153,7 +155,7 @@ export const bookRequestSchema = z
       ctx.addIssue({
         code: "custom",
         path: ["quantity"],
-        message: "Students and mosques can request 1 copy",
+        message: "Individuals and mosques can request 1 copy",
       });
     }
   });

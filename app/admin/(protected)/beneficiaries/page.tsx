@@ -19,6 +19,13 @@ type Beneficiary = {
   application_id: string | null;
   book_request_id: string | null;
   created_at: string;
+  distributions: {
+    distribution_items: {
+      quantity: number;
+      book: { title: string } | null;
+      batch_book: { title: string } | null;
+    }[];
+  }[];
 };
 
 const label = (value: string) => {
@@ -34,6 +41,20 @@ const source = (b: Beneficiary) =>
       ? "Book request"
       : "Added by admin";
 
+// Adds up the copies of each book this beneficiary has received
+const booksReceived = (b: Beneficiary) => {
+  const totals = new Map<string, number>();
+
+  for (const distribution of b.distributions) {
+    for (const item of distribution.distribution_items) {
+      const title = item.batch_book?.title ?? item.book?.title ?? "Book";
+      totals.set(title, (totals.get(title) ?? 0) + item.quantity);
+    }
+  }
+
+  return [...totals.entries()];
+};
+
 export default async function BeneficiariesPage() {
   await requireAdmin();
 
@@ -42,7 +63,14 @@ export default async function BeneficiariesPage() {
   const { data, error } = await supabase
     .from("beneficiaries")
     .select(
-      "id, name, type, location, application_id, book_request_id, created_at",
+      `id, name, type, location, application_id, book_request_id, created_at,
+       distributions(
+         distribution_items(
+           quantity,
+           book:books(title),
+           batch_book:batch_books(title)
+         )
+       )`,
     )
     .order("created_at", {
       ascending: false,
@@ -53,7 +81,7 @@ export default async function BeneficiariesPage() {
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Beneficiaries"
-        intro="Keep the students, mosques and schools served by the Foundation in one place."
+        intro="Keep the individuals, mosques and schools served by the Foundation in one place, with the books each has received."
       />
 
       <Panel title="Add beneficiary">
@@ -74,7 +102,7 @@ export default async function BeneficiariesPage() {
               name="type"
               className="mt-1 w-full border border-rule bg-white px-3 py-2 text-sm text-ink"
             >
-              <option value="student">Student</option>
+              <option value="individual">Individual</option>
 
               <option value="mosque">Mosque</option>
 
@@ -113,31 +141,50 @@ export default async function BeneficiariesPage() {
               <th className={th}>Name</th>
               <th className={th}>Type</th>
               <th className={th}>Location</th>
+              <th className={th}>Books received</th>
               <th className={th}>Source</th>
               <th className={th}>Added</th>
             </tr>
           </thead>
 
           <tbody className="divide-y divide-rule">
-            {data.map((beneficiary) => (
-              <tr key={beneficiary.id}>
-                <td className={td}>{beneficiary.name}</td>
+            {data.map((beneficiary) => {
+              const books = booksReceived(beneficiary);
 
-                <td className={td}>{label(beneficiary.type)}</td>
+              return (
+                <tr key={beneficiary.id}>
+                  <td className={td}>{beneficiary.name}</td>
 
-                <td className={td}>{beneficiary.location ?? "N/A"}</td>
+                  <td className={td}>{label(beneficiary.type)}</td>
 
-                <td className={td}>{source(beneficiary)}</td>
+                  <td className={td}>{beneficiary.location ?? "N/A"}</td>
 
-                <td className={td}>{formatDateTime(beneficiary.created_at)}</td>
-              </tr>
-            ))}
+                  <td className={td}>
+                    {books.length ? (
+                      books.map(([title, quantity]) => (
+                        <div key={title}>
+                          {quantity} × {title}
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-muted">None yet</span>
+                    )}
+                  </td>
+
+                  <td className={td}>{source(beneficiary)}</td>
+
+                  <td className={td}>
+                    {formatDateTime(beneficiary.created_at)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </TableWrap>
       ) : (
         <EmptyState
           title="No beneficiaries yet"
-          text="Add the first student, mosque or school above."
+          text="Add the first individual, mosque or school above."
         />
       )}
     </div>

@@ -1,9 +1,9 @@
-export type ApplicantType = "student" | "mosque" | "school";
+export type ApplicantType = "individual" | "mosque" | "school";
 
 const OPTIONS: { value: ApplicantType; label: string }[] = [
-  { value: "student", label: "Individual" },
+  { value: "individual", label: "Individual" },
   { value: "mosque", label: "Mosque" },
-  { value: "school", label: "School" },
+  { value: "school", label: "School or class" },
 ];
 
 export function ApplicantTypeFieldset({
@@ -17,9 +17,7 @@ export function ApplicantTypeFieldset({
 }) {
   return (
     <fieldset className="flex flex-col gap-3">
-      <legend className="text-sm font-medium text-ink mb-2">
-        Who is applying?
-      </legend>
+      <legend className="text-sm font-medium text-ink">Who is applying?</legend>
 
       <div className="flex flex-wrap gap-3">
         {OPTIONS.map((o) => (
@@ -47,7 +45,7 @@ export function ApplicantTypeFieldset({
       <p className="text-xs text-muted">
         {value === "school"
           ? schoolLimit
-          : "Individuals and mosques can request a maximum of 1 copy of a book."}
+          : "Individuals and mosques can request 1 copy of one book."}
       </p>
     </fieldset>
   );
