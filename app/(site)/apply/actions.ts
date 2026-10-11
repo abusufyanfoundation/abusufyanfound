@@ -114,7 +114,7 @@ export async function submitBookRequest(
   if (!(await allowRequest("request", 10, 3600))) return { error: TOO_MANY };
 
   if (formData.get("consent") !== "on") return { error: CONSENT };
-  
+
   const parsed = bookRequestSchema.safeParse({
     applicantType: formData.get("applicantType"),
     requesterName: formData.get("requesterName"),
@@ -125,12 +125,12 @@ export async function submitBookRequest(
     city: formData.get("city"),
     address: formData.get("address"),
     bookTitle: formData.get("bookTitle"),
-    bookAuthor: text(formData, "bookAuthor"),
+    bookAuthor: formData.get("bookAuthor"),
     quantity:
       formData.get("applicantType") === "school"
         ? Number(formData.get("quantity"))
         : 1,
-    reason: text(formData, "reason"),
+    reason: formData.get("reason"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const input = parsed.data;

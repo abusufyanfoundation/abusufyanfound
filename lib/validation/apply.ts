@@ -141,13 +141,13 @@ export const bookRequestSchema = z
     ...contact,
     requesterName: required("your full name", 2, 120),
     bookTitle: required("the book's title"),
-    bookAuthor: z.string().trim().max(200).optional(),
+    bookAuthor: required("the author's name", 2, 200),
     quantity: z
       .number({ error: "Please enter how many copies you need" })
       .int("Please enter a whole number")
       .min(1, "Please enter how many copies you need")
       .max(50, "Schools can request up to 50 copies"),
-    reason: z.string().trim().max(1000).optional(),
+    reason: required("why you need this book", 5, 1000),
   })
   .superRefine(needsOrganisation)
   .superRefine((v, ctx) => {
