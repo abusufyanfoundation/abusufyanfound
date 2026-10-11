@@ -4,7 +4,10 @@ import { cleanSearch } from "@/lib/admin/filters";
 import { createClient } from "@/lib/supabase/server";
 
 const csv = (value: unknown) => {
-  return `"${String(value ?? "").replace(/"/g, '""')}"`;
+  let text = String(value ?? "");
+  // Stops spreadsheets running text that starts like a formula
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+  return `"${text.replace(/"/g, '""')}"`;
 };
 
 export async function GET(request: Request) {

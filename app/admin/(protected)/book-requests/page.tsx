@@ -236,9 +236,12 @@ export default async function BookRequestsPage({
                   </div>
                 </td>
                 <td className={td}>
-                  <form action={updateRequest} className="flex flex-col gap-2">
+                  <form
+                    id={`request-${r.id}`}
+                    action={updateRequest}
+                    className="flex flex-col gap-2"
+                  >
                     <input type="hidden" name="id" value={r.id} />
-
                     <select
                       name="status"
                       defaultValue={r.status}
@@ -250,7 +253,6 @@ export default async function BookRequestsPage({
                         </option>
                       ))}
                     </select>
-
                     <input
                       name="notes"
                       placeholder="Notes (visible to admins only)"
@@ -263,6 +265,7 @@ export default async function BookRequestsPage({
                 <td className={td}>
                   <button
                     type="submit"
+                    form={`request-${r.id}`}
                     className="w-fit text-sm text-white bg-gold-deep py-2 px-3 underline-offset-4 hover:bg-gold-deep/90"
                   >
                     Save
