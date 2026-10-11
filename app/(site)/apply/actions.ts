@@ -43,10 +43,10 @@ export async function submitApplication(
 
   if (formData.get("consent") !== "on") return { error: CONSENT };
 
-    const { applications } = await getSiteSettings();
-    if (applications.paused) {
-      return { error: applications.message || PAUSED.applications };
-    }
+  const { applications } = await getSiteSettings();
+  if (applications.paused) {
+    return { error: applications.message || PAUSED.applications };
+  }
 
   // Each person picks one book. Only schools choose how many copies of it.
   const bookId = text(formData, "bookId");
@@ -69,6 +69,7 @@ export async function submitApplication(
     verifierRole: text(formData, "verifierRole"),
     verifierPhone: text(formData, "verifierPhone"),
     fulfilmentMethod: formData.get("fulfilmentMethod"),
+    reason: formData.get("reason"),
     locationId: text(formData, "locationId"),
     items:
       bookId && Number.isInteger(quantity) && quantity > 0
@@ -100,6 +101,7 @@ export async function submitApplication(
       batch_book_id: i.batchBookId,
       quantity: i.quantity,
     })),
+    p_reason: input.reason,
   });
 
   if (error) {
@@ -121,11 +123,11 @@ export async function submitBookRequest(
 
   if (formData.get("consent") !== "on") return { error: CONSENT };
 
-    const { applications } = await getSiteSettings();
-    if (applications.paused) {
-      return { error: applications.message || PAUSED.applications };
-    }
-    
+  const { applications } = await getSiteSettings();
+  if (applications.paused) {
+    return { error: applications.message || PAUSED.applications };
+  }
+
   const parsed = bookRequestSchema.safeParse({
     applicantType: formData.get("applicantType"),
     requesterName: formData.get("requesterName"),
@@ -182,9 +184,9 @@ export async function trackSubmission(
     .toUpperCase();
   const phone = normalisePhone(String(formData.get("phone") ?? ""));
 
-   if (!/^(ASAF-(B\d+|RQ)-\d{3,}|(APP|REQ)-[A-Z0-9]{8})$/.test(reference)) {
-     return { error: "Please enter your reference, for example ASAF-b3-001." };
-   }
+  if (!/^(ASAF-(B\d+|RQ)-\d{3,}|(APP|REQ)-[A-Z0-9]{8})$/.test(reference)) {
+    return { error: "Please enter your reference, for example ASAF-b3-001." };
+  }
   if (!phone)
     return { error: "Please enter the phone number you applied with." };
 

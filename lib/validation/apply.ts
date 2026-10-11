@@ -73,6 +73,7 @@ export const applicationSchema = z
     fulfilmentMethod: z.enum(["pickup", "delivery"], {
       error: "Please choose how you will receive the books",
     }),
+    reason: required("why you need this book", 5, 1000),
     locationId: z.string().uuid().optional(),
     items: z
       .array(

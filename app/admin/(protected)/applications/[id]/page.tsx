@@ -38,6 +38,7 @@ type Application = {
   created_at: string;
   reviewed_at: string | null;
   fulfilled_at: string | null;
+  reason: string | null;
   batch: { id: string; title: string } | null;
   fulfilment_method: string | null;
   pickup_location: { name: string; address: string } | null;
@@ -83,7 +84,7 @@ export default async function ApplicationPage({
     .from("applications")
     .select(
       `id, reference, status, applicant_type, applicant_name, organisation_name, email, phone,
-       state, city, address, verifier_name, verifier_role, verifier_phone, admin_notes,
+       state, city, address, verifier_name, verifier_role, verifier_phone, reason, admin_notes,
        created_at, reviewed_at, fulfilled_at, fulfilment_method,
        batch:batches(id, title),
        pickup_location:batch_locations(name, address),
@@ -130,7 +131,7 @@ export default async function ApplicationPage({
           />
           <Detail label="Reference person" value={app.verifier_name} />
           <Detail label="Reference position" value={app.verifier_role} />
-          <Detail label="Reference phone" value={app.verifier_phone} />{" "}
+          <Detail label="Reference phone" value={app.verifier_phone} />
         </dl>
       </Panel>
 
@@ -150,6 +151,10 @@ export default async function ApplicationPage({
             </span>
           )}
         </p>
+        <div className="flex flex-col gap-2 mb-6 rounded border border-rule bg-paper p-4">
+          <p className="font-medium text-gold-deep">Why they want the book</p>
+          <p className="text-ink">{app.reason}</p>
+        </div>
 
         <form action={reviewApplication} className="flex flex-col gap-6">
           <input type="hidden" name="id" value={app.id} />

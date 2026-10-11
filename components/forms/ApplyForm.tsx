@@ -253,6 +253,24 @@ export function ApplyForm({ batchId, maxCopies, books, locations }: Props) {
         )}
       </div>
 
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="reason" className="text-sm font-medium text-ink">
+          {organisation
+            ? "Why does your mosque or school need this book?"
+            : "Why do you need this book?"}
+        </label>
+        <textarea
+          id="reason"
+          name="reason"
+          rows={3}
+          required
+          className={control}
+        />
+        <p className="text-xs text-muted">
+          The Foundation uses your answer when deciding who receives the books.
+        </p>
+      </div>
+
       <div className="flex flex-col gap-6 border-t border-rule pt-6">
         <h3 className="font-display text-xl text-navy">Verification</h3>
 
