@@ -1,4 +1,5 @@
-import Link from "next/dist/client/link";
+import Link from "next/link";
+import { Toggle } from "@/components/ui/Toggle";
 import { Field } from "./Field";
 
 export function DonorFields() {
@@ -20,20 +21,11 @@ export function DonorFields() {
         required={false}
       />
 
-      <label className="flex items-start gap-3 text-sm text-ink">
-        <input
-          type="checkbox"
-          name="displayPublicly"
-          className="mt-1 h-4 w-4 accent-navy"
-        />
-        <span>
-          Display my name publicly
-          <span className="mt-0.5 block text-xs text-muted">
-            If you leave this unticked, you will appear as &ldquo;Anonymous
-            Supporter&rdquo;.
-          </span>
-        </span>
-      </label>
+      <Toggle
+        label="Display my name publicly"
+        name="displayPublicly"
+        hint="If you leave this off, you will appear as “Anonymous Supporter”."
+      />
 
       <p className="text-xs text-muted">
         How we use your details is explained in our{" "}

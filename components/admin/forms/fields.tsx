@@ -28,6 +28,7 @@ export function TextField({
   name,
   defaultValue,
   type = "text",
+  autoComplete,
   required = true,
   hint,
   min,
@@ -38,6 +39,7 @@ export function TextField({
   defaultValue?: string | number;
   type?: string;
   required?: boolean;
+  autoComplete?: string;
   hint?: string;
   min?: number;
   step?: number | "any";
@@ -48,6 +50,7 @@ export function TextField({
         id={name}
         name={name}
         type={type}
+        autoComplete={autoComplete}
         defaultValue={defaultValue}
         required={required}
         min={min}
@@ -115,34 +118,7 @@ export function SelectField({
   );
 }
 
-export function CheckField({
-  label,
-  name,
-  defaultChecked,
-  hint,
-}: {
-  label: string;
-  name: string;
-  defaultChecked?: boolean;
-  hint?: string;
-}) {
-  return (
-    <label className="flex items-start gap-3 text-sm text-ink">
-      <input
-        type="checkbox"
-        name={name}
-        defaultChecked={defaultChecked}
-        className="mt-1 h-4 w-4 accent-navy"
-      />
-      <span>
-        {label}
-        {hint && (
-          <span className="mt-0.5 block text-xs text-muted">{hint}</span>
-        )}
-      </span>
-    </label>
-  );
-}
+export { Toggle as ToggleField } from "@/components/ui/Toggle";
 
 export function FileField({
   label,

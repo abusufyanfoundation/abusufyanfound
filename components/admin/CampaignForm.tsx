@@ -7,7 +7,7 @@ import { FormMessage } from "@/components/admin/auth/FormMessage";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { useActionForm } from "@/lib/forms/use-action-form";
 import { useEditMode } from "@/lib/forms/use-edit-mode";
-import { CheckField, FileField, TextArea, TextField } from "./forms/fields";
+import { ToggleField, FileField, TextArea, TextField } from "./forms/fields";
 
 export type CampaignFormValues = {
   id: string;
@@ -80,7 +80,7 @@ export function CampaignForm({ campaign }: { campaign?: CampaignFormValues }) {
         </div>
 
         {!campaign?.completed && (
-          <CheckField
+          <ToggleField
             label="Make this the active campaign"
             name="isActive"
             defaultChecked={campaign?.is_active}
