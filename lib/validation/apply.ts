@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Accepts 0816 475 8649, +234 816 475 8649 and 2348164758649, and stores +2348164758649
+// Accepts0801 234 5678, +234 801 234 5678 and 2348012345678, and stores +2348164758649
 export function normalisePhone(raw: string): string | null {
   const digits = raw.replace(/[^\d+]/g, "");
   if (/^\+234\d{10}$/.test(digits)) return digits;
@@ -14,7 +14,7 @@ const phone = z
   .trim()
   .refine(
     (v) => normalisePhone(v) !== null,
-    "Please enter a valid Nigerian phone number, for example 0816 475 8649",
+    "Please enter a valid Nigerian phone number, for example 0801 234 5678",
   )
   .transform((v) => normalisePhone(v) as string);
 

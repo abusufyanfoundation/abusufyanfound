@@ -13,12 +13,13 @@ import {
 } from "@/lib/validation/checkout";
 import { allowRequest } from "@/lib/rate-limit";
 import { getSiteSettings, PAUSED } from "@/lib/data/settings";
+import { siteUrl } from "@/lib/site";
 
 const GENERIC =
   "Something went wrong while starting your payment. Please try again.";
 
 const callbackUrl = () =>
-  `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/api/paystack/callback`;
+  `${siteUrl}/api/paystack/callback`;
 
 function donorFields(formData: FormData) {
   return {

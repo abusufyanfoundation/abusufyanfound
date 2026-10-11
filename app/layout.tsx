@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Public_Sans } from "next/font/google";
 import localFont from "next/font/local";
+import { siteConfig, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const clashDisplay = localFont({
@@ -16,22 +17,18 @@ const publicSans = Public_Sans({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Abu Sufyan Al-Alma'iyy Foundation",
-    template: "%s | Abu Sufyan Al-Alma'iyy Foundation",
+    default: siteConfig.name,
+    template: `%s | ${siteConfig.name}`,
   },
-  description:
-    "The Abu Sufyan Al-Alma'iyy Foundation is a non-profit foundation dedicated to the donation of the noble Qur'an and beneficial Islamic books to students of knowledge, Islamic schools, and to mosques to promote the understanding of Islam amongst all.",
+  description: siteConfig.description,
   openGraph: {
     type: "website",
-    siteName: "Abu Sufyan Al-Alma'iyy Foundation",
-    title: "Abu Sufyan Al-Alma'iyy Foundation",
-    description:
-      "The Abu Sufyan Al-Alma'iyy Foundation is a non-profit foundation dedicated to the donation of the noble Qur'an and beneficial Islamic books to students of knowledge, Islamic schools, and to mosques to promote the understanding of Islam amongst all.",
+    siteName: siteConfig.name,
+    title: siteConfig.name,
+    description: siteConfig.description,
     url: siteUrl,
   },
   twitter: { card: "summary_large_image" },

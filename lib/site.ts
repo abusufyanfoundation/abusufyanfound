@@ -50,3 +50,9 @@ export const siteConfig: {
 export const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
 ).replace(/\/+$/, "");
+
+if (process.env.NODE_ENV === "production" && siteUrl.includes("localhost")) {
+  console.error(
+    "NEXT_PUBLIC_SITE_URL is not set. Payment callbacks and links will point at localhost.",
+  );
+}

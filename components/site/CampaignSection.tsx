@@ -1,17 +1,18 @@
-import { siteConfig } from "@/lib/site";
 import type { CampaignWithStats } from "@/lib/types";
 import { CampaignCard } from "./CampaignCard";
 import { Container } from "./Container";
 import { SectionHeading } from "./SectionHeading";
+import { getSiteSettings } from "@/lib/data/settings";
 
 const INTRO =
   "A campaign is a general fund with a target. Give any amount you like. You do not choose the books: once the target is reached, the Foundation chooses and buys them, and gives them to students of knowledge and mosques.";
 
-export function CampaignSection({
+export async function CampaignSection({
   campaign,
 }: {
   campaign: CampaignWithStats | null;
 }) {
+  const { social } = await getSiteSettings();
   return (
     <section id="campaign" className="bg-gold-soft py-20 md:py-28">
       <Container>
@@ -35,7 +36,7 @@ export function CampaignSection({
               Foundation to hear about it first.
             </p>
             <ul className="mt-5 flex gap-6 text-sm">
-              {siteConfig.social.map((s) => (
+              {social.map((s) => (
                 <li key={s.href}>
                   <a
                     href={s.href}
