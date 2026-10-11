@@ -13,7 +13,8 @@ export type AuditEntity =
   | "session"
   | "book_request"
   | "team"
-  | "profile";
+  | "profile"
+  | "settings";
 
 export type AuditEntry = {
   action: string;

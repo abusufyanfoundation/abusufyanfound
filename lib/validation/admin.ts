@@ -62,3 +62,90 @@ export const batchLocationSchema = z.object({
     .min(3, "Please enter the address or directions")
     .max(300),
 });
+
+const httpsLink = z
+  .string()
+  .trim()
+  .max(300, "That link is too long")
+  .optional()
+  .refine(
+    (v) => !v || /^https:\/\/\S+$/i.test(v),
+    "Links must start with https://",
+  );
+
+export const siteSettingsSchema = z
+  .object({
+    contactEmail: z
+      .string()
+      .trim()
+      .email("Please enter a valid email address")
+      .optional(),
+    contactPhone: z
+      .string()
+      .trim()
+      .max(40, "That phone number is too long")
+      .optional(),
+    contactAddress: z
+      .string()
+      .trim()
+      .max(200, "That address is too long")
+      .optional(),
+    facebookUrl: httpsLink,
+    whatsappUrl: httpsLink,
+    instagramUrl: httpsLink,
+    youtubeUrl: httpsLink,
+    announcementEnabled: z.boolean(),
+    announcementText: z
+      .string()
+      .trim()
+      .max(200, "The announcement can be up to 200 characters")
+      .optional(),
+    announcementLinkLabel: z
+      .string()
+      .trim()
+      .max(40, "The link label can be up to 40 characters")
+      .optional(),
+    announcementLinkHref: z
+      .string()
+      .trim()
+      .max(300, "That link is too long")
+      .optional()
+      .refine(
+        (v) => !v || /^(https:\/\/\S+|\/(?!\/)\S*)$/.test(v),
+        "The announcement link must start with https:// or /",
+      ),
+    donationsPaused: z.boolean(),
+    donationsPausedMessage: z
+      .string()
+      .trim()
+      .max(300, "The message can be up to 300 characters")
+      .optional(),
+    applicationsPaused: z.boolean(),
+    applicationsPausedMessage: z
+      .string()
+      .trim()
+      .max(300, "The message can be up to 300 characters")
+      .optional(),
+    minDonationNaira: z
+      .number({ error: "Please enter the minimum donation" })
+      .int("Please enter a whole number of naira")
+      .min(100, "The minimum cannot be lower than ₦100")
+      .max(1_000_000, "That minimum is too high"),
+  })
+  .superRefine((v, ctx) => {
+    if (v.announcementEnabled && !v.announcementText) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["announcementText"],
+        message: "Enter the announcement text, or switch the banner off.",
+      });
+    }
+    if (Boolean(v.announcementLinkLabel) !== Boolean(v.announcementLinkHref)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["announcementLinkHref"],
+        message:
+          "Give the announcement link both a label and an address, or leave both blank.",
+      });
+    }
+  });

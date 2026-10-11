@@ -17,6 +17,7 @@ const links: NavLink[] = [
   { label: "Beneficiaries", href: "/admin/beneficiaries" },
   { label: "Activity", href: "/admin/activity" },
   { label: "Team", href: "/admin/team", superOnly: true },
+  { label: "Site settings", href: "/admin/settings", superOnly: true },
   { label: "My profile", href: "/admin/profile" },
 ];
 
@@ -27,7 +28,7 @@ export function AdminNav({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   return (
     <nav
       aria-label="Admin"
-      className="flex gap-1 overflow-x-auto px-4 pb-3 lg:flex-col lg:px-3 lg:pb-0"
+      className="flex gap-1 overflow-x-auto px-4 pb-3 lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-x-visible lg:overflow-y-auto lg:px-3 lg:pb-4 lg:[scrollbar-color:rgba(255,255,255,0.3)_transparent] lg:[scrollbar-width:thin]"
     >
       {visible.map((link) => {
         const active =

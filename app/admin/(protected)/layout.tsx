@@ -14,9 +14,9 @@ export default async function AdminLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-paper lg:flex-row">
-      <aside className="bg-navy-deep text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:shrink-0 lg:flex-col lg:justify-between">
-        <div>
-          <div className="flex items-center justify-between px-6 py-4 lg:block lg:py-8">
+      <aside className="bg-navy-deep text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:shrink-0 lg:flex-col">
+        <div className="lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
+          <div className="flex shrink-0 items-center justify-between px-6 py-4 lg:block lg:py-8">
             <Link
               href="/admin"
               aria-label="Admin overview"
@@ -49,7 +49,7 @@ export default async function AdminLayout({
           <AdminNav isSuperAdmin={isSuperAdmin} />
         </div>
 
-        <div className="hidden px-6 py-6 lg:block">
+        <div className="hidden shrink-0 border-t border-white/10 px-6 py-6 lg:block">
           {profile.full_name && (
             <p className="text-sm text-white/60">{profile.full_name}</p>
           )}

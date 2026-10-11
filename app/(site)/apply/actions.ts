@@ -10,6 +10,7 @@ import {
   normalisePhone,
 } from "@/lib/validation/apply";
 import { allowRequest } from "@/lib/rate-limit";
+import { getSiteSettings, PAUSED } from "@/lib/data/settings";
 
 const TOO_MANY =
   "Too many attempts from this connection. Please wait a little and try again.";
@@ -41,6 +42,11 @@ export async function submitApplication(
   if (!(await allowRequest("apply", 10, 3600))) return { error: TOO_MANY };
 
   if (formData.get("consent") !== "on") return { error: CONSENT };
+
+    const { applications } = await getSiteSettings();
+    if (applications.paused) {
+      return { error: applications.message || PAUSED.applications };
+    }
 
   // Each person picks one book. Only schools choose how many copies of it.
   const bookId = text(formData, "bookId");
@@ -115,6 +121,11 @@ export async function submitBookRequest(
 
   if (formData.get("consent") !== "on") return { error: CONSENT };
 
+    const { applications } = await getSiteSettings();
+    if (applications.paused) {
+      return { error: applications.message || PAUSED.applications };
+    }
+    
   const parsed = bookRequestSchema.safeParse({
     applicantType: formData.get("applicantType"),
     requesterName: formData.get("requesterName"),

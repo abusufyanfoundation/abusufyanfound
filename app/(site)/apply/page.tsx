@@ -5,7 +5,8 @@ import { SectionHeading } from "@/components/site/SectionHeading";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { getOpenBatches } from "@/lib/data/apply";
 import { formatDate } from "@/lib/format";
-import { EmptyState } from "@/components/admin/ui";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { getSiteSettings, PAUSED } from "@/lib/data/settings";
 
 export const revalidate = 60;
 
@@ -19,7 +20,10 @@ export const metadata: Metadata = {
 const link = "text-navy underline decoration-gold underline-offset-4";
 
 export default async function ApplyPage() {
-  const batches = await getOpenBatches();
+  const [batches, { applications }] = await Promise.all([
+    getOpenBatches(),
+    getSiteSettings(),
+  ]);
 
   return (
     <section className="py-16 md:py-24 ">
@@ -31,7 +35,14 @@ export default async function ApplyPage() {
           intro="When a campaign is completed, the Foundation buys the books and gives them to students of knowledge, mosques and schools. Choose an open batch below to apply."
         />
 
-        {batches.length === 0 ? (
+        {applications.paused ? (
+          <div className="mt-12">
+            <EmptyState
+              title="Applications are paused"
+              text={applications.message || PAUSED.applications}
+            />
+          </div>
+        ) : batches.length === 0 ? (
           <div className="mt-12">
             <EmptyState
               title="No batch is open for applications right now."

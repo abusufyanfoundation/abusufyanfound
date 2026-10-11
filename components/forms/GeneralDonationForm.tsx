@@ -9,7 +9,7 @@ import { SubmitButton } from "./SubmitButton";
 
 const presets = [5000, 10000, 25000, 50000];
 
-export function GeneralDonationForm() {
+export function GeneralDonationForm({ minAmount }: { minAmount: number }) {
   const { state, pending, onSubmit } = useActionForm(startGeneralDonation);
   const [amount, setAmount] = useState("");
 
@@ -44,7 +44,7 @@ export function GeneralDonationForm() {
           name="amount"
           type="number"
           inputMode="numeric"
-          min={100}
+          min={minAmount}
           step={1}
           required
           value={amount}
@@ -52,7 +52,9 @@ export function GeneralDonationForm() {
           placeholder="Enter an amount"
           className="border border-rule bg-white px-3.5 py-3 text-base text-ink transition-colors focus:border-navy"
         />
-        <p className="text-xs text-muted">The minimum is ₦100.</p>
+        <p className="text-xs text-muted">
+          The minimum is ₦{minAmount.toLocaleString("en-NG")}.
+        </p>
       </div>
 
       <DonorFields />

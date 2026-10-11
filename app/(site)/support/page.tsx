@@ -5,6 +5,8 @@ import { GeneralDonationForm } from "@/components/forms/GeneralDonationForm";
 import { Container } from "@/components/site/Container";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { getCurrentCampaign } from "@/lib/data/public";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { getSiteSettings, PAUSED } from "@/lib/data/settings";
 
 export const metadata: Metadata = {
   title: "Support the Foundation",
@@ -27,6 +29,28 @@ export default async function SupportPage({
 }) {
   const { type } = await searchParams;
   const books = type === "books";
+
+  const { donations } = await getSiteSettings();
+
+  if (donations.paused) {
+    return (
+      <section className="py-16 md:py-24">
+        <Container>
+          <SectionHeading
+            as="h1"
+            eyebrow="Support us"
+            title="Support the Foundation"
+          />
+          <div className="mt-12">
+            <EmptyState
+              title="Giving is paused for now"
+              text={donations.message || PAUSED.donations}
+            />
+          </div>
+        </Container>
+      </section>
+    );
+  }
 
   const campaign = await getCurrentCampaign();
   const campaignOpen = campaign !== null;
@@ -106,7 +130,11 @@ export default async function SupportPage({
           </div>
 
           <div className="max-w-xl lg:basis-7/12">
-            {books ? <BookCheckoutForm /> : <GeneralDonationForm />}
+            {books ? (
+              <BookCheckoutForm />
+            ) : (
+              <GeneralDonationForm minAmount={donations.minNaira} />
+            )}
           </div>
         </div>
       </Container>

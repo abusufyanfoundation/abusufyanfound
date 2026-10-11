@@ -4,6 +4,8 @@ import { BookRequestForm } from "@/components/forms/BookRequestForm";
 import { Container } from "@/components/site/Container";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { BiChevronLeft } from "react-icons/bi";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { getSiteSettings, PAUSED } from "@/lib/data/settings";
 
 export const metadata: Metadata = {
   title: "Request a book",
@@ -12,7 +14,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/apply/request" },
 };
 
-export default function RequestBookPage() {
+export default async function RequestBookPage() {
+  const { applications } = await getSiteSettings();
   return (
     <section className="py-16 md:py-24">
       <Container>
@@ -31,7 +34,14 @@ export default function RequestBookPage() {
         />
 
         <div className="mt-12 max-w-xl">
-          <BookRequestForm />
+          {applications.paused ? (
+            <EmptyState
+              title="Requests are paused"
+              text={applications.message || PAUSED.applications}
+            />
+          ) : (
+            <BookRequestForm />
+          )}
         </div>
       </Container>
     </section>

@@ -6,6 +6,8 @@ import { Container } from "@/components/site/Container";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { getOpenBatch } from "@/lib/data/apply";
 import { BiChevronLeft } from "react-icons/bi";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { getSiteSettings, PAUSED } from "@/lib/data/settings";
 
 export const revalidate = 60;
 
@@ -24,6 +26,8 @@ export default async function ApplyBatchPage({
 
   if (!batch) notFound();
 
+  const { applications } = await getSiteSettings();
+
   return (
     <section className="py-16 md:py-24">
       <Container>
@@ -41,12 +45,19 @@ export default async function ApplyBatchPage({
         />
 
         <div className="mt-12 max-w-xl">
-          <ApplyForm
-            batchId={batch.id}
-            maxCopies={batch.max_copies_per_applicant}
-            books={batch.batch_books}
-            locations={batch.batch_locations}
-          />
+          {applications.paused ? (
+            <EmptyState
+              title="Applications are paused"
+              text={applications.message || PAUSED.applications}
+            />
+          ) : (
+            <ApplyForm
+              batchId={batch.id}
+              maxCopies={batch.max_copies_per_applicant}
+              books={batch.batch_books}
+              locations={batch.batch_locations}
+            />
+          )}
         </div>
       </Container>
     </section>

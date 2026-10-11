@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { getSiteSettings } from "@/lib/data/settings";
 import { siteConfig } from "@/lib/site";
 import { Container } from "./Container";
 
-export function Footer() {
-  const { contact } = siteConfig;
+export async function Footer() {
+  const { contact, social } = await getSiteSettings();
   const hasContact = contact.email || contact.phone || contact.address;
 
   return (
@@ -63,55 +64,62 @@ export function Footer() {
           </nav>
 
           <div>
-            <h2 className="text-sm tracking-[0.18em] text-gold uppercase">
-              {hasContact ? "Contact" : "Follow"}
-            </h2>
-
             {hasContact && (
-              <ul className="mt-5 flex flex-col gap-3 text-sm text-white/80">
-                {contact.email && (
-                  <li>
-                    <a
-                      href={`mailto:${contact.email}`}
-                      className="transition-colors hover:text-gold"
-                    >
-                      {contact.email}
-                    </a>
-                  </li>
-                )}
-                {contact.phone && (
-                  <li>
-                    <a
-                      href={`tel:${contact.phone.replace(/\s/g, "")}`}
-                      className="transition-colors hover:text-gold"
-                    >
-                      {contact.phone}
-                    </a>
-                  </li>
-                )}
-                {contact.address && <li>{contact.address}</li>}
-              </ul>
+              <>
+                <h2 className="text-sm tracking-[0.18em] text-gold uppercase">
+                  Contact
+                </h2>
+                <ul className="mt-5 flex flex-col gap-3 text-sm text-white/80">
+                  {contact.email && (
+                    <li>
+                      <a
+                        href={`mailto:${contact.email}`}
+                        className="transition-colors hover:text-gold"
+                      >
+                        {contact.email}
+                      </a>
+                    </li>
+                  )}
+                  {contact.phone && (
+                    <li>
+                      <a
+                        href={`tel:${contact.phone.replace(/\s/g, "")}`}
+                        className="transition-colors hover:text-gold"
+                      >
+                        {contact.phone}
+                      </a>
+                    </li>
+                  )}
+                  {contact.address && <li>{contact.address}</li>}
+                </ul>
+              </>
             )}
 
-            {hasContact && (
-              <h2 className="mt-10 text-sm tracking-[0.18em] text-gold uppercase">
-                Follow
-              </h2>
+            {social.length > 0 && (
+              <>
+                <h2
+                  className={`text-sm tracking-[0.18em] text-gold uppercase ${
+                    hasContact ? "mt-10" : ""
+                  }`}
+                >
+                  Follow
+                </h2>
+                <ul className="mt-5 flex flex-col gap-3 text-sm">
+                  {social.map((item) => (
+                    <li key={item.href}>
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-white/80 transition-colors hover:text-gold"
+                      >
+                        {item.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
-            <ul className="mt-5 flex flex-col gap-3 text-sm">
-              {siteConfig.social.map((item) => (
-                <li key={item.href}>
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-white/80 transition-colors hover:text-gold"
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
       </Container>

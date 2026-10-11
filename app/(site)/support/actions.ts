@@ -12,6 +12,7 @@ import {
   generalDonationSchema,
 } from "@/lib/validation/checkout";
 import { allowRequest } from "@/lib/rate-limit";
+import { getSiteSettings, PAUSED } from "@/lib/data/settings";
 
 const GENERIC =
   "Something went wrong while starting your payment. Please try again.";
@@ -34,18 +35,30 @@ export async function startGeneralDonation(
   _prev: CheckoutState,
   formData: FormData,
 ): Promise<CheckoutState> {
-    if (!(await allowRequest("checkout", 20, 600))) {
-      return {
-        error:
-          "Too many attempts from this connection. Please wait a few minutes and try again.",
-      };
-    }
+  if (!(await allowRequest("checkout", 20, 600))) {
+    return {
+      error:
+        "Too many attempts from this connection. Please wait a few minutes and try again.",
+    };
+  }
+
+  const settings = await getSiteSettings();
+  if (settings.donations.paused) {
+    return { error: settings.donations.message || PAUSED.donations };
+  }
+
   const parsed = generalDonationSchema.safeParse({
     ...donorFields(formData),
     amountNaira: Number(formData.get("amount")),
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const input = parsed.data;
+
+  if (input.amountNaira < settings.donations.minNaira) {
+    return {
+      error: `The minimum donation is ₦${settings.donations.minNaira.toLocaleString("en-NG")}.`,
+    };
+  }
 
   // The campaign is always looked up on the server, never taken from the form
   const campaign = await getCurrentCampaign();
@@ -92,12 +105,18 @@ export async function startBookOrder(
   _prev: CheckoutState,
   formData: FormData,
 ): Promise<CheckoutState> {
-    if (!(await allowRequest("checkout", 20, 600))) {
-      return {
-        error:
-          "Too many attempts from this connection. Please wait a few minutes and try again.",
-      };
-    }
+  if (!(await allowRequest("checkout", 20, 600))) {
+    return {
+      error:
+        "Too many attempts from this connection. Please wait a few minutes and try again.",
+    };
+  }
+
+  const settings = await getSiteSettings();
+  if (settings.donations.paused) {
+    return { error: settings.donations.message || PAUSED.donations };
+  }
+
   let items: unknown;
   try {
     items = JSON.parse(String(formData.get("items") ?? "[]"));
