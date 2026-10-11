@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { BookRequestForm } from "@/components/forms/BookRequestForm";
 import { Container } from "@/components/site/Container";
 import { SectionHeading } from "@/components/site/SectionHeading";
-import { BiChevronLeft } from "react-icons/bi";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getSiteSettings, PAUSED } from "@/lib/data/settings";
+import { BackLink } from "@/components/ui/BackLink";
 
 export const metadata: Metadata = {
   title: "Request a book",
@@ -19,20 +18,14 @@ export default async function RequestBookPage() {
   return (
     <section className="py-16 md:py-24">
       <Container>
-        <Link
-          href="/apply"
-          className="-mt-8 flex items-center text-sm text-muted transition-colors hover:text-navy"
-        >
-          <BiChevronLeft className="text-2xl" /> Apply for books
-        </Link>
+        <BackLink href="/apply">Back to apply for books</BackLink>
 
         <SectionHeading
           as="h1"
-          className=""
+          className="mt-8"
           title="Request a book"
           intro="Need a book that is not on any batch list? Tell us which one. The Foundation reviews every request and supplies what it can."
         />
-
         <div className="mt-12 max-w-xl">
           {applications.paused ? (
             <EmptyState

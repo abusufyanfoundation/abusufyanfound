@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CampaignCard } from "@/components/site/CampaignCard";
 import { Container } from "@/components/site/Container";
 import { getCampaignBySlug } from "@/lib/data/public";
 import { campaignPath } from "@/lib/share";
 import { siteConfig } from "@/lib/site";
-import { BiChevronLeft } from "react-icons/bi";
+import { BackLink } from "@/components/ui/BackLink";
 
 export const revalidate = 60;
 
@@ -69,12 +68,9 @@ export default async function CampaignPage({
   return (
     <section className="bg-gold-soft py-16 md:py-24">
       <Container>
-        <Link
-          href="/#campaign"
-          className="flex items-center mb-8 text-sm text-muted transition-colors hover:text-navy"
-        >
-          <BiChevronLeft className="text-2xl"/> Back to the website
-        </Link>
+        <BackLink href="/#campaign" className="mb-8">
+          Back to the website
+        </BackLink>
         <CampaignCard campaign={campaign} />
       </Container>
     </section>

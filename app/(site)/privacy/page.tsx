@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Container } from "@/components/site/Container";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { siteConfig } from "@/lib/site";
+import { BackLink } from "@/components/ui/BackLink";
 
 export const metadata: Metadata = {
   title: "Privacy notice",
@@ -33,6 +34,9 @@ export default function PrivacyPage() {
   return (
     <section className="py-16 md:py-24">
       <Container>
+        <BackLink href="/" className="mb-8">
+          Back to the website
+        </BackLink>
         <SectionHeading
           as="h1"
           title="Privacy notice"
@@ -62,16 +66,17 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-5">
               <li>
                 When you apply for books or request a book: your name, phone
-                number, email address, state, city and
-                address, the book you chose, and how you want to receive it.
+                number, email address, state, city and address, the book you
+                chose, and how you want to receive it.
               </li>
               <li>
                 For mosques and schools: the name, phone number and position of
                 a reference person.
               </li>
               <li>
-                When you give: your name, email address, phone number and the amount. Card details go straight to our payment processor.
-                We never see or store them.
+                When you give: your name, email address, phone number and the
+                amount. Card details go straight to our payment processor. We
+                never see or store them.
               </li>
             </ul>
           </Block>

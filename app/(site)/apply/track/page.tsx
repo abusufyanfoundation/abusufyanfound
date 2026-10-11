@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { TrackForm } from "@/components/forms/TrackForm";
 import { Container } from "@/components/site/Container";
 import { SectionHeading } from "@/components/site/SectionHeading";
-import { BiChevronLeft } from "react-icons/bi";
+import { BackLink } from "@/components/ui/BackLink";
 
 export const metadata: Metadata = {
   title: "Track your application",
@@ -14,12 +13,7 @@ export default function TrackPage() {
   return (
     <section className="py-16 md:py-24">
       <Container>
-        <Link
-          href="/apply"
-          className="flex items-center text-sm text-muted transition-colors hover:text-navy"
-        >
-          <BiChevronLeft className="text-2xl" /> Back to the application page
-        </Link>
+        <BackLink href="/apply">Back to apply for books</BackLink>
 
         <SectionHeading
           as="h1"

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/site/Container";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { BackLink } from "@/components/ui/BackLink";
 
 export const metadata: Metadata = {
   title: "Submitted",
@@ -23,6 +24,9 @@ export default async function ApplyConfirmationPage({
   return (
     <section className="py-16 md:py-28">
       <Container>
+        <BackLink href="/" className="mb-8">
+          Back to the website
+        </BackLink>
         <div className="max-w-2xl">
           {/* <p className="text-xs tracking-[0.18em] text-gold-deep uppercase sm:text-sm">
             {isRequest ? "Request received" : "Application received"}

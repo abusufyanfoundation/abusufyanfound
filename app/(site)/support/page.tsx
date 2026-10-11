@@ -7,6 +7,7 @@ import { SectionHeading } from "@/components/site/SectionHeading";
 import { getCurrentCampaign } from "@/lib/data/public";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getSiteSettings, PAUSED } from "@/lib/data/settings";
+import { BackLink } from "@/components/ui/BackLink";
 
 export const metadata: Metadata = {
   title: "Support the Foundation",
@@ -36,6 +37,9 @@ export default async function SupportPage({
     return (
       <section className="py-16 md:py-24">
         <Container>
+          <BackLink href="/" className="mb-8">
+            Back to the website
+          </BackLink>
           <SectionHeading
             as="h1"
             eyebrow="Support us"

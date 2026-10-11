@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { StatCard, StatGrid } from "@/components/ui/StatCard";
-import { BiChevronLeft } from "react-icons/bi";
+import { BackLink } from "@/components/ui/BackLink";
 
 export { StatGrid };
 
@@ -23,12 +23,9 @@ export function PageHeader({
   return (
     <div>
       {back && (
-        <Link
-          href={back.href}
-          className="flex items-center mb-5 text-sm text-muted transition-colors hover:text-navy hover:scale-101"
-        >
-          <BiChevronLeft className="text-2xl" /> {back.label}
-        </Link>
+        <BackLink href={back.href} className="mb-5">
+          {back.label}
+        </BackLink>
       )}
       <div className="flex flex-col gap-4 border-b border-rule pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>

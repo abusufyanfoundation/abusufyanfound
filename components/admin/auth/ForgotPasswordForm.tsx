@@ -6,6 +6,7 @@ import { requestPasswordReset } from "@/app/admin/forgot-password/actions";
 import { AuthField } from "./AuthField";
 import { FormMessage } from "./FormMessage";
 import { SubmitButton } from "./SubmitButton";
+import { BackLink } from "@/components/ui/BackLink";
 
 export function ForgotPasswordForm({ expired }: { expired?: boolean }) {
   const [state, action] = useActionState(requestPasswordReset, undefined);
@@ -26,12 +27,7 @@ export function ForgotPasswordForm({ expired }: { expired?: boolean }) {
 
       <div className="flex items-center justify-between pt-1">
         <SubmitButton pendingText="Sending…">Send reset link</SubmitButton>
-        <Link
-          href="/admin/login"
-          className="text-sm text-navy underline underline-offset-4 decoration-gold hover:decoration-navy"
-        >
-          Back to sign in
-        </Link>
+        <BackLink href="/admin/login">Back to sign in</BackLink>
       </div>
     </form>
   );

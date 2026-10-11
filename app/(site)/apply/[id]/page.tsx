@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ApplyForm } from "@/components/forms/ApplyForm";
 import { Container } from "@/components/site/Container";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { getOpenBatch } from "@/lib/data/apply";
-import { BiChevronLeft } from "react-icons/bi";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getSiteSettings, PAUSED } from "@/lib/data/settings";
+import { BackLink } from "@/components/ui/BackLink";
 
 export const revalidate = 60;
 
@@ -31,13 +30,7 @@ export default async function ApplyBatchPage({
   return (
     <section className="py-16 md:py-24">
       <Container>
-        <Link
-          href="/apply"
-          className=" flex items-center text-sm text-muted transition-colors hover:text-navy"
-        >
-          <BiChevronLeft className="text-2xl" /> Back
-        </Link>
-
+        <BackLink href="/apply">Back to batches</BackLink>
         <SectionHeading
           className="mt-8"
           title={batch.title}

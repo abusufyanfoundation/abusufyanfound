@@ -7,6 +7,7 @@ import { getOpenBatches } from "@/lib/data/apply";
 import { formatDate } from "@/lib/format";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getSiteSettings, PAUSED } from "@/lib/data/settings";
+import { BackLink } from "@/components/ui/BackLink";
 
 export const revalidate = 60;
 
@@ -28,9 +29,11 @@ export default async function ApplyPage() {
   return (
     <section className="py-16 md:py-24 ">
       <Container>
+        <BackLink href="/" className="mb-8">
+          Back to the website
+        </BackLink>
         <SectionHeading
           as="h1"
-          className="-mt-8"
           title="Apply for books"
           intro="When a campaign is completed, the Foundation buys the books and gives them to students of knowledge, mosques and schools. Choose an open batch below to apply."
         />
