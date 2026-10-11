@@ -1,3 +1,4 @@
+import Link from "next/dist/client/link";
 import { Field } from "./Field";
 
 export function DonorFields() {
@@ -33,6 +34,18 @@ export function DonorFields() {
           </span>
         </span>
       </label>
+
+      <p className="text-xs text-muted">
+        How we use your details is explained in our{" "}
+        <Link
+          href="/privacy"
+          target="_blank"
+          className="text-navy underline decoration-gold underline-offset-4"
+        >
+          privacy notice
+        </Link>
+        .
+      </p>
     </>
   );
 }

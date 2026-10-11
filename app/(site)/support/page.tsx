@@ -35,6 +35,7 @@ export default async function SupportPage({
     <section className="py-16 md:py-24">
       <Container>
         <SectionHeading
+          as="h1"
           eyebrow="Support us"
           title="Support the Foundation"
           intro="Give to a campaign, or pay for specific books. Either way, the books go to students of knowledge and mosques in need."

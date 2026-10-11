@@ -18,12 +18,12 @@ export default function TrackPage() {
           href="/apply"
           className="flex items-center text-sm text-muted transition-colors hover:text-navy"
         >
-          <BiChevronLeft className="text-2xl"/> Back to the application page
+          <BiChevronLeft className="text-2xl" /> Back to the application page
         </Link>
 
         <SectionHeading
+          as="h1"
           className="mt-8"
-        //   eyebrow="Track"
           title="Track your application or request"
           intro="Enter the reference you were given and the phone number you used."
         />

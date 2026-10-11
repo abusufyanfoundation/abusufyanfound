@@ -51,12 +51,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (error) console.error("sitemap campaigns:", error.message);
 
   for (const c of data ?? []) {
-    entries.push({
-      url: `${siteUrl}/campaigns/${c.slug}`,
-      lastModified: new Date(c.updated_at),
-      changeFrequency: "daily",
-      priority: 0.9,
-    });
+    entries.push(
+      {
+        url: `${siteUrl}/campaigns/${c.slug}`,
+        lastModified: new Date(c.updated_at),
+        changeFrequency: "daily",
+        priority: 0.9,
+      },
+      {
+        url: `${siteUrl}/privacy`,
+        lastModified: now,
+        changeFrequency: "yearly",
+        priority: 0.3,
+      },
+    );
   }
 
   return entries;

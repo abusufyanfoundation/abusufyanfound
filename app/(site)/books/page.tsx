@@ -38,6 +38,7 @@ export default async function BooksPage({
       <section className="py-16 md:py-24">
         <Container>
           <SectionHeading
+            as="h1"
             eyebrow="Pre-fund a book"
             title="Books you can pre-fund"
             intro="Choose a book and how many copies. The Foundation buys them and gives them to students of knowledge and mosques in need."

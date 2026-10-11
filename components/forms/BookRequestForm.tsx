@@ -10,6 +10,7 @@ import {
 import { Field } from "./Field";
 import { Notice } from "./Notice";
 import { SubmitButton } from "./SubmitButton";
+import { ConsentLine } from "./ConsentLine";
 
 const control =
   "border border-rule bg-white px-3.5 py-3 text-base text-ink transition-colors focus:border-navy";
@@ -109,7 +110,13 @@ export function BookRequestForm() {
           <label htmlFor="reason" className="text-sm font-medium text-ink">
             Why do you need this book?
           </label>
-          <textarea id="reason" name="reason" rows={3} className={control} required/>
+          <textarea
+            id="reason"
+            name="reason"
+            rows={3}
+            className={control}
+            required
+          />
         </div>
       </div>
 
@@ -122,6 +129,8 @@ export function BookRequestForm() {
           <input name="website" tabIndex={-1} autoComplete="off" />
         </label>
       </div>
+
+      <ConsentLine subject="request" />
 
       <div className="flex flex-col items-start gap-3 pt-1">
         <SubmitButton pending={pending} pendingText="Sending…">

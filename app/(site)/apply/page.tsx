@@ -25,6 +25,7 @@ export default async function ApplyPage() {
     <section className="py-16 md:py-24 ">
       <Container>
         <SectionHeading
+          as="h1"
           className="-mt-8"
           title="Apply for books"
           intro="When a campaign is completed, the Foundation buys the books and gives them to students of knowledge, mosques and schools. Choose an open batch below to apply."

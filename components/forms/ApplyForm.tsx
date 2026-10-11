@@ -10,6 +10,7 @@ import {
 import { Field } from "./Field";
 import { Notice } from "./Notice";
 import { SubmitButton } from "./SubmitButton";
+import { ConsentLine } from "./ConsentLine";
 
 type Props = {
   batchId: string;
@@ -310,6 +311,8 @@ export function ApplyForm({ batchId, maxCopies, books, locations }: Props) {
           <input name="website" tabIndex={-1} autoComplete="off" />
         </label>
       </div>
+
+      <ConsentLine subject="application" reference={organisation} />
 
       <div className="flex flex-col items-start gap-3 pt-1">
         <SubmitButton pending={pending} pendingText="Sending…">

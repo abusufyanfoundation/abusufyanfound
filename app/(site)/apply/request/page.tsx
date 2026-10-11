@@ -24,6 +24,7 @@ export default function RequestBookPage() {
         </Link>
 
         <SectionHeading
+          as="h1"
           className=""
           title="Request a book"
           intro="Need a book that is not on any batch list? Tell us which one. The Foundation reviews every request and supplies what it can."

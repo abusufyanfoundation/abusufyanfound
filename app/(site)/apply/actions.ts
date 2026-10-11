@@ -16,6 +16,9 @@ const TOO_MANY =
 
 const GENERIC = "Something went wrong. Please try again in a moment.";
 
+const CONSENT =
+  "Please tick the box to confirm you have read the privacy notice.";
+
 const text = (formData: FormData, key: string) =>
   String(formData.get(key) ?? "").trim() || undefined;
 
@@ -36,6 +39,8 @@ export async function submitApplication(
   if (isBot(formData)) redirect("/apply/confirmation?reference=APP-00000000");
 
   if (!(await allowRequest("apply", 10, 3600))) return { error: TOO_MANY };
+
+  if (formData.get("consent") !== "on") return { error: CONSENT };
 
   // Each person picks one book. Only schools choose how many copies of it.
   const bookId = text(formData, "bookId");
@@ -108,6 +113,8 @@ export async function submitBookRequest(
 
   if (!(await allowRequest("request", 10, 3600))) return { error: TOO_MANY };
 
+  if (formData.get("consent") !== "on") return { error: CONSENT };
+  
   const parsed = bookRequestSchema.safeParse({
     applicantType: formData.get("applicantType"),
     requesterName: formData.get("requesterName"),

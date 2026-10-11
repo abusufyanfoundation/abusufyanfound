@@ -1,10 +1,12 @@
 export function SectionHeading({
+  as: Tag = "h2",
   eyebrow,
   title,
   intro,
   tone = "light",
   className = "",
 }: {
+  as?: "h1" | "h2";
   eyebrow?: string;
   title: string;
   intro?: string;
@@ -27,13 +29,13 @@ export function SectionHeading({
           </p>
         </div>
       )}
-      <h2
+      <Tag
         className={`mt-5 font-display text-3xl leading-tight md:text-4xl ${
           dark ? "text-white" : "text-navy"
         }`}
       >
         {title}
-      </h2>
+      </Tag>
       {intro && (
         <p
           className={`mt-4 max-w-xl leading-relaxed ${

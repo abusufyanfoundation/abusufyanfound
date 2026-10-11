@@ -117,8 +117,13 @@ export function Footer() {
       </Container>
 
       <div className="border-t border-white/15">
-        <Container className="py-6 text-xs text-white/55">
-          © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
+        <Container className="flex flex-col gap-2 py-6 text-xs text-white/55 sm:flex-row sm:justify-between">
+          <p>
+            © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
+          </p>
+          <Link href="/privacy" className="transition-colors hover:text-gold">
+            Privacy notice
+          </Link>
         </Container>
       </div>
     </footer>
