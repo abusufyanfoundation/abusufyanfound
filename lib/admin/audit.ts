@@ -10,7 +10,10 @@ export type AuditEntity =
   | "batch"
   | "application"
   | "book_request"
-  | "session";
+  | "session"
+  | "book_request"
+  | "team"
+  | "profile";
 
 export type AuditEntry = {
   action: string;

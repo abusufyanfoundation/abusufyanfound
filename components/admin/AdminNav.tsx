@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const links = [
+type NavLink = { label: string; href: string; superOnly?: boolean };
+
+const links: NavLink[] = [
   { label: "Overview", href: "/admin" },
   { label: "Campaigns", href: "/admin/campaigns" },
   { label: "Batches", href: "/admin/batches" },
@@ -14,17 +16,20 @@ const links = [
   { label: "Orders", href: "/admin/orders" },
   { label: "Beneficiaries", href: "/admin/beneficiaries" },
   { label: "Activity", href: "/admin/activity" },
+  { label: "Team", href: "/admin/team", superOnly: true },
+  { label: "My profile", href: "/admin/profile" },
 ];
 
-export function AdminNav() {
+export function AdminNav({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   const pathname = usePathname();
+  const visible = links.filter((link) => !link.superOnly || isSuperAdmin);
 
   return (
     <nav
       aria-label="Admin"
       className="flex gap-1 overflow-x-auto px-4 pb-3 lg:flex-col lg:px-3 lg:pb-0"
     >
-      {links.map((link) => {
+      {visible.map((link) => {
         const active =
           link.href === "/admin"
             ? pathname === "/admin"

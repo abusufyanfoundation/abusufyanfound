@@ -33,11 +33,15 @@ export async function signIn(
 
   const { data: profile } = await supabase
     .from("profiles")
-   .select("role, full_name")
+    .select("role, full_name, is_active")
     .eq("id", data.user.id)
-    .single();
+    .maybeSingle<{
+      role: string;
+      full_name: string | null;
+      is_active: boolean;
+    }>();
 
-  if (profile?.role !== "admin") {
+  if (profile?.role !== "admin" || !profile.is_active) {
     await supabase.auth.signOut();
     return { error: "This account does not have administrator access." };
   }

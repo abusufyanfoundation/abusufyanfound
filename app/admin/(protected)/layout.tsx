@@ -10,7 +10,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { profile } = await requireAdmin();
+  const { profile, isSuperAdmin } = await requireAdmin();
 
   return (
     <div className="flex min-h-screen flex-col bg-paper lg:flex-row">
@@ -46,13 +46,16 @@ export default async function AdminLayout({
               </button>
             </form>
           </div>
-          <AdminNav />
+          <AdminNav isSuperAdmin={isSuperAdmin} />
         </div>
 
         <div className="hidden px-6 py-6 lg:block">
-          {profile?.full_name && (
-            <p className="mb-3 text-sm text-white/60">{profile.full_name}</p>
+          {profile.full_name && (
+            <p className="text-sm text-white/60">{profile.full_name}</p>
           )}
+          <p className="mb-3 text-xs text-white/40">
+            {isSuperAdmin ? "Super admin" : "Administrator"}
+          </p>
           <form action={signOut}>
             <button
               type="submit"
