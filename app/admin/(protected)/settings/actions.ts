@@ -16,11 +16,19 @@ const text = (formData: FormData, key: string) =>
 const on = (formData: FormData, key: string) => formData.get(key) === "on";
 const onOff = (value: boolean) => (value ? "On" : "Off");
 
+// One number per line; blank lines and stray spaces are dropped
+const lines = (formData: FormData, key: string) =>
+  String(formData.get(key) ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join("\n") || undefined;
+
 // Plain-language values for the activity log
 function describe(r: SettingsRow): Record<string, string> {
   return {
     "Contact email": r.contact_email ?? "",
-    "Contact phone": r.contact_phone ?? "",
+    "Contact phone": (r.contact_phone ?? "").split("\n").join(", "),
     "Contact address": r.contact_address ?? "",
     Facebook: r.facebook_url ?? "",
     "WhatsApp group": r.whatsapp_url ?? "",
@@ -46,7 +54,7 @@ export async function saveSettings(
 
   const parsed = siteSettingsSchema.safeParse({
     contactEmail: text(formData, "contactEmail"),
-    contactPhone: text(formData, "contactPhone"),
+    contactPhone: lines(formData, "contactPhone"),
     contactAddress: text(formData, "contactAddress"),
     facebookUrl: text(formData, "facebookUrl"),
     whatsappUrl: text(formData, "whatsappUrl"),

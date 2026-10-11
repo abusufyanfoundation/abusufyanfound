@@ -7,7 +7,8 @@ import { Container } from "./Container";
 
 export async function Footer() {
   const { contact, social } = await getSiteSettings();
-  const hasContact = contact.email || contact.phone || contact.address;
+  const hasContact =
+    contact.email || contact.phones.length > 0 || contact.address;
 
   return (
     <footer className="bg-navy-deep text-white">
@@ -80,16 +81,16 @@ export async function Footer() {
                       </a>
                     </li>
                   )}
-                  {contact.phone && (
-                    <li>
+                  {contact.phones.map((phone) => (
+                    <li key={phone}>
                       <a
-                        href={`tel:${contact.phone.replace(/\s/g, "")}`}
+                        href={`tel:${phone.replace(/\s/g, "")}`}
                         className="transition-colors hover:text-gold"
                       >
-                        {contact.phone}
+                        {phone}
                       </a>
                     </li>
-                  )}
+                  ))}
                   {contact.address && <li>{contact.address}</li>}
                 </ul>
               </>

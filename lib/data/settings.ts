@@ -25,7 +25,7 @@ export type SettingsRow = {
 };
 
 export type SiteSettings = {
-  contact: { email: string; phone: string; address: string };
+  contact: { email: string; phones: string[]; address: string };
   social: { label: string; href: string }[];
   announcement: {
     enabled: boolean;
@@ -51,7 +51,10 @@ export function fromRow(row: SettingsRow): SiteSettings {
   return {
     contact: {
       email: clean(row.contact_email),
-      phone: clean(row.contact_phone),
+      phones: clean(row.contact_phone)
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean),
       address: clean(row.contact_address),
     },
     social: [
@@ -82,7 +85,7 @@ export function fromRow(row: SettingsRow): SiteSettings {
 const FALLBACK: SiteSettings = {
   contact: {
     email: siteConfig.contact.email ?? "",
-    phone: siteConfig.contact.phone ?? "",
+    phones: siteConfig.contact.phone ? [siteConfig.contact.phone] : [],
     address: siteConfig.contact.address ?? "",
   },
   social: [...siteConfig.social],

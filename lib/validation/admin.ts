@@ -83,8 +83,16 @@ export const siteSettingsSchema = z
     contactPhone: z
       .string()
       .trim()
-      .max(40, "That phone number is too long")
-      .optional(),
+      .max(300, "That is too many phone numbers")
+      .optional()
+      .refine((v) => {
+        if (!v) return true;
+        const lines = v.split("\n");
+        return (
+          lines.length <= 5 &&
+          lines.every((l) => l.length <= 30 && /\d/.test(l))
+        );
+      }, "Enter up to 5 phone numbers, one per line"),
     contactAddress: z
       .string()
       .trim()

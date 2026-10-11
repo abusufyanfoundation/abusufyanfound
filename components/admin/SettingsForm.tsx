@@ -62,12 +62,12 @@ export function SettingsForm({ settings: s }: { settings: SettingsRow }) {
             required={false}
             defaultValue={s.contact_email ?? ""}
           />
-          <TextField
-            label="Phone number"
+          <TextArea
+            label="Phone numbers"
             name="contactPhone"
-            type="tel"
-            required={false}
+            rows={3}
             defaultValue={s.contact_phone ?? ""}
+            hint="One number per line, up to 5."
           />
           <TextField
             label="Address"
