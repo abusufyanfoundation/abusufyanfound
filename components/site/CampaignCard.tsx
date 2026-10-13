@@ -64,13 +64,13 @@ export function CampaignCard({ campaign }: { campaign: CampaignWithStats }) {
           <ButtonLink href="/support">Donate to this campaign</ButtonLink>
         </div>
 
-        <div className="mt-8 border-t border-rule pt-6">
+        {/* <div className="mt-8 border-t border-rule pt-6">
           <ShareButtons
             url={campaignUrl(campaign.slug)}
             title={campaign.title}
             text={campaignShareText(campaign.title)}
           />
-        </div>
+        </div> */}
       </div>
     </div>
   );

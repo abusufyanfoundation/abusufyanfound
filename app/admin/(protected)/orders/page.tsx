@@ -15,12 +15,11 @@ import { formatNaira } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
 
 const STATUSES = [
-  "pending_payment",
   "paid",
-  "processing",
+  "processing_purchase",
   "ready_for_distribution",
-  "distributed",
-  "cancelled",
+  "book_distributed",
+  "cancelled_payment",
 ] as const;
 
 type OrderStatus = (typeof STATUSES)[number];
@@ -86,9 +85,17 @@ async function updateOrder(formData: FormData) {
     return;
   }
 
-  if (before.status === status) {
-    return;
-  }
+    if (!before) {
+      return;
+    }
+
+    // Only a funded order moves along the fulfilment steps
+    if (
+      !STATUSES.includes(before.status as OrderStatus) ||
+      before.status === "cancelled_payment"
+    ) {
+      return;
+    }
 
   const { error } = await supabase
     .from("orders")
@@ -233,6 +240,7 @@ export default async function OrdersPage() {
               <th className={th}>Books</th>
               <th className={th}>Payment</th>
               <th className={th}>Status</th>
+              <th className={th}>Actions</th>
             </tr>
           </thead>
 
@@ -288,7 +296,7 @@ export default async function OrdersPage() {
                   <td className={td}>
                     {awaiting ? (
                       <div className="flex flex-col gap-3">
-                        <StatusText status="Pending" />
+                        <StatusText status="Pending payment" />
                         <span className="text-xs text-muted">
                           Awaiting transfer
                         </span>
@@ -323,15 +331,27 @@ export default async function OrdersPage() {
                           />
                           <button
                             type="submit"
-                            className="text-xs text-muted underline underline-offset-4 hover:text-navy"
+                            className="text-sm text-white bg-red-700 py-2 px-3"
                           >
                             Cancel order
                           </button>
                         </form>
                       </div>
+                    ) : order.status === "pending_payment" ||
+                      order.status === "cancelled_payment" ? (
+                      <>
+                        <StatusText status={label(order.status)} />
+                        <p className="mt-1 text-xs text-muted">
+                          {order.status === "pending_payment"
+                            ? "Updates by itself when Paystack confirms the payment."
+                            : "This order is closed."}
+                        </p>
+                      </>
                     ) : (
                       <>
                         <form
+                          key={`${order.id}-${order.status}`}
+                          id="update_form"
                           action={updateOrder}
                           className="flex items-center gap-2"
                         >
@@ -348,20 +368,21 @@ export default async function OrdersPage() {
                               </option>
                             ))}
                           </select>
-
-                          <button
-                            type="submit"
-                            className="text-sm text-navy underline decoration-gold underline-offset-4"
-                          >
-                            Save
-                          </button>
                         </form>
 
                         <div className="mt-2">
-                          <StatusText status={label(order.status)} />
+                          Status: <StatusText status={label(order.status)} />
                         </div>
                       </>
                     )}
+                  </td>
+                  <td className={td}>
+                    <button
+                      form="update_form"
+                      className="text-sm text-white bg-gold-deep py-2 px-3"
+                    >
+                      Save
+                    </button>
                   </td>
                 </tr>
               );

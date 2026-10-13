@@ -24,25 +24,35 @@ export function ShareButtons({
     () => false,
   );
   const [copied, setCopied] = useState(false);
+  const [captionCopied, setCaptionCopied] = useState(false);
 
   const enc = encodeURIComponent;
   const links = [
-    { label: "WhatsApp", href: `https://wa.me/?text=${enc(`${text} ${url}`)}` },
+    {
+      label: "WhatsApp",
+      href: `https://wa.me/?text=${enc(`${text} ${url}`)}`,
+      newTab: true,
+    },
     {
       label: "Facebook",
       href: `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`,
+      newTab: true,
+      copyCaption: true,
     },
     {
       label: "X",
       href: `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`,
+      newTab: true,
     },
     {
       label: "Telegram",
       href: `https://t.me/share/url?url=${enc(url)}&text=${enc(text)}`,
+      newTab: true,
     },
     {
       label: "Email",
       href: `mailto:?subject=${enc(title)}&body=${enc(`${text}\n\n${url}`)}`,
+      newTab: false,
     },
   ];
 
@@ -53,6 +63,17 @@ export function ShareButtons({
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Clipboard blocked: the other buttons still work
+    }
+  }
+
+  // Facebook cannot pre-fill the post box, so the caption goes to the clipboard
+  async function copyCaption() {
+    try {
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      setCaptionCopied(true);
+      setTimeout(() => setCaptionCopied(false), 6000);
+    } catch {
+      // Clipboard blocked: Facebook still shows the link preview
     }
   }
 
@@ -77,8 +98,10 @@ export function ShareButtons({
           <a
             key={link.label}
             href={link.href}
-            target="_blank"
-            rel="noopener noreferrer"
+            {...(link.newTab
+              ? { target: "_blank", rel: "noopener noreferrer" }
+              : {})}
+            onClick={link.copyCaption ? copyCaption : undefined}
             className={button}
           >
             {link.label}
@@ -88,6 +111,11 @@ export function ShareButtons({
           {copied ? "Link copied" : "Copy link"}
         </button>
       </div>
+      {captionCopied && (
+        <p role="status" className="mt-3 text-sm text-muted">
+          Caption copied. Paste it into your Facebook post.
+        </p>
+      )}
     </div>
   );
 }
