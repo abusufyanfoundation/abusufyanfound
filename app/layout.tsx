@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Public_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import { siteConfig, siteUrl } from "@/lib/site";
+import { ActivityIndicator } from "@/components/ui/ActivityIndicator";
 import "./globals.css";
 
 const clashDisplay = localFont({
@@ -44,7 +45,10 @@ export default function RootLayout({
       lang="en"
       className={`${clashDisplay.variable} ${publicSans.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        <ActivityIndicator />
+        {children}
+      </body>
     </html>
   );
 }

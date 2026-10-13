@@ -1,121 +1,96 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
-
-const noopSubscribe = () => () => {};
+import { useState } from "react";
 
 const button =
-  "border border-navy bg-white px-3.5 py-2 text-sm font-medium text-navy transition-colors hover:bg-navy hover:text-white";
+  "border border-navy bg-white px-4 py-2.5 text-sm font-medium text-navy transition-colors hover:bg-navy hover:text-white disabled:opacity-60";
 
-export function ShareButtons({
-  url,
+const fileName = (title: string) =>
+  `${
+    title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 60) || "campaign"
+  }.jpg`;
+
+export function ShareCampaign({
   title,
-  text,
+  imageUrl,
+  caption,
 }: {
-  url: string;
   title: string;
-  text: string;
+  imageUrl: string | null;
+  caption: string;
 }) {
-  // Phones and some browsers offer their own share sheet
-  const canNativeShare = useSyncExternalStore(
-    noopSubscribe,
-    () =>
-      typeof navigator !== "undefined" && typeof navigator.share === "function",
-    () => false,
-  );
   const [copied, setCopied] = useState(false);
-  const [captionCopied, setCaptionCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
-  const enc = encodeURIComponent;
-  const links = [
-    {
-      label: "WhatsApp",
-      href: `https://wa.me/?text=${enc(`${text} ${url}`)}`,
-      newTab: true,
-    },
-    {
-      label: "Facebook",
-      href: `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`,
-      newTab: true,
-      copyCaption: true,
-    },
-    {
-      label: "X",
-      href: `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`,
-      newTab: true,
-    },
-    {
-      label: "Telegram",
-      href: `https://t.me/share/url?url=${enc(url)}&text=${enc(text)}`,
-      newTab: true,
-    },
-    {
-      label: "Email",
-      href: `mailto:?subject=${enc(title)}&body=${enc(`${text}\n\n${url}`)}`,
-      newTab: false,
-    },
-  ];
-
-  async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard blocked: the other buttons still work
-    }
-  }
-
-  // Facebook cannot pre-fill the post box, so the caption goes to the clipboard
   async function copyCaption() {
     try {
-      await navigator.clipboard.writeText(`${text} ${url}`);
-      setCaptionCopied(true);
-      setTimeout(() => setCaptionCopied(false), 6000);
+      await navigator.clipboard.writeText(caption);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
     } catch {
-      // Clipboard blocked: Facebook still shows the link preview
+      // Clipboard blocked: the caption is still shown, so it can be selected by hand
     }
   }
 
-  async function nativeShare() {
+  async function downloadImage() {
+    if (!imageUrl) return;
+    setDownloading(true);
     try {
-      await navigator.share({ title, text, url });
+      const response = await fetch(imageUrl);
+      if (!response.ok) throw new Error("download failed");
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = fileName(title);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
     } catch {
-      // The person closed the share sheet
+      // The browser blocked the direct download: open the image so it can be saved
+      window.open(imageUrl, "_blank", "noopener,noreferrer");
+    } finally {
+      setDownloading(false);
     }
   }
 
   return (
     <div>
       <p className="text-sm font-medium text-ink">Share this campaign</p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {canNativeShare && (
-          <button type="button" onClick={nativeShare} className={button}>
-            Share…
-          </button>
-        )}
-        {links.map((link) => (
-          <a
-            key={link.label}
-            href={link.href}
-            {...(link.newTab
-              ? { target: "_blank", rel: "noopener noreferrer" }
-              : {})}
-            onClick={link.copyCaption ? copyCaption : undefined}
+
+      <ol className="mt-3 flex flex-col gap-1 text-sm text-muted">
+        {imageUrl && <li>1. Download the image.</li>}
+        <li>{imageUrl ? "2" : "1"}. Copy the caption below.</li>
+        <li>
+          {imageUrl ? "3" : "2"}. Post both on WhatsApp, Facebook, Instagram or
+          anywhere you like.
+        </li>
+      </ol>
+
+      <p className="mt-4 max-w-xl whitespace-pre-line border border-rule bg-paper px-4 py-3 text-sm leading-relaxed text-ink">
+        {caption}
+      </p>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {imageUrl && (
+          <button
+            type="button"
+            onClick={downloadImage}
+            disabled={downloading}
             className={button}
           >
-            {link.label}
-          </a>
-        ))}
-        <button type="button" onClick={copyLink} className={button}>
-          {copied ? "Link copied" : "Copy link"}
+            {downloading ? "Downloading…" : "Download image"}
+          </button>
+        )}
+        <button type="button" onClick={copyCaption} className={button}>
+          {copied ? "Caption copied" : "Copy caption"}
         </button>
       </div>
-      {captionCopied && (
-        <p role="status" className="mt-3 text-sm text-muted">
-          Caption copied. Paste it into your Facebook post.
-        </p>
-      )}
     </div>
   );
 }

@@ -3,13 +3,29 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { StatCard, StatGrid } from "@/components/ui/StatCard";
 import { formatNaira } from "@/lib/money";
-import { campaignShareText, campaignUrl } from "@/lib/share";
+import { getSiteSettings } from "@/lib/data/settings";
+import { campaignCaption, campaignUrl } from "@/lib/share";
+import { ShareCampaign } from "./ShareButtons";
 import type { CampaignWithStats } from "@/lib/types";
-import { ShareButtons } from "./ShareButtons";
 
 const second = "basis-full sm:basis-[calc((100%-1rem)/2)]";
 
-export function CampaignCard({ campaign }: { campaign: CampaignWithStats }) {
+export async function CampaignCard({
+  campaign,
+}: {
+  campaign: CampaignWithStats;
+}) {
+  const { payments } = await getSiteSettings();
+  const bank = payments.campaign.bank;
+  const showBank =
+    payments.campaign.transfer && bank.bank && bank.number && bank.name;
+
+  const caption = campaignCaption(
+    campaign.title,
+    campaignUrl(campaign.slug),
+    showBank ? bank : null,
+  );
+
   return (
     <div className="flex w-full flex-col gap-8 lg:flex-row lg:items-stretch">
       {campaign.image_url && (
@@ -64,13 +80,13 @@ export function CampaignCard({ campaign }: { campaign: CampaignWithStats }) {
           <ButtonLink href="/support">Donate to this campaign</ButtonLink>
         </div>
 
-        {/* <div className="mt-8 border-t border-rule pt-6">
-          <ShareButtons
-            url={campaignUrl(campaign.slug)}
+        <div className="mt-8 border-t border-rule pt-6">
+          <ShareCampaign
             title={campaign.title}
-            text={campaignShareText(campaign.title)}
+            imageUrl={campaign.image_url}
+            caption={caption}
           />
-        </div> */}
+        </div>
       </div>
     </div>
   );
