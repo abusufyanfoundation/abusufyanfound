@@ -16,7 +16,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const STATUSES = [
   "paid",
-  "processing_purchase",
+  "processing",
   "ready_for_distribution",
   "book_distributed",
   "cancelled_payment",
@@ -24,10 +24,17 @@ const STATUSES = [
 
 type OrderStatus = (typeof STATUSES)[number];
 
+const LABELS: Record<string, string> = {
+  processing: "Processing purchase",
+};
+
 const label = (value: string) => {
-  return value
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (character) => character.toUpperCase());
+  return (
+    LABELS[value] ??
+    value
+      .replaceAll("_", " ")
+      .replace(/\b\w/g, (character) => character.toUpperCase())
+  );
 };
 
 type Order = {
