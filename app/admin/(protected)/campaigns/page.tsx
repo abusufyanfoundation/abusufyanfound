@@ -28,7 +28,7 @@ type Row = {
   created_at: string;
 };
 
-type Totals = { campaign_id: string; raised_kobo: number; supporters: number };
+type Totals = { campaign_id: string; raised_kobo: number };
 
 export default async function AdminCampaignsPage() {
   await requireAdmin();
@@ -42,7 +42,7 @@ export default async function AdminCampaignsPage() {
       .returns<Row[]>(),
     supabase
       .from("admin_campaign_totals")
-      .select("campaign_id, raised_kobo, supporters")
+      .select("campaign_id, raised_kobo")
       .returns<Totals[]>(),
   ]);
 
@@ -70,7 +70,6 @@ export default async function AdminCampaignsPage() {
               <th className={th}>Campaign</th>
               <th className={th}>Status</th>
               <th className={th}>Raised</th>
-              <th className={th}>Supporters</th>
               <th className={th}>Created</th>
             </tr>
           </thead>
@@ -100,7 +99,6 @@ export default async function AdminCampaignsPage() {
                       />
                     </div>
                   </td>
-                  <td className={td}>{t?.supporters ?? 0}</td>
                   <td className={td}>{formatDate(c.created_at)}</td>
                 </tr>
               );

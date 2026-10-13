@@ -7,11 +7,11 @@ import { campaignShareText, campaignUrl } from "@/lib/share";
 import type { CampaignWithStats } from "@/lib/types";
 import { ShareButtons } from "./ShareButtons";
 
-const third = "basis-full sm:basis-[calc((100%-2rem)/3)]";
+const second = "basis-full sm:basis-[calc((100%-1rem)/2)]";
 
 export function CampaignCard({ campaign }: { campaign: CampaignWithStats }) {
   return (
-    <div className="flex flex-col gap-8 lg:flex-row lg:items-stretch">
+    <div className="flex w-full flex-col gap-8 lg:flex-row lg:items-stretch">
       {campaign.image_url && (
         <div className="relative aspect-[4/3] w-full lg:aspect-auto lg:min-h-[24rem] lg:basis-5/12">
           <Image
@@ -24,18 +24,13 @@ export function CampaignCard({ campaign }: { campaign: CampaignWithStats }) {
         </div>
       )}
 
-      {/* Details sit in a card, so the text never stretches across the full width */}
-      <div
-        className={`flex flex-1 flex-col border border-rule bg-white p-6 md:p-10 ${
-          campaign.image_url ? "" : "max-w-3xl"
-        }`}
-      >
+      <div className="flex w-full flex-1 flex-col border border-rule bg-white p-6 md:p-10">
         <h3 className="font-display text-3xl text-navy md:text-4xl">
           {campaign.title}
         </h3>
 
         {campaign.description && (
-          <p className="mt-4 max-w-xl whitespace-pre-line leading-relaxed text-ink">
+          <p className="mt-4 max-w-3xl whitespace-pre-line leading-relaxed text-ink">
             {campaign.description}
           </p>
         )}
@@ -49,25 +44,18 @@ export function CampaignCard({ campaign }: { campaign: CampaignWithStats }) {
 
           <StatGrid className="mt-6">
             <StatCard
-              size="sm"
+              size="md"
               tone="paper"
-              className={third}
+              className={second}
               label="Raised"
               value={formatNaira(campaign.raised_kobo)}
             />
             <StatCard
-              size="sm"
+              size="md"
               tone="paper"
-              className={third}
+              className={second}
               label="Target"
               value={formatNaira(campaign.target_kobo)}
-            />
-            <StatCard
-              size="sm"
-              tone="paper"
-              className={third}
-              label="Supporters"
-              value={String(campaign.supporters)}
             />
           </StatGrid>
         </div>

@@ -169,6 +169,82 @@ export function SettingsForm({ settings: s }: { settings: SettingsRow }) {
         </Group>
 
         <Group
+          title="Payment methods"
+          intro="Choose how donors can pay. Campaign giving goes to the Foundation account. Book pre-funding goes to its own separate account, so the two never mix."
+        >
+          <ToggleField
+            label="Campaign giving by Paystack"
+            name="campaignOnlineEnabled"
+            defaultChecked={s.campaign_online_enabled}
+          />
+          <ToggleField
+            label="Campaign giving by bank transfer"
+            name="campaignTransferEnabled"
+            defaultChecked={s.campaign_transfer_enabled}
+          />
+          <ToggleField
+            label="Book pre-fund by Paystack"
+            name="booksOnlineEnabled"
+            defaultChecked={s.books_online_enabled}
+          />
+          <ToggleField
+            label="Book pre-fund by bank transfer"
+            name="booksTransferEnabled"
+            defaultChecked={s.books_transfer_enabled}
+          />
+        </Group>
+
+        <Group
+          title="Foundation bank account"
+          intro="Shown to donors who choose to give to a campaign by bank transfer."
+        >
+          <TextField
+            label="Bank name"
+            name="bankName"
+            required={false}
+            defaultValue={s.bank_name ?? ""}
+          />
+          <TextField
+            label="Account number"
+            name="bankAccountNumber"
+            required={false}
+            defaultValue={s.bank_account_number ?? ""}
+            hint="10 digits."
+          />
+          <TextField
+            label="Account name"
+            name="bankAccountName"
+            required={false}
+            defaultValue={s.bank_account_name ?? ""}
+          />
+        </Group>
+
+        <Group
+          title="Book pre-fund bank account"
+          intro="The separate account for book pre-funding. Shown only after a donor has filled the form, together with their order reference."
+        >
+          <TextField
+            label="Bank name"
+            name="bookBankName"
+            required={false}
+            defaultValue={s.book_bank_name ?? ""}
+          />
+          <TextField
+            label="Account number"
+            name="bookBankAccountNumber"
+            required={false}
+            defaultValue={s.book_bank_account_number ?? ""}
+            hint="10 digits."
+          />
+          <TextField
+            label="Account name"
+            name="bookBankAccountName"
+            required={false}
+            defaultValue={s.book_bank_account_name ?? ""}
+          />
+        </Group>
+
+        <Group
           title="Applications"
           intro="Pausing stops new batch applications and book requests. Tracking an existing application stays open."
         >

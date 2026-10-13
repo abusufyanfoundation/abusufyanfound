@@ -1,8 +1,11 @@
 import Link from "next/link";
-import { Toggle } from "@/components/ui/Toggle";
 import { Field } from "./Field";
 
-export function DonorFields() {
+export function DonorFields({
+  phoneRequired = false,
+}: {
+  phoneRequired?: boolean;
+}) {
   return (
     <>
       <Field label="Full name" name="donorName" autoComplete="name" />
@@ -14,17 +17,16 @@ export function DonorFields() {
         hint="Needed to process your payment."
       />
       <Field
-        label="Phone number (optional)"
+        label={phoneRequired ? "Phone number" : "Phone number (optional)"}
         name="donorPhone"
         type="tel"
         autoComplete="tel"
-        required={false}
-      />
-
-      <Toggle
-        label="Display my name publicly"
-        name="displayPublicly"
-        hint="If you leave this off, you will appear as “Anonymous Supporter”."
+        required={phoneRequired}
+        hint={
+          phoneRequired
+            ? "So we can reach you if there is a problem with your transfer."
+            : undefined
+        }
       />
 
       <p className="text-xs text-muted">

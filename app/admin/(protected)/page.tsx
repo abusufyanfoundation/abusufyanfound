@@ -78,9 +78,9 @@ export default async function AdminOverviewPage() {
     ? (
         await supabase
           .from("admin_campaign_totals")
-          .select("raised_kobo, supporters")
+          .select("raised_kobo")
           .eq("campaign_id", campaign.id)
-          .maybeSingle<{ raised_kobo: number; supporters: number }>()
+          .maybeSingle<{ raised_kobo: number }>()
       ).data
     : null;
 
@@ -137,8 +137,7 @@ export default async function AdminOverviewPage() {
               />
             </div>
             <p className="mt-1 text-sm text-muted">
-              {formatNaira(raised)} of {formatNaira(campaign.target_kobo)} ·{" "}
-              {totals?.supporters ?? 0} supporters
+              {formatNaira(raised)} of {formatNaira(campaign.target_kobo)}
             </p>
           </>
         ) : (

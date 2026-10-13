@@ -9,7 +9,7 @@ export type Campaign = {
 
 export type CampaignWithStats = Campaign & {
   raised_kobo: number;
-  supporters: number;
+  fully_raised: boolean;
 };
 
 export type Book = {

@@ -3,7 +3,7 @@ import { createPublicClient } from "@/lib/supabase/public";
 import { siteConfig } from "@/lib/site";
 
 export const SETTINGS_FIELDS =
-  "contact_email, contact_phone, contact_address, facebook_url, whatsapp_url, instagram_url, youtube_url, announcement_enabled, announcement_text, announcement_link_label, announcement_link_href, donations_paused, donations_paused_message, applications_paused, applications_paused_message, min_donation_naira";
+  "contact_email, contact_phone, contact_address, facebook_url, whatsapp_url, instagram_url, youtube_url, announcement_enabled, announcement_text, announcement_link_label, announcement_link_href, donations_paused, donations_paused_message, applications_paused, applications_paused_message, min_donation_naira, bank_name, bank_account_number, bank_account_name, book_bank_name, book_bank_account_number, book_bank_account_name, campaign_online_enabled, campaign_transfer_enabled, books_online_enabled, books_transfer_enabled";
 
 export type SettingsRow = {
   contact_email: string | null;
@@ -22,7 +22,19 @@ export type SettingsRow = {
   applications_paused: boolean;
   applications_paused_message: string | null;
   min_donation_naira: number;
+  bank_name: string | null;
+  bank_account_number: string | null;
+  bank_account_name: string | null;
+  book_bank_name: string | null;
+  book_bank_account_number: string | null;
+  book_bank_account_name: string | null;
+  campaign_online_enabled: boolean;
+  campaign_transfer_enabled: boolean;
+  books_online_enabled: boolean;
+  books_transfer_enabled: boolean;
 };
+
+export type BankDetails = { bank: string; number: string; name: string };
 
 export type SiteSettings = {
   contact: { email: string; phones: string[]; address: string };
@@ -35,6 +47,10 @@ export type SiteSettings = {
   };
   donations: { paused: boolean; message: string; minNaira: number };
   applications: { paused: boolean; message: string };
+  payments: {
+    campaign: { online: boolean; transfer: boolean; bank: BankDetails };
+    books: { online: boolean; transfer: boolean; bank: BankDetails };
+  };
 };
 
 // Standard wording, used when no message has been written
@@ -78,6 +94,26 @@ export function fromRow(row: SettingsRow): SiteSettings {
       paused: row.applications_paused,
       message: clean(row.applications_paused_message),
     },
+    payments: {
+      campaign: {
+        online: row.campaign_online_enabled,
+        transfer: row.campaign_transfer_enabled,
+        bank: {
+          bank: clean(row.bank_name),
+          number: clean(row.bank_account_number),
+          name: clean(row.bank_account_name),
+        },
+      },
+      books: {
+        online: row.books_online_enabled,
+        transfer: row.books_transfer_enabled,
+        bank: {
+          bank: clean(row.book_bank_name),
+          number: clean(row.book_bank_account_number),
+          name: clean(row.book_bank_account_name),
+        },
+      },
+    },
   };
 }
 
@@ -92,6 +128,18 @@ const FALLBACK: SiteSettings = {
   announcement: { enabled: false, text: "", linkLabel: "", linkHref: "" },
   donations: { paused: false, message: "", minNaira: 100 },
   applications: { paused: false, message: "" },
+  payments: {
+    campaign: {
+      online: true,
+      transfer: false,
+      bank: { bank: "", number: "", name: "" },
+    },
+    books: {
+      online: true,
+      transfer: false,
+      bank: { bank: "", number: "", name: "" },
+    },
+  },
 };
 
 export const getSiteSettings = unstable_cache(

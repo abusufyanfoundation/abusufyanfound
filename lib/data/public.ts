@@ -11,17 +11,17 @@ const CAMPAIGN_FIELDS = "id, title, slug, description, image_url, target_kobo";
 async function withStats(campaign: Campaign): Promise<CampaignWithStats> {
   const supabase = createPublicClient();
 
-  const { data: stats } = await supabase
-    .from("public_campaign_stats")
-    .select("raised_kobo, supporters")
-    .eq("campaign_id", campaign.id)
-    .maybeSingle<{ raised_kobo: number; supporters: number }>();
+   const { data: stats } = await supabase
+     .from("public_campaign_stats")
+     .select("raised_kobo, fully_raised")
+     .eq("campaign_id", campaign.id)
+     .maybeSingle<{ raised_kobo: number; fully_raised: boolean }>();
 
-  return {
-    ...campaign,
-    raised_kobo: stats?.raised_kobo ?? 0,
-    supporters: stats?.supporters ?? 0,
-  };
+   return {
+     ...campaign,
+     raised_kobo: stats?.raised_kobo ?? 0,
+     fully_raised: stats?.fully_raised ?? false,
+   };
 }
 
 export async function getCurrentCampaign(): Promise<CampaignWithStats | null> {
@@ -33,6 +33,7 @@ export async function getCurrentCampaign(): Promise<CampaignWithStats | null> {
     .eq("is_active", true)
     .maybeSingle<Campaign>();
 
+    
   if (error) console.error("getCurrentCampaign:", error.message);
   return campaign ? withStats(campaign) : null;
 }

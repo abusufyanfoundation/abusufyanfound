@@ -22,7 +22,11 @@ function useHydrated() {
   );
 }
 
-export function BookCheckoutForm() {
+export function BookCheckoutForm({
+  method,
+}: {
+  method: "paystack" | "transfer";
+}) {
   const hydrated = useHydrated();
   const { items, totalKobo, removeItem } = useSelection();
   const { state, pending, onSubmit } = useActionForm(startBookOrder);
@@ -110,15 +114,23 @@ export function BookCheckoutForm() {
         )}
       />
 
-      <DonorFields />
+      <input type="hidden" name="method" value={method} />
+
+      <DonorFields phoneRequired={method === "transfer"} />
 
       <div className="flex flex-col items-start gap-3 pt-1">
-        <SubmitButton pending={pending} pendingText="Preparing payment…">
-          Continue to payment
+        <SubmitButton
+          pending={pending}
+          pendingText={
+            method === "transfer" ? "Saving your order…" : "Preparing payment…"
+          }
+        >
+          {method === "transfer" ? "Get bank details" : "Continue to payment"}
         </SubmitButton>
         <p className="text-xs text-muted">
-          You will be taken to Paystack to pay securely. We never see or store
-          your card details.
+          {method === "transfer"
+            ? "Your order is saved first. Then you will see the bank details and your order reference."
+            : "You will be taken to Paystack to pay securely. We never see or store your card details."}
         </p>
       </div>
     </form>

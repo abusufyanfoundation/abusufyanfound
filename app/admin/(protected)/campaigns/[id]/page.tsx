@@ -9,7 +9,11 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatNaira } from "@/lib/money";
 import { campaignPath } from "@/lib/share";
 import { createClient } from "@/lib/supabase/server";
-import { completeCampaign, setCampaignActive } from "../actions";
+import {
+  completeCampaign,
+  saveCampaignRaised,
+  setCampaignActive,
+} from "../actions";
 
 export const metadata = {
   title: "Edit campaign",
@@ -43,12 +47,13 @@ export default async function EditCampaignPage({
 
   searchParams: Promise<{
     error?: string;
+    notice?: string;
   }>;
 }) {
   await requireAdmin();
 
   const { id } = await params;
-  const { error } = await searchParams;
+  const { error, notice } = await searchParams;
 
   if (!/^[0-9a-f-]{36}$/i.test(id)) {
     notFound();
@@ -68,14 +73,11 @@ export default async function EditCampaignPage({
     notFound();
   }
 
-  const { data: totals } = await supabase
-    .from("admin_campaign_totals")
-    .select("raised_kobo, supporters")
-    .eq("campaign_id", id)
-    .maybeSingle<{
-      raised_kobo: number;
-      supporters: number;
-    }>();
+    const { data: totals } = await supabase
+      .from("admin_campaign_totals")
+      .select("raised_kobo")
+      .eq("campaign_id", id)
+      .maybeSingle<{ raised_kobo: number }>();
 
   const raised = totals?.raised_kobo ?? 0;
 
@@ -92,13 +94,40 @@ export default async function EditCampaignPage({
       />
 
       {error && <FormMessage error={error} />}
+      {notice && <FormMessage message={notice} />}
 
-      <Panel title="Progress">
+      <Panel title="Amount raised">
         <ProgressBar raisedKobo={raised} targetKobo={campaign.target_kobo} />
 
         <p className="mt-1 text-sm text-muted">
-          {formatNaira(raised)} of {formatNaira(campaign.target_kobo)} ·{" "}
-          {totals?.supporters ?? 0} supporters
+          {formatNaira(raised)} of {formatNaira(campaign.target_kobo)}
+        </p>
+
+        <form
+          action={saveCampaignRaised}
+          className="mt-5 flex flex-wrap items-end gap-3"
+        >
+          <input type="hidden" name="id" value={campaign.id} />
+          <label className="flex flex-col gap-2 text-sm font-medium text-ink">
+            Total raised so far (₦)
+            <input
+              name="raisedNaira"
+              type="number"
+              min={0}
+              step="any"
+              required
+              defaultValue={raised / 100}
+              className="border border-rule bg-white px-3.5 py-3 text-base text-ink focus:border-navy"
+            />
+          </label>
+          <button type="submit" className={outline}>
+            Save amount
+          </button>
+        </form>
+
+        <p className="mt-4 max-w-md text-xs leading-relaxed text-muted">
+          Type the total from the bank account (Paystack payouts included). The
+          website shows the raised figure only once it reaches the target.
         </p>
       </Panel>
 

@@ -4,6 +4,7 @@ import { BookCheckoutForm } from "@/components/forms/BookCheckoutForm";
 import { GeneralDonationForm } from "@/components/forms/GeneralDonationForm";
 import { Container } from "@/components/site/Container";
 import { SectionHeading } from "@/components/site/SectionHeading";
+import { BankDetailsCard } from "@/components/site/support/BankDetails";
 import { getCurrentCampaign } from "@/lib/data/public";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getSiteSettings, PAUSED } from "@/lib/data/settings";
@@ -23,15 +24,22 @@ const tab = (active: boolean) =>
       : "border-transparent text-muted hover:text-navy"
   }`;
 
+const pill = (active: boolean) =>
+  `border px-4 py-2 text-sm transition-colors ${
+    active
+      ? "border-navy bg-navy text-white"
+      : "border-rule bg-white text-navy hover:border-navy"
+  }`;
+
 export default async function SupportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; method?: string }>;
 }) {
-  const { type } = await searchParams;
+  const { type, method: requested } = await searchParams;
   const books = type === "books";
 
-  const { donations } = await getSiteSettings();
+  const { donations, payments } = await getSiteSettings();
 
   if (donations.paused) {
     return (
@@ -58,6 +66,18 @@ export default async function SupportPage({
 
   const campaign = await getCurrentCampaign();
   const campaignOpen = campaign !== null;
+
+  const group = books ? payments.books : payments.campaign;
+  const both = group.online && group.transfer;
+  const method: "paystack" | "transfer" =
+    requested === "transfer" && group.transfer
+      ? "transfer"
+      : group.online
+        ? "paystack"
+        : "transfer";
+
+  const base = books ? "/support?type=books" : "/support";
+  const methodHref = (m: string) => `${base}${books ? "&" : "?"}method=${m}`;
 
   return (
     <section className="py-16 md:py-24">
@@ -121,23 +141,57 @@ export default async function SupportPage({
                 </h2>
                 <p className="mt-4 max-w-md leading-relaxed text-ink">
                   There is no open campaign at the moment. You can still give to
-                  the Foundation, and your gift will go towards its work of
+                  the Foundation, and your donation will go towards its work of
                   providing books to students of knowledge and mosques.
                 </p>
               </>
             )}
 
             <p className="mt-6 max-w-md text-sm leading-relaxed text-muted">
-              Payments are processed securely by Paystack. Your name is shown
-              publicly only if you choose to display it.
+              {method === "paystack"
+                ? "Payments are processed securely by Paystack."
+                : books
+                  ? "Your order is saved first, then you transfer to the account shown. We confirm it when the money arrives."
+                  : "Transfer any amount to the Foundation account."}
             </p>
           </div>
 
           <div className="max-w-xl lg:basis-7/12">
+            {both && (
+              <div
+                className="mb-8 flex flex-wrap gap-2"
+                aria-label="Payment method"
+              >
+                <Link
+                  href={methodHref("paystack")}
+                  className={pill(method === "paystack")}
+                >
+                  Pay online (Paystack)
+                </Link>
+                <Link
+                  href={methodHref("transfer")}
+                  className={pill(method === "transfer")}
+                >
+                  Bank transfer
+                </Link>
+              </div>
+            )}
+
             {books ? (
-              <BookCheckoutForm />
-            ) : (
+              <BookCheckoutForm method={method} />
+            ) : method === "paystack" ? (
               <GeneralDonationForm minAmount={donations.minNaira} />
+            ) : (
+              <div className="flex flex-col gap-4">
+                <h3 className="font-display text-2xl text-navy">
+                  Give by bank transfer
+                </h3>
+                <BankDetailsCard bank={payments.campaign.bank} />
+                <p className="text-xs leading-relaxed text-muted">
+                  Please put your name in the transfer narration. Donations made by
+                  transfer are added to the campaign total by the Foundation.
+                </p>
+              </div>
             )}
           </div>
         </div>

@@ -139,8 +139,89 @@ export const siteSettingsSchema = z
       .int("Please enter a whole number of naira")
       .min(100, "The minimum cannot be lower than ₦100")
       .max(1_000_000, "That minimum is too high"),
+    bankName: z.string().trim().max(80, "The bank name is too long").optional(),
+    bankAccountNumber: z
+      .string()
+      .trim()
+      .optional()
+      .refine(
+        (v) => !v || /^\d{10}$/.test(v),
+        "An account number has 10 digits",
+      ),
+    bankAccountName: z
+      .string()
+      .trim()
+      .max(120, "The account name is too long")
+      .optional(),
+    bookBankName: z
+      .string()
+      .trim()
+      .max(80, "The bank name is too long")
+      .optional(),
+    bookBankAccountNumber: z
+      .string()
+      .trim()
+      .optional()
+      .refine(
+        (v) => !v || /^\d{10}$/.test(v),
+        "An account number has 10 digits",
+      ),
+    bookBankAccountName: z
+      .string()
+      .trim()
+      .max(120, "The account name is too long")
+      .optional(),
+    campaignOnlineEnabled: z.boolean(),
+    campaignTransferEnabled: z.boolean(),
+    booksOnlineEnabled: z.boolean(),
+    booksTransferEnabled: z.boolean(),
   })
   .superRefine((v, ctx) => {
+        const bankComplete = (b?: string, n?: string, a?: string) =>
+          Boolean(b) && Boolean(n) && Boolean(a);
+
+        if (
+          v.campaignTransferEnabled &&
+          !bankComplete(v.bankName, v.bankAccountNumber, v.bankAccountName)
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["bankAccountNumber"],
+            message:
+              "Fill in the Foundation bank name, account number and account name, or switch campaign transfers off.",
+          });
+        }
+        if (
+          v.booksTransferEnabled &&
+          !bankComplete(
+            v.bookBankName,
+            v.bookBankAccountNumber,
+            v.bookBankAccountName,
+          )
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["bookBankAccountNumber"],
+            message:
+              "Fill in the book pre-fund bank name, account number and account name, or switch book transfers off.",
+          });
+        }
+        if (!v.campaignOnlineEnabled && !v.campaignTransferEnabled) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["campaignOnlineEnabled"],
+            message:
+              "Keep at least one way to give to campaigns on. To stop giving, use Pause donations.",
+          });
+        }
+        if (!v.booksOnlineEnabled && !v.booksTransferEnabled) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["booksOnlineEnabled"],
+            message:
+              "Keep at least one way to pay for books on. To stop giving, use Pause donations.",
+          });
+        }
     if (v.announcementEnabled && !v.announcementText) {
       ctx.addIssue({
         code: "custom",
@@ -157,3 +238,10 @@ export const siteSettingsSchema = z
       });
     }
   });
+
+  export const campaignRaisedSchema = z.object({
+  raisedNaira: z
+    .number({ error: "Please enter the amount raised" })
+    .min(0, "The amount cannot be negative")
+    .max(100_000_000_000, "That amount is too high"),
+});

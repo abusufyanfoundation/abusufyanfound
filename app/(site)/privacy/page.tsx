@@ -3,6 +3,7 @@ import { Container } from "@/components/site/Container";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { siteConfig } from "@/lib/site";
 import { BackLink } from "@/components/ui/BackLink";
+import { getSiteSettings } from "@/lib/data/settings";
 
 export const metadata: Metadata = {
   title: "Privacy notice",
@@ -28,8 +29,9 @@ function Block({
   );
 }
 
-export default function PrivacyPage() {
-  const email = siteConfig.contact.email;
+export default async function PrivacyPage() {
+  const { contact } = await getSiteSettings();
+  const email = contact.email;
 
   return (
     <section className="py-16 md:py-24">
@@ -89,7 +91,7 @@ export default function PrivacyPage() {
               </li>
               <li>To give out books and keep a record of who received them.</li>
               <li>To stop the same person applying twice for one batch.</li>
-              <li>To process payments and contact donors about their gift.</li>
+              <li>To process payments and contact donors about their donations.</li>
             </ul>
             {/* <p>
               The website shows only totals for the people we serve. A

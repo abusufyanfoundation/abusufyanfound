@@ -10,7 +10,7 @@ import type { FormState } from "@/lib/forms/types";
 import { formatNaira, toKobo } from "@/lib/money";
 import { slugify } from "@/lib/slug";
 import { createClient } from "@/lib/supabase/server";
-import { campaignSchema } from "@/lib/validation/admin";
+import { campaignRaisedSchema, campaignSchema } from "@/lib/validation/admin";
 
 const GENERIC = "The campaign could not be saved. Please try again.";
 const ACTIVE_CONFLICT =
@@ -232,4 +232,67 @@ export async function completeCampaign(formData: FormData) {
     );
   }
   redirect(`/admin/campaigns/${id}`);
+}
+
+export async function saveCampaignRaised(formData: FormData) {
+  const actor = await requireAdmin();
+
+  const id = String(formData.get("id") ?? "");
+  const parsed = campaignRaisedSchema.safeParse({
+    raisedNaira: Number(formData.get("raisedNaira")),
+  });
+  if (!/^[0-9a-f-]{36}$/i.test(id) || !parsed.success) {
+    const message = parsed.success
+      ? "The campaign could not be found."
+      : parsed.error.issues[0].message;
+    redirect(`/admin/campaigns/${id}?error=${encodeURIComponent(message)}`);
+  }
+
+  const supabase = await createClient();
+
+  const [{ data: campaign }, { data: before }] = await Promise.all([
+    supabase
+      .from("campaigns")
+      .select("title")
+      .eq("id", id)
+      .maybeSingle<{ title: string }>(),
+    supabase
+      .from("campaign_funds")
+      .select("raised_kobo")
+      .eq("campaign_id", id)
+      .maybeSingle<{ raised_kobo: number }>(),
+  ]);
+
+  const raisedKobo = toKobo(parsed.data.raisedNaira);
+
+  const { error } = await supabase.from("campaign_funds").upsert({
+    campaign_id: id,
+    raised_kobo: raisedKobo,
+    updated_at: new Date().toISOString(),
+    updated_by: actor.user.id,
+  });
+
+  if (error) {
+    console.error("saveCampaignRaised:", error.message);
+    redirect(
+      `/admin/campaigns/${id}?error=${encodeURIComponent("The amount could not be saved.")}`,
+    );
+  }
+
+  await logAudit(supabase, actor, {
+    action: "campaign.raised_updated",
+    entity: "campaign",
+    entityId: id,
+    summary: `Set amount raised on “${campaign?.title ?? "Unknown"}” to ${formatNaira(raisedKobo)}`,
+    details: {
+      from: formatNaira(before?.raised_kobo ?? 0),
+      to: formatNaira(raisedKobo),
+    },
+  });
+
+  refresh();
+  revalidatePath(`/admin/campaigns/${id}`);
+  redirect(
+    `/admin/campaigns/${id}?notice=${encodeURIComponent("Amount raised saved.")}`,
+  );
 }

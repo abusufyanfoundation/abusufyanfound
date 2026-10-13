@@ -102,7 +102,7 @@ export default async function DonationsPage({
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Donations"
-        intro="Review gifts received through the website."
+        intro="Review donations received through the website."
         action={{
           label: "Export CSV",
           href: exportHref,

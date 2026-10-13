@@ -43,6 +43,16 @@ function describe(r: SettingsRow): Record<string, string> {
     "Applications paused": onOff(r.applications_paused),
     "Applications paused message": r.applications_paused_message ?? "",
     "Minimum donation": `₦${r.min_donation_naira.toLocaleString("en-NG")}`,
+    "Foundation bank": r.bank_name ?? "",
+    "Foundation account number": r.bank_account_number ?? "",
+    "Foundation account name": r.bank_account_name ?? "",
+    "Book pre-fund bank": r.book_bank_name ?? "",
+    "Book pre-fund account number": r.book_bank_account_number ?? "",
+    "Book pre-fund account name": r.book_bank_account_name ?? "",
+    "Campaign giving by Paystack": onOff(r.campaign_online_enabled),
+    "Campaign giving by bank transfer": onOff(r.campaign_transfer_enabled),
+    "Book pre-fund by Paystack": onOff(r.books_online_enabled),
+    "Book pre-fund by bank transfer": onOff(r.books_transfer_enabled),
   };
 }
 
@@ -69,6 +79,16 @@ export async function saveSettings(
     applicationsPaused: on(formData, "applicationsPaused"),
     applicationsPausedMessage: text(formData, "applicationsPausedMessage"),
     minDonationNaira: Number(formData.get("minDonationNaira")),
+    bankName: text(formData, "bankName"),
+    bankAccountNumber: text(formData, "bankAccountNumber"),
+    bankAccountName: text(formData, "bankAccountName"),
+    bookBankName: text(formData, "bookBankName"),
+    bookBankAccountNumber: text(formData, "bookBankAccountNumber"),
+    bookBankAccountName: text(formData, "bookBankAccountName"),
+    campaignOnlineEnabled: on(formData, "campaignOnlineEnabled"),
+    campaignTransferEnabled: on(formData, "campaignTransferEnabled"),
+    booksOnlineEnabled: on(formData, "booksOnlineEnabled"),
+    booksTransferEnabled: on(formData, "booksTransferEnabled"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const v = parsed.data;
@@ -105,6 +125,16 @@ export async function saveSettings(
     applications_paused: v.applicationsPaused,
     applications_paused_message: v.applicationsPausedMessage ?? null,
     min_donation_naira: v.minDonationNaira,
+    bank_name: v.bankName ?? null,
+    bank_account_number: v.bankAccountNumber ?? null,
+    bank_account_name: v.bankAccountName ?? null,
+    book_bank_name: v.bookBankName ?? null,
+    book_bank_account_number: v.bookBankAccountNumber ?? null,
+    book_bank_account_name: v.bookBankAccountName ?? null,
+    campaign_online_enabled: v.campaignOnlineEnabled,
+    campaign_transfer_enabled: v.campaignTransferEnabled,
+    books_online_enabled: v.booksOnlineEnabled,
+    books_transfer_enabled: v.booksTransferEnabled,
   };
 
   const changes = diffFields(describe(before), describe(after));

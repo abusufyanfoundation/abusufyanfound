@@ -18,8 +18,7 @@ import { siteUrl } from "@/lib/site";
 const GENERIC =
   "Something went wrong while starting your payment. Please try again.";
 
-const callbackUrl = () =>
-  `${siteUrl}/api/paystack/callback`;
+const callbackUrl = () => `${siteUrl}/api/paystack/callback`;
 
 function donorFields(formData: FormData) {
   return {
@@ -46,6 +45,10 @@ export async function startGeneralDonation(
   const settings = await getSiteSettings();
   if (settings.donations.paused) {
     return { error: settings.donations.message || PAUSED.donations };
+  }
+
+  if (!settings.payments.campaign.online) {
+    return { error: "Online payment is not available right now." };
   }
 
   const parsed = generalDonationSchema.safeParse({
@@ -118,6 +121,18 @@ export async function startBookOrder(
     return { error: settings.donations.message || PAUSED.donations };
   }
 
+  const method =
+    formData.get("method") === "transfer" ? "transfer" : "paystack";
+  const allowed =
+    method === "transfer"
+      ? settings.payments.books.transfer
+      : settings.payments.books.online;
+  if (!allowed) {
+    return {
+      error:
+        "That way of paying is not available right now. Please choose another.",
+    };
+  }
   let items: unknown;
   try {
     items = JSON.parse(String(formData.get("items") ?? "[]"));
@@ -132,6 +147,12 @@ export async function startBookOrder(
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const input = parsed.data;
 
+  if (method === "transfer" && !input.donorPhone) {
+    return {
+      error:
+        "Please enter your phone number so we can reach you about your transfer.",
+    };
+  }
   const reference = newReference();
   const admin = createAdminClient();
 
@@ -146,6 +167,7 @@ export async function startBookOrder(
       book_id: i.bookId,
       quantity: i.quantity,
     })),
+    p_method: method,
   });
 
   if (error) {
@@ -171,6 +193,11 @@ export async function startBookOrder(
   const row = (data as { order_id: string; total_kobo: number }[] | null)?.[0];
   if (!row) return { error: GENERIC };
 
+    // A transfer order is saved first. The donor then sees the bank details.
+  if (method === "transfer") {
+    redirect(`/support/confirmation?reference=${encodeURIComponent(reference)}`);
+  }
+  
   let authorizationUrl: string;
   try {
     const tx = await initializeTransaction({
