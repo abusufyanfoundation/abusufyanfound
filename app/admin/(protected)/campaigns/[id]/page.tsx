@@ -120,7 +120,7 @@ export default async function EditCampaignPage({
               className="border border-rule bg-white px-3.5 py-3 text-base text-ink focus:border-navy"
             />
           </label>
-          <button type="submit" className={outline}>
+          <button type="submit" className={`${outline} py-3.5`}>
             Save amount
           </button>
         </form>

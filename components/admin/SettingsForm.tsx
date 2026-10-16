@@ -283,7 +283,7 @@ export function SettingsForm({ settings: s }: { settings: SettingsRow }) {
                 formRef.current?.reset();
                 cancel();
               }}
-              className="text-sm text-muted underline underline-offset-4 hover:text-navy"
+              className="rounded border border-red-800 px-5 py-3 text-sm font-medium text-red-800 transition-colors hover:bg-red-800 hover:text-white"
             >
               Cancel
             </button>

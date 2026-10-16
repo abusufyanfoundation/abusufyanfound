@@ -217,7 +217,7 @@ export default async function BatchPage({
                 <th className={th}>Copies in batch</th>
                 <th className={th}>Allocated</th>
                 <th className={th}>Awaiting review</th>
-                <th className={th}></th>
+                <th className={th}>Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-rule">
@@ -264,7 +264,7 @@ export default async function BatchPage({
                         <input type="hidden" name="batchId" value={batch.id} />
                         <button
                           type="submit"
-                          className="text-sm text-muted underline underline-offset-4 hover:text-navy"
+                          className="text-sm text-navy bg-white px-2 py-1 border border-navy hover:text-white hover:bg-navy"
                         >
                           Remove
                         </button>
@@ -315,8 +315,8 @@ export default async function BatchPage({
                   <input type="hidden" name="batchId" value={batch.id} />
                   <button
                     type="submit"
-                    className="text-sm text-muted underline underline-offset-4 hover:text-navy"
-                  >
+                    className="text-sm text-navy bg-white px-2 py-1 border border-navy hover:text-white hover:bg-navy"
+ >
                     Remove
                   </button>
                 </form>
