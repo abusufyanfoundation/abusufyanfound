@@ -58,12 +58,15 @@ export default async function AdminOverviewPage() {
       .from("campaigns")
       .select("id, title, target_kobo, campaign_type")
       .eq("is_active", true)
-      .maybeSingle<{
-        id: string;
-        title: string;
-        target_kobo: number;
-        campaign_type: string;
-      }>(),
+      .order("campaign_type", { ascending: false })
+      .returns<
+        {
+          id: string;
+          title: string;
+          target_kobo: number;
+          campaign_type: string;
+        }[]
+      >(),
     supabase
       .from("donations")
       .select("id, created_at, type, donor_name, amount_kobo, is_paid")
@@ -78,77 +81,75 @@ export default async function AdminOverviewPage() {
       .returns<Activity[]>(),
   ]);
 
-   const campaign = campaignRes.data;
-   const isBatch = campaign?.campaign_type === "batch";
+  const campaigns = campaignRes.data ?? [];
 
-   const totals =
-     campaign && !isBatch
-       ? (
-           await supabase
-             .from("admin_campaign_totals")
-             .select("raised_kobo")
-             .eq("campaign_id", campaign.id)
-             .maybeSingle<{ raised_kobo: number }>()
-         ).data
-       : null;
+  const generalIds = campaigns
+    .filter((c) => c.campaign_type !== "batch")
+    .map((c) => c.id);
+  const generalTotals = generalIds.length
+    ? ((
+        await supabase
+          .from("admin_campaign_totals")
+          .select("campaign_id, raised_kobo")
+          .in("campaign_id", generalIds)
+          .returns<{ campaign_id: string; raised_kobo: number }[]>()
+      ).data ?? [])
+    : [];
+  const generalRaised = new Map(
+    generalTotals.map((t) => [t.campaign_id, t.raised_kobo]),
+  );
 
-   // A batch-based campaign shows the batch that is taking donations
-   let collecting: {
-     number: number;
-     title: string;
-     target: number;
-     raised: number;
-   } | null = null;
+  // A batch-based campaign shows the batch that is taking donations
+  const batchCampaignIds = campaigns
+    .filter((c) => c.campaign_type === "batch")
+    .map((c) => c.id);
+  const collectingBy = new Map<
+    string,
+    { number: number; title: string; target: number; raised: number }
+  >();
 
-   if (campaign && isBatch) {
-     const { data: drafts } = await supabase
-       .from("batches")
-       .select("id, batch_number, title, target_kobo")
-       .eq("campaign_id", campaign.id)
-       .eq("status", "draft")
-       .order("batch_number")
-       .returns<
-         {
-           id: string;
-           batch_number: number;
-           title: string;
-           target_kobo: number;
-         }[]
-       >();
+  if (batchCampaignIds.length) {
+    const { data: drafts } = await supabase
+      .from("batches")
+      .select("id, campaign_id, batch_number, title, target_kobo")
+      .in("campaign_id", batchCampaignIds)
+      .eq("status", "draft")
+      .order("batch_number")
+      .returns<
+        {
+          id: string;
+          campaign_id: string;
+          batch_number: number;
+          title: string;
+          target_kobo: number;
+        }[]
+      >();
 
-     const { data: rows } = await supabase
-       .from("admin_batch_totals")
-       .select("batch_id, raised_kobo")
-       .in(
-         "batch_id",
-         (drafts ?? []).map((b) => b.id),
-       )
-       .returns<{ batch_id: string; raised_kobo: number }[]>();
+    const { data: rows } = await supabase
+      .from("admin_batch_totals")
+      .select("batch_id, raised_kobo")
+      .in(
+        "batch_id",
+        (drafts ?? []).map((b) => b.id),
+      )
+      .returns<{ batch_id: string; raised_kobo: number }[]>();
 
-     const raisedBy = new Map(
-       (rows ?? []).map((r) => [r.batch_id, r.raised_kobo]),
-     );
-     const next = (drafts ?? []).find(
-       (b) => (raisedBy.get(b.id) ?? 0) < b.target_kobo,
-     );
-     if (next) {
-       collecting = {
-         number: next.batch_number,
-         title: next.title,
-         target: next.target_kobo,
-         raised: raisedBy.get(next.id) ?? 0,
-       };
-     }
-   }
+    const raisedBy = new Map(
+      (rows ?? []).map((r) => [r.batch_id, r.raised_kobo]),
+    );
+    for (const b of drafts ?? []) {
+      const raised = raisedBy.get(b.id) ?? 0;
+      if (collectingBy.has(b.campaign_id) || raised >= b.target_kobo) continue;
+      collectingBy.set(b.campaign_id, {
+        number: b.batch_number,
+        title: b.title,
+        target: b.target_kobo,
+        raised,
+      });
+    }
+  }
 
-   const o = overview.data;
-   const raised = isBatch
-     ? (collecting?.raised ?? 0)
-     : (totals?.raised_kobo ?? 0);
-   const target = isBatch
-     ? (collecting?.target ?? 0)
-     : (campaign?.target_kobo ?? 0);
-
+  const o = overview.data;
   return (
     <div className="flex flex-col gap-10">
       <PageHeader
@@ -188,36 +189,52 @@ export default async function AdminOverviewPage() {
         />
       </StatGrid>
 
-      <Panel title="Current campaign">
-        {campaign ? (
-          <>
-            <p className="font-display text-2xl text-navy">{campaign.title}</p>
-            {isBatch && (
-              <p className="mt-1 text-sm text-muted">
-                {collecting
-                  ? `Batch ${collecting.number}: ${collecting.title}`
-                  : "No batch is taking donations right now."}
-              </p>
-            )}
-            {(!isBatch || collecting) && (
-              <>
-                <div className="mt-4">
-                  <ProgressBar raisedKobo={raised} targetKobo={target} />
+      <Panel
+        title={campaigns.length > 1 ? "Current campaigns" : "Current campaign"}
+      >
+        {campaigns.length > 0 ? (
+          <div className="flex flex-col gap-8">
+            {campaigns.map((c) => {
+              const isBatch = c.campaign_type === "batch";
+              const collecting = collectingBy.get(c.id);
+              const raised = isBatch
+                ? (collecting?.raised ?? 0)
+                : (generalRaised.get(c.id) ?? 0);
+              const target = isBatch
+                ? (collecting?.target ?? 0)
+                : c.target_kobo;
+              return (
+                <div key={c.id}>
+                  <p className="font-display text-2xl text-navy">{c.title}</p>
+                  {isBatch && (
+                    <p className="mt-1 text-sm text-muted">
+                      {collecting
+                        ? `Batch ${collecting.number}: ${collecting.title}`
+                        : "No batch is taking donations right now."}
+                    </p>
+                  )}
+                  {(!isBatch || collecting) && (
+                    <>
+                      <div className="mt-4">
+                        <ProgressBar raisedKobo={raised} targetKobo={target} />
+                      </div>
+                      <p className="mt-1 text-sm text-muted">
+                        {formatNaira(raised)} of {formatNaira(target)}
+                      </p>
+                    </>
+                  )}
+                  {isBatch && !collecting && (
+                    <Link
+                      href={`/admin/batches/new?campaign=${c.id}`}
+                      className="mt-4 inline-block text-sm text-navy underline decoration-gold underline-offset-4"
+                    >
+                      Create the next batch
+                    </Link>
+                  )}
                 </div>
-                <p className="mt-1 text-sm text-muted">
-                  {formatNaira(raised)} of {formatNaira(target)}
-                </p>
-              </>
-            )}
-            {isBatch && !collecting && (
-              <Link
-                href={`/admin/batches/new?campaign=${campaign.id}`}
-                className="mt-4 inline-block text-sm text-navy underline decoration-gold underline-offset-4"
-              >
-                Create the next batch
-              </Link>
-            )}
-          </>
+              );
+            })}
+          </div>
         ) : (
           <EmptyState
             title="No active campaign"

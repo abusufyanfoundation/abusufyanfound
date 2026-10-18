@@ -14,8 +14,7 @@ import { campaignRaisedSchema, campaignSchema } from "@/lib/validation/admin";
 
 const GENERIC = "The campaign could not be saved. Please try again.";
 const ACTIVE_CONFLICT =
-  "Another campaign is already active. Deactivate it first, then activate this one.";
-
+  "Another campaign of this type is already active. Deactivate it first, then activate this one.";
 const isActiveConflict = (message: string) =>
   message.includes("one_active_campaign");
 

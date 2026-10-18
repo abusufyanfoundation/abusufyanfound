@@ -9,13 +9,21 @@ import { SubmitButton } from "./SubmitButton";
 
 const presets = [5000, 10000, 25000, 50000];
 
-export function GeneralDonationForm({ minAmount }: { minAmount: number }) {
+export function GeneralDonationForm({
+  minAmount,
+  target,
+}: {
+  minAmount: number;
+  target: string;
+}) {
   const { state, pending, onSubmit } = useActionForm(startGeneralDonation);
   const [amount, setAmount] = useState("");
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <Notice error={state?.error} />
+
+      <input type="hidden" name="target" value={target} />
 
       <div className="flex flex-col gap-3">
         <label htmlFor="amount" className="text-sm font-medium text-ink">

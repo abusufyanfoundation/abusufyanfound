@@ -43,6 +43,7 @@ async function withStats(campaign: CampaignRow): Promise<CampaignWithStats> {
       batch: batch
         ? { id: batch.batch_id, number: batch.batch_number, title: batch.title }
         : null,
+        kind:"batch",
     };
   }
 
@@ -58,20 +59,27 @@ async function withStats(campaign: CampaignRow): Promise<CampaignWithStats> {
     fully_raised: stats?.fully_raised ?? false,
     collecting: true,
     batch: null,
+    kind:"general",
   };
 }
 
-export async function getCurrentCampaign(): Promise<CampaignWithStats | null> {
+// At most one batch-based and one general campaign are active at a time.
+// The batch-based one comes first.
+export async function getActiveCampaigns(): Promise<CampaignWithStats[]> {
   const supabase = createPublicClient();
 
-  const { data: campaign, error } = await supabase
+  const { data, error } = await supabase
     .from("campaigns")
     .select(CAMPAIGN_FIELDS)
     .eq("is_active", true)
-    .maybeSingle<CampaignRow>();
+    .returns<CampaignRow[]>();
 
-  if (error) console.error("getCurrentCampaign:", error.message);
-  return campaign ? withStats(campaign) : null;
+  if (error) console.error("getActiveCampaigns:", error.message);
+
+  const campaigns = await Promise.all((data ?? []).map(withStats));
+  return campaigns.sort(
+    (a, b) => Number(b.kind === "batch") - Number(a.kind === "batch"),
+  );
 }
 
 // Only the active campaign is public, so a past campaign's link shows "not found"

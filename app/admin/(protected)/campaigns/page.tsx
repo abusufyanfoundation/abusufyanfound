@@ -83,7 +83,7 @@ export default async function AdminCampaignsPage({
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Campaigns"
-        intro="A campaign is a fund with a target. General campaigns raise money on their own; batch-based campaigns raise money batch by batch to buy books for applicants. Only one campaign can be active at a time."
+        intro="A campaign is a fund with a target. General campaigns raise money on their own; batch-based campaigns raise money batch by batch to buy books for applicants. One batch-based and one general campaign can be active at the same time."
         action={{ label: "New campaign", href: "/admin/campaigns/new" }}
       />
 

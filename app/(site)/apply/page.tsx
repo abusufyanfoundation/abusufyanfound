@@ -8,7 +8,7 @@ import { formatDate } from "@/lib/format";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getSiteSettings, PAUSED } from "@/lib/data/settings";
 import { BackLink } from "@/components/ui/BackLink";
-import { getCurrentCampaign } from "@/lib/data/public";
+import { getActiveCampaigns } from "@/lib/data/public";
 
 export const revalidate = 60;
 
@@ -22,13 +22,13 @@ export const metadata: Metadata = {
 const link = "text-navy underline decoration-gold underline-offset-4";
 
 export default async function ApplyPage() {
-  const [batches, { applications }, campaign] = await Promise.all([
+  const [batches, { applications }, active] = await Promise.all([
     getOpenBatches(),
     getSiteSettings(),
-    getCurrentCampaign(),
+    getActiveCampaigns(),
   ]);
-  const raising = campaign?.collecting ? campaign.batch : null;
-
+  const raising =
+    active.find((c) => c.kind === "batch" && c.collecting)?.batch ?? null;
   return (
     <section className="py-16 md:py-24 ">
       <Container>

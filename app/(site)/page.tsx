@@ -6,7 +6,7 @@ import { Hero } from "@/components/site/Hero";
 // import { HowItWorks } from "@/components/site/HowItWorks";
 import { ImpactSection } from "@/components/site/ImpactSection";
 import { WhatWeDo } from "@/components/site/WhatWeDo";
-import { getCurrentCampaign, getImpact } from "@/lib/data/public";
+import { getActiveCampaigns, getImpact } from "@/lib/data/public";
 import { TwoWays } from "@/components/site/TwoWays";
 
 export const metadata: Metadata = {
@@ -17,10 +17,10 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [campaign, impact] = await Promise.all([
-    getCurrentCampaign(),
-    getImpact(),
-  ]);
+   const [campaigns, impact] = await Promise.all([
+     getActiveCampaigns(),
+     getImpact(),
+   ]);
 
   return (
     <>
@@ -30,7 +30,7 @@ export default async function HomePage() {
       <TwoWays/>
       {/* <HowItWorks /> */}
       <ImpactSection impact={impact} />
-      <CampaignSection campaign={campaign} />
+      <CampaignSection campaigns={campaigns} />
       <BooksSection />
     </>
   );

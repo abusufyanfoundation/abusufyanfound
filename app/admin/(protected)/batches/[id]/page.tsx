@@ -144,16 +144,53 @@ export default async function BatchPage({
   const books = booksRes.data ?? [];
   const locations = locationsRes.data ?? [];
 
-  const stats = new Map<string, { allocated: number; pending: number }>();
-  for (const item of itemsRes.data ?? []) {
-    const s = stats.get(item.batch_book_id) ?? { allocated: 0, pending: 0 };
-    const status = item.applications?.status;
-    if (status === "pending") s.pending += item.quantity_requested;
-    if (status === "approved" || status === "fulfilled") {
-      s.allocated += item.quantity_approved;
+    const { data: givenRows } = await supabase
+      .from("distribution_items")
+      .select("batch_book_id, quantity")
+      .in(
+        "batch_book_id",
+        books.map((b) => b.id),
+      )
+      .returns<{ batch_book_id: string; quantity: number }[]>();
+
+    const given = new Map<string, number>();
+    for (const g of givenRows ?? []) {
+      given.set(
+        g.batch_book_id,
+        (given.get(g.batch_book_id) ?? 0) + g.quantity,
+      );
     }
-    stats.set(item.batch_book_id, s);
-  }
+
+    const stats = new Map<
+      string,
+      { allocated: number; pending: number; fulfilled: number }
+    >();
+    for (const item of itemsRes.data ?? []) {
+      const s = stats.get(item.batch_book_id) ?? {
+        allocated: 0,
+        pending: 0,
+        fulfilled: 0,
+      };
+      const status = item.applications?.status;
+      if (status === "pending") s.pending += item.quantity_requested;
+      if (status === "approved" || status === "fulfilled") {
+        s.allocated += item.quantity_approved;
+      }
+      if (status === "fulfilled") s.fulfilled += item.quantity_approved;
+      stats.set(item.batch_book_id, s);
+    }
+
+    // Copies recorded as handed out on the distributions page also count as
+    // allocated, beyond what fulfilled applications already account for
+    for (const book of books) {
+      const s = stats.get(book.id) ?? {
+        allocated: 0,
+        pending: 0,
+        fulfilled: 0,
+      };
+      s.allocated += Math.max(0, (given.get(book.id) ?? 0) - s.fulfilled);
+      stats.set(book.id, s);
+    }
 
   const totalCopies = books.reduce((s, b) => s + b.quantity_available, 0);
   const totalAllocated = [...stats.values()].reduce(

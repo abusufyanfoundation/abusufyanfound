@@ -12,6 +12,7 @@ export type CampaignWithStats = Campaign & {
   fully_raised: boolean;
   collecting: boolean;
   batch: { id: string; number: number; title: string } | null;
+  kind: "general" | "batch";
 };
 
 export type Book = {

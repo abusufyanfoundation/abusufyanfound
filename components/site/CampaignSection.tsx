@@ -8,9 +8,9 @@ const INTRO =
   "A campaign is a general fund with a target. Give any amount you like. You do not choose the books: once the target is reached, the Foundation chooses and buys them, and gives them to students of knowledge and mosques.";
 
 export async function CampaignSection({
-  campaign,
+  campaigns,
 }: {
-  campaign: CampaignWithStats | null;
+  campaigns: CampaignWithStats[];
 }) {
   const { social } = await getSiteSettings();
   return (
@@ -18,13 +18,19 @@ export async function CampaignSection({
       <Container>
         <SectionHeading
           eyebrow="Campaigns"
-          title="Our current campaign"
+          title={
+            campaigns.length > 1
+              ? "Our current campaigns"
+              : "Our current campaign"
+          }
           intro={INTRO}
         />
 
-        {campaign ? (
-          <div className="mt-12">
-            <CampaignCard campaign={campaign} />
+        {campaigns.length > 0 ? (
+          <div className="mt-12 flex flex-col gap-12">
+            {campaigns.map((campaign) => (
+              <CampaignCard key={campaign.id} campaign={campaign} />
+            ))}
           </div>
         ) : (
           <div className="mt-10 max-w-xl border-l-2 border-gold pl-6">

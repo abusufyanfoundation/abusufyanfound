@@ -5,7 +5,7 @@ import { GeneralDonationForm } from "@/components/forms/GeneralDonationForm";
 import { Container } from "@/components/site/Container";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { BankDetailsCard } from "@/components/site/support/BankDetails";
-import { getCurrentCampaign } from "@/lib/data/public";
+import { getActiveCampaigns } from "@/lib/data/public";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getSiteSettings, PAUSED } from "@/lib/data/settings";
 import { BackLink } from "@/components/ui/BackLink";
@@ -34,9 +34,9 @@ const pill = (active: boolean) =>
 export default async function SupportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; method?: string }>;
+  searchParams: Promise<{ type?: string; method?: string; to?: string }>;
 }) {
-  const { type, method: requested } = await searchParams;
+  const { type, method: requested, to } = await searchParams;
   const books = type === "books";
 
   const { donations, payments } = await getSiteSettings();
@@ -64,9 +64,21 @@ export default async function SupportPage({
     );
   }
 
-  const campaign = await getCurrentCampaign();
-  const campaignOpen = campaign !== null && campaign.collecting;
+  const active = await getActiveCampaigns();
+  const open = active.filter((c) => c.collecting);
 
+  // The general campaign is preselected while it runs, then the batch campaign
+  const campaign =
+    to === "foundation"
+      ? null
+      : (open.find((c) => c.slug === to) ??
+        open.find((c) => c.kind === "general") ??
+        open[0] ??
+        null);
+  const campaignOpen = campaign !== null;
+  const waiting =
+    active.find((c) => c.kind === "batch" && !c.collecting) ?? null;
+  const chosen = campaign?.slug ?? "foundation";
   const group = books ? payments.books : payments.campaign;
   const both = group.online && group.transfer;
   const method: "paystack" | "transfer" =
@@ -76,9 +88,12 @@ export default async function SupportPage({
         ? "paystack"
         : "transfer";
 
-  const base = books ? "/support?type=books" : "/support";
-  const methodHref = (m: string) => `${base}${books ? "&" : "?"}method=${m}`;
-
+  const methodHref = (m: string) =>
+    books
+      ? `/support?type=books&method=${m}`
+      : `/support?to=${chosen}&method=${m}`;
+  const giveHref = (slug: string) =>
+    `/support?to=${slug}${method === "transfer" ? "&method=transfer" : ""}`;
   return (
     <section className="py-16 md:py-24">
       <Container>
@@ -98,7 +113,9 @@ export default async function SupportPage({
             className={tab(!books)}
             aria-current={!books ? "page" : undefined}
           >
-            {campaignOpen ? "Give to the campaign" : "Give to the Foundation"}
+            {open.length > 0
+              ? "Give to a campaign"
+              : "Give to the Foundation"}{" "}
           </Link>
           <Link
             href="/support?type=books"
@@ -145,8 +162,8 @@ export default async function SupportPage({
                   Give to the Foundation
                 </h2>
                 <p className="mt-4 max-w-md leading-relaxed text-ink">
-                  {campaign
-                    ? `The next batch of “${campaign.title}” opens soon. `
+                  {waiting
+                    ? `The next batch of “${waiting.title}” opens soon. `
                     : "There is no open campaign at the moment. "}
                   You can still give to the Foundation, and your donation will
                   go towards its work of providing books to students of
@@ -165,6 +182,36 @@ export default async function SupportPage({
           </div>
 
           <div className="max-w-xl lg:basis-7/12">
+            {!books && method === "paystack" && open.length > 0 && (
+              <div className="mb-8 flex flex-col gap-3">
+                <p className="text-sm font-medium text-ink">
+                  Where should your gift go?
+                </p>
+                <div
+                  className="flex flex-wrap gap-2"
+                  aria-label="Where to give"
+                >
+                  {open.map((c) => (
+                    <Link
+                      key={c.id}
+                      href={giveHref(c.slug)}
+                      className={pill(campaign?.id === c.id)}
+                    >
+                      {c.batch
+                        ? `Batch ${c.batch.number}: ${c.batch.title}`
+                        : c.title}
+                    </Link>
+                  ))}
+                  <Link
+                    href={giveHref("foundation")}
+                    className={pill(campaign === null)}
+                  >
+                    The Foundation in general
+                  </Link>
+                </div>
+              </div>
+            )}
+
             {both && (
               <div
                 className="mb-8 flex flex-wrap gap-2"
@@ -188,7 +235,10 @@ export default async function SupportPage({
             {books ? (
               <BookCheckoutForm method={method} />
             ) : method === "paystack" ? (
-              <GeneralDonationForm minAmount={donations.minNaira} />
+              <GeneralDonationForm
+                minAmount={donations.minNaira}
+                target={campaign?.id ?? "foundation"}
+              />
             ) : (
               <div className="flex flex-col gap-4">
                 <h3 className="font-display text-2xl text-navy">

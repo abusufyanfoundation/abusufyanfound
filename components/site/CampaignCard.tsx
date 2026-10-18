@@ -89,7 +89,7 @@ export async function CampaignCard({
         )}
 
         <div className="mt-10">
-          <ButtonLink href="/support">
+          <ButtonLink href={`/support?to=${campaign.slug}`}>
             {campaign.collecting
               ? "Donate to this campaign"
               : "Support the Foundation"}

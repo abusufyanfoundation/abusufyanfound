@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import type { CheckoutState } from "@/lib/checkout/types";
-import { getCurrentCampaign } from "@/lib/data/public";
+import { getActiveCampaigns } from "@/lib/data/public";
 import { toKobo } from "@/lib/money";
 import { initializeTransaction } from "@/lib/paystack/initialize";
 import { newReference } from "@/lib/paystack/reference";
@@ -64,11 +64,13 @@ export async function startGeneralDonation(
     };
   }
 
-  // The campaign is always looked up on the server, never taken from the form.
-  // A donation goes to the batch taking donations, or to a general campaign;
-  // between batches it is a plain gift to the Foundation.
-  const current = await getCurrentCampaign();
-  const campaign = current?.collecting ? current : null;
+  // The donor picks where the gift goes, but the server decides what that
+  // choice means: only a campaign that is active and taking donations counts,
+  // and anything else becomes a plain gift to the Foundation.
+  const target = String(formData.get("target") ?? "");
+  const campaign =
+    (await getActiveCampaigns()).find((c) => c.id === target && c.collecting) ??
+    null;
 
   const reference = newReference();
   const amountKobo = toKobo(input.amountNaira);

@@ -115,7 +115,7 @@ export function CampaignForm({ campaign }: { campaign?: CampaignFormValues }) {
             label="Make this the active campaign"
             name="isActive"
             defaultChecked={campaign?.is_active}
-            hint="Only one campaign can be active at a time. The active campaign appears on the homepage."
+            hint="One batch-based and one general campaign can be active at the same time. Active campaigns appear on the homepage."
           />
         )}
       </fieldset>
