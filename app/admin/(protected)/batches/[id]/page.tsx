@@ -14,11 +14,14 @@ import {
 } from "@/components/admin/ui";
 import { titleCase } from "@/lib/admin/labels";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { toInputDate } from "@/lib/format";
+import { formatNaira } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
 import {
   deleteBatchBook,
   deleteBatchLocation,
+  saveBatchRaised,
   setBatchStatus,
   updateBatchBook,
 } from "../actions";
@@ -35,9 +38,14 @@ type Batch = {
   description: string | null;
   status: string;
   max_copies_per_applicant: number;
+  target_kobo: number;
   opens_at: string | null;
   closes_at: string | null;
-  campaign: { title: string; completed_at: string | null } | null;
+  campaign: {
+    title: string;
+    completed_at: string | null;
+    reference_code: string | null;
+  } | null;
 };
 
 type Book = {
@@ -78,7 +86,7 @@ const TRANSITIONS: Record<string, { status: string; label: string }[]> = {
 
 const STATUS_NOTE: Record<string, string> = {
   draft:
-    "Applicants cannot see this batch yet. Add its books, then open it once the campaign is completed.",
+    "Applicants cannot see this batch yet. Add its books, then open it once its funding target is reached.",
   open: "Applicants can see this batch and apply for copies.",
   closed:
     "Applications are closed. You can still review the ones already received.",
@@ -105,7 +113,7 @@ export default async function BatchPage({
     supabase
       .from("batches")
       .select(
-        "id, batch_number, title, description, status, max_copies_per_applicant, opens_at, closes_at, campaign:campaigns(title, completed_at)",
+        "id, batch_number, title, description, status, target_kobo, max_copies_per_applicant, opens_at, closes_at, campaign:campaigns(title, completed_at, reference_code)",
       )
       .eq("id", id)
       .maybeSingle<Batch>(),
@@ -152,18 +160,61 @@ export default async function BatchPage({
     (s, v) => s + v.allocated,
     0,
   );
-  const campaignCompleted = Boolean(batch.campaign?.completed_at);
+  const { data: totals } = await supabase
+    .from("admin_batch_totals")
+    .select("raised_kobo")
+    .eq("batch_id", id)
+    .maybeSingle<{ raised_kobo: number }>();
+  const raised = totals?.raised_kobo ?? 0;
+  const funded = raised >= batch.target_kobo;
 
   return (
     <div className="flex flex-col gap-10">
       <PageHeader
         back={{ label: "Back to batches", href: "/admin/batches" }}
         title={batch.title}
-        intro={`Batch ${batch.batch_number}. Applications under this batch are numbered ASAF-b${batch.batch_number}-001, 002 and so on.`}
+        intro={`Batch ${batch.batch_number} of ${batch.campaign?.title ?? "its campaign"}. Applications under this batch are numbered ASAF-${batch.campaign?.reference_code ?? "…"}-B${batch.batch_number}-001, 002 and so on.`}
       />
 
       {error && <FormMessage error={error} />}
       {notice && <FormMessage message={notice} />}
+
+      <Panel title="Funding">
+        <ProgressBar raisedKobo={raised} targetKobo={batch.target_kobo} />
+        <p className="mt-1 text-sm text-muted">
+          {formatNaira(raised)} of {formatNaira(batch.target_kobo)}
+        </p>
+
+        {batch.status !== "fulfilled" && (
+          <form
+            action={saveBatchRaised}
+            className="mt-5 flex flex-wrap items-end gap-3"
+          >
+            <input type="hidden" name="id" value={batch.id} />
+            <label className="flex flex-col gap-2 text-sm font-medium text-ink">
+              Total raised so far (₦)
+              <input
+                name="raisedNaira"
+                type="number"
+                min={0}
+                step="any"
+                required
+                defaultValue={raised / 100}
+                className="border border-rule bg-white px-3.5 py-3 text-base text-ink focus:border-navy"
+              />
+            </label>
+            <button type="submit" className={`${outline} py-3.5`}>
+              Save amount
+            </button>
+          </form>
+        )}
+
+        <p className="mt-4 max-w-md text-xs leading-relaxed text-muted">
+          Type this batch&apos;s total from the bank account (Paystack payouts
+          included). The website takes donations for the earliest draft batch
+          that has not reached its target.
+        </p>
+      </Panel>
 
       <Panel title="Status">
         <p className="text-sm text-ink">
@@ -171,15 +222,16 @@ export default async function BatchPage({
         </p>
         <p className="mt-2 text-sm text-muted">{STATUS_NOTE[batch.status]}</p>
 
-        {batch.status === "draft" && !campaignCompleted && (
+        {batch.status === "draft" && !funded && (
           <p className="mt-2 text-sm text-muted">
-            The campaign &ldquo;{batch.campaign?.title}&rdquo; is not completed
-            yet, so this batch cannot be opened.
+            This batch has raised {formatNaira(raised)} of{" "}
+            {formatNaira(batch.target_kobo)}. It can be opened once the target
+            is reached.
           </p>
         )}
 
         <p className="mt-4 text-sm text-muted">
-          {totalCopies} copies in this batch · {totalAllocated} allocated to
+          {totalCopies} copies in stock · {totalAllocated} allocated to
           applicants ·{" "}
           <Link
             href={`/admin/applications?batch=${batch.id}`}
@@ -214,7 +266,7 @@ export default async function BatchPage({
             <thead className="border-b border-rule bg-paper">
               <tr>
                 <th className={th}>Book</th>
-                <th className={th}>Copies in batch</th>
+                <th className={th}>In stock</th>
                 <th className={th}>Allocated</th>
                 <th className={th}>Awaiting review</th>
                 <th className={th}>Action</th>
@@ -316,7 +368,7 @@ export default async function BatchPage({
                   <button
                     type="submit"
                     className="text-sm text-navy bg-white px-2 py-1 border border-navy hover:text-white hover:bg-navy"
- >
+                  >
                     Remove
                   </button>
                 </form>
@@ -341,6 +393,7 @@ export default async function BatchPage({
             id: batch.id,
             campaignTitle: batch.campaign?.title ?? "—",
             title: batch.title,
+            targetNaira: batch.target_kobo / 100,
             description: batch.description,
             maxCopies: batch.max_copies_per_applicant,
             opensOn: batch.opens_at ? toInputDate(batch.opens_at) : "",

@@ -41,17 +41,30 @@ export async function saveCampaign(
 ): Promise<FormState> {
   const actor = await requireAdmin();
 
+  const id = String(formData.get("id") ?? "");
+  const supabase = await createClient();
+
+  // A batch-based campaign has no target of its own: each batch has one
+  const { data: current } = id
+    ? await supabase
+        .from("campaigns")
+        .select("campaign_type")
+        .eq("id", id)
+        .maybeSingle<{ campaign_type: string }>()
+    : { data: null };
+  const isBatch = current
+    ? current.campaign_type === "batch"
+    : formData.get("campaignType") === "batch";
+
   const parsed = campaignSchema.safeParse({
     title: formData.get("title"),
     description: String(formData.get("description") ?? "").trim() || undefined,
-    targetNaira: Number(formData.get("targetNaira")),
+    targetNaira: isBatch ? 1 : Number(formData.get("targetNaira")),
     isActive: formData.get("isActive") === "on",
+    campaignType: formData.get("campaignType") ?? "normal",
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const input = parsed.data;
-
-  const id = String(formData.get("id") ?? "");
-  const supabase = await createClient();
 
   const upload = await uploadImage(
     supabase,
@@ -63,7 +76,7 @@ export async function saveCampaign(
   const row = {
     title: input.title,
     description: input.description ?? null,
-    target_kobo: toKobo(input.targetNaira),
+    target_kobo: isBatch ? 0 : toKobo(input.targetNaira),
     is_active: input.isActive,
     ...(upload.url ? { image_url: upload.url } : {}),
   };
@@ -122,7 +135,7 @@ export async function saveCampaign(
   for (let attempt = 0; attempt < 3; attempt++) {
     const { data, error } = await supabase
       .from("campaigns")
-      .insert({ ...row, slug })
+      .insert({ ...row, campaign_type: input.campaignType, slug })
       .select("id")
       .single();
 
@@ -135,6 +148,7 @@ export async function saveCampaign(
         details: {
           target: formatNaira(row.target_kobo),
           active: row.is_active,
+          type: input.campaignType === "batch" ? "Batch-based" : "General",
         },
       });
       refresh();

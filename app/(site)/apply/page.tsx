@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/format";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getSiteSettings, PAUSED } from "@/lib/data/settings";
 import { BackLink } from "@/components/ui/BackLink";
+import { getCurrentCampaign } from "@/lib/data/public";
 
 export const revalidate = 60;
 
@@ -21,10 +22,12 @@ export const metadata: Metadata = {
 const link = "text-navy underline decoration-gold underline-offset-4";
 
 export default async function ApplyPage() {
-  const [batches, { applications }] = await Promise.all([
+  const [batches, { applications }, campaign] = await Promise.all([
     getOpenBatches(),
     getSiteSettings(),
+    getCurrentCampaign(),
   ]);
+  const raising = campaign?.collecting ? campaign.batch : null;
 
   return (
     <section className="py-16 md:py-24 ">
@@ -35,7 +38,7 @@ export default async function ApplyPage() {
         <SectionHeading
           as="h1"
           title="Apply for books"
-          intro="When a campaign is completed, the Foundation buys the books and gives them to students of knowledge, mosques and schools. Choose an open batch below to apply."
+          intro="When a batch reaches its funding target, the Foundation buys the books and gives them to students of knowledge, mosques and schools. Choose an open batch below to apply."
         />
 
         {applications.paused ? (
@@ -47,9 +50,21 @@ export default async function ApplyPage() {
           </div>
         ) : batches.length === 0 ? (
           <div className="mt-12">
-            <EmptyState
-              title="No batch is open for applications right now."
-              text=" New batches open when a campaign is completed. You can still ask for a book that is not on a list, or check an earlier application."
+                        <EmptyState
+              title="The next batch opens soon."
+              text={`${
+                raising
+                  ? `Batch ${raising.number} is still raising its funds, and applications open as soon as it reaches its target. `
+                  : "Applications open as soon as a batch reaches its funding target. "
+              }You can still ask for a book that is not on a list, or check an earlier application.`}
+              action={
+                raising
+                  ? {
+                      label: `Help Batch ${raising.number} get there`,
+                      href: "/support",
+                    }
+                  : undefined
+              }
             />
           </div>
         ) : (

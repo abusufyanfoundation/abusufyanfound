@@ -4,6 +4,7 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import { siteConfig } from "@/lib/site";
 import { Container } from "./Container";
 import { MobileMenu } from "./MobileMenu";
+import { AnnouncementBar } from "./AnnouncementBanner";
 
 export function Header() {
   return (
@@ -47,6 +48,7 @@ export function Header() {
 
         <MobileMenu items={siteConfig.nav} cta={siteConfig.cta} />
       </Container>
+      <AnnouncementBar />
     </header>
   );
 }

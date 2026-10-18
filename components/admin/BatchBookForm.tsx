@@ -29,7 +29,7 @@ export function BatchBookForm({ batchId }: { batchId: string }) {
       <TextField label="Book title" name="bookTitle" />
       <TextField label="Author" name="bookAuthor" required={false} />
       <TextField
-        label="Copies in this batch"
+        label="Copies in stock"
         name="copies"
         type="number"
         min={1}

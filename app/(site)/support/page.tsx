@@ -65,7 +65,7 @@ export default async function SupportPage({
   }
 
   const campaign = await getCurrentCampaign();
-  const campaignOpen = campaign !== null;
+  const campaignOpen = campaign !== null && campaign.collecting;
 
   const group = books ? payments.books : payments.campaign;
   const both = group.online && group.transfer;
@@ -127,6 +127,11 @@ export default async function SupportPage({
                 <h2 className="font-display text-3xl text-navy">
                   {campaign.title}
                 </h2>
+                {campaign.batch && (
+                  <p className="mt-3 text-sm font-medium uppercase tracking-wider text-gold-deep">
+                    Giving towards Batch {campaign.batch.number}
+                  </p>
+                )}
                 <p className="mt-4 max-w-md leading-relaxed text-ink">
                   You are giving to a campaign fund. You do not choose the
                   books: once the target is reached, the Foundation chooses and
@@ -140,9 +145,12 @@ export default async function SupportPage({
                   Give to the Foundation
                 </h2>
                 <p className="mt-4 max-w-md leading-relaxed text-ink">
-                  There is no open campaign at the moment. You can still give to
-                  the Foundation, and your donation will go towards its work of
-                  providing books to students of knowledge and mosques.
+                  {campaign
+                    ? `The next batch of “${campaign.title}” opens soon. `
+                    : "There is no open campaign at the moment. "}
+                  You can still give to the Foundation, and your donation will
+                  go towards its work of providing books to students of
+                  knowledge and mosques.
                 </p>
               </>
             )}
@@ -188,8 +196,8 @@ export default async function SupportPage({
                 </h3>
                 <BankDetailsCard bank={payments.campaign.bank} />
                 <p className="text-xs leading-relaxed text-muted">
-                  Please put your name in the transfer narration. Donations made by
-                  transfer are added to the campaign total by the Foundation.
+                  Please put your name in the transfer narration. Donations made
+                  by transfer are added to the campaign total by the Foundation.
                 </p>
               </div>
             )}

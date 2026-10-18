@@ -35,7 +35,7 @@ export function WhatWeDo() {
       className="border-y border-rule bg-navy py-20 md:py-28"
     >
       <Container className="flex flex-col gap-12 lg:flex-row lg:gap-20">
-        <div className="lg:sticky lg:top-28 lg:self-start lg:basis-4/12">
+        <div className="lg:sticky lg:top-40 lg:self-start lg:basis-4/12">
           <SectionHeading
             tone="dark"
             eyebrow="Our role"

@@ -184,9 +184,15 @@ export async function trackSubmission(
     .toUpperCase();
   const phone = normalisePhone(String(formData.get("phone") ?? ""));
 
-  if (!/^(ASAF-(B\d+|RQ)-\d{3,}|(APP|REQ)-[A-Z0-9]{8})$/.test(reference)) {
-    return { error: "Please enter your reference, for example ASAF-b3-001." };
-  }
+    if (
+      !/^(ASAF-([A-Z0-9]+-B\d+|RQ)-\d{3,}|(APP|REQ)-[A-Z0-9]{8})$/.test(
+        reference,
+      )
+    ) {
+      return {
+        error: "Please enter your reference, for example ASAF-CDQC-B3-001.",
+      };
+    }
   if (!phone)
     return { error: "Please enter the phone number you applied with." };
 

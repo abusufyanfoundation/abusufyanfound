@@ -6,22 +6,59 @@ import type {
   ImpactStats,
 } from "@/lib/types";
 
-const CAMPAIGN_FIELDS = "id, title, slug, description, image_url, target_kobo";
+const CAMPAIGN_FIELDS =
+  "id, title, slug, description, image_url, target_kobo, campaign_type";
 
-async function withStats(campaign: Campaign): Promise<CampaignWithStats> {
+type CampaignRow = Campaign & { campaign_type: string };
+
+type BatchStats = {
+  batch_id: string;
+  batch_number: number;
+  title: string;
+  target_kobo: number;
+  raised_kobo: number;
+};
+
+async function withStats(campaign: CampaignRow): Promise<CampaignWithStats> {
   const supabase = createPublicClient();
 
-   const { data: stats } = await supabase
-     .from("public_campaign_stats")
-     .select("raised_kobo, fully_raised")
-     .eq("campaign_id", campaign.id)
-     .maybeSingle<{ raised_kobo: number; fully_raised: boolean }>();
+  // A batch-based campaign shows the batch that is taking donations right now
+  if (campaign.campaign_type === "batch") {
+    const { data: batch } = await supabase
+      .from("public_batch_stats")
+      .select("batch_id, batch_number, title, target_kobo, raised_kobo")
+      .eq("campaign_id", campaign.id)
+      .eq("status", "draft")
+      .eq("fully_raised", false)
+      .order("batch_number")
+      .limit(1)
+      .maybeSingle<BatchStats>();
 
-   return {
-     ...campaign,
-     raised_kobo: stats?.raised_kobo ?? 0,
-     fully_raised: stats?.fully_raised ?? false,
-   };
+    return {
+      ...campaign,
+      target_kobo: batch?.target_kobo ?? 0,
+      raised_kobo: batch?.raised_kobo ?? 0,
+      fully_raised: false,
+      collecting: Boolean(batch),
+      batch: batch
+        ? { id: batch.batch_id, number: batch.batch_number, title: batch.title }
+        : null,
+    };
+  }
+
+  const { data: stats } = await supabase
+    .from("public_campaign_stats")
+    .select("raised_kobo, fully_raised")
+    .eq("campaign_id", campaign.id)
+    .maybeSingle<{ raised_kobo: number; fully_raised: boolean }>();
+
+  return {
+    ...campaign,
+    raised_kobo: stats?.raised_kobo ?? 0,
+    fully_raised: stats?.fully_raised ?? false,
+    collecting: true,
+    batch: null,
+  };
 }
 
 export async function getCurrentCampaign(): Promise<CampaignWithStats | null> {
@@ -31,9 +68,8 @@ export async function getCurrentCampaign(): Promise<CampaignWithStats | null> {
     .from("campaigns")
     .select(CAMPAIGN_FIELDS)
     .eq("is_active", true)
-    .maybeSingle<Campaign>();
+    .maybeSingle<CampaignRow>();
 
-    
   if (error) console.error("getCurrentCampaign:", error.message);
   return campaign ? withStats(campaign) : null;
 }
@@ -51,7 +87,7 @@ export async function getCampaignBySlug(
     .select(CAMPAIGN_FIELDS)
     .eq("slug", slug)
     .eq("is_active", true)
-    .maybeSingle<Campaign>();
+    .maybeSingle<CampaignRow>();
 
   if (error) console.error("getCampaignBySlug:", error.message);
   return campaign ? withStats(campaign) : null;

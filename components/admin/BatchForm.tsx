@@ -16,14 +16,17 @@ export type BatchFormValues = {
   maxCopies: number;
   opensOn: string;
   closesOn: string;
+  targetNaira: number;
 };
 
 export function BatchForm({
   batch,
   campaigns = [],
+  defaultCampaignId,
 }: {
   batch?: BatchFormValues;
   campaigns?: { value: string; label: string }[];
+  defaultCampaignId?: string;
 }) {
   const { state, pending, onSubmit } = useActionForm(saveBatch);
   const { editing, start, cancel } = useEditMode(state);
@@ -58,6 +61,7 @@ export function BatchForm({
           <SelectField
             label="Campaign"
             name="campaignId"
+            defaultValue={defaultCampaignId}
             options={campaigns}
             hint="The books in this batch are bought with this campaign's funds."
           />
@@ -65,11 +69,14 @@ export function BatchForm({
 
         <TextField label="Title" name="title" defaultValue={batch?.title} />
 
-        <TextArea
-          label="Description"
-          name="description"
-          defaultValue={batch?.description ?? ""}
-          hint="Shown to applicants on the Apply for Books page."
+        <TextField
+          label="Target amount (₦)"
+          name="targetNaira"
+          type="number"
+          min={1}
+          step="any"
+          defaultValue={batch?.targetNaira}
+          hint="What this batch needs to raise. Applications can open once it is reached."
         />
 
         <TextField

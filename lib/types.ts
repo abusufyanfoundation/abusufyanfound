@@ -10,6 +10,8 @@ export type Campaign = {
 export type CampaignWithStats = Campaign & {
   raised_kobo: number;
   fully_raised: boolean;
+  collecting: boolean;
+  batch: { id: string; number: number; title: string } | null;
 };
 
 export type Book = {

@@ -16,10 +16,10 @@ export default async function ApplyConfirmationPage({
   const { reference } = await searchParams;
   const valid =
     reference &&
-    /^(ASAF-(b\d+|rq)-\d{3,}|(APP|REQ)-[A-Z0-9]{8})$/i.test(reference)
+    /^(ASAF-([a-z0-9]+-b\d+|rq)-\d{3,}|(APP|REQ)-[A-Z0-9]{8})$/i.test(reference)
       ? reference
       : null;
-  const isRequest = valid ? /^(REQ-|ASAF-rq-)/i.test(valid) : false;
+  const isRequest = valid ? /^(REQ-|ASAF-rq-\d)/i.test(valid) : false;
 
   return (
     <section className="py-16 md:py-28">

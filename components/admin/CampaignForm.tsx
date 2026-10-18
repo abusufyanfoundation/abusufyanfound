@@ -7,8 +7,13 @@ import { FormMessage } from "@/components/admin/auth/FormMessage";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { useActionForm } from "@/lib/forms/use-action-form";
 import { useEditMode } from "@/lib/forms/use-edit-mode";
-import { ToggleField, FileField, TextArea, TextField } from "./forms/fields";
-
+import {
+  SelectField,
+  ToggleField,
+  FileField,
+  TextArea,
+  TextField,
+} from "./forms/fields";
 export type CampaignFormValues = {
   id: string;
   title: string;
@@ -17,6 +22,7 @@ export type CampaignFormValues = {
   is_active: boolean;
   image_url: string | null;
   completed: boolean;
+  campaignType: string;
 };
 
 export function CampaignForm({ campaign }: { campaign?: CampaignFormValues }) {
@@ -46,6 +52,24 @@ export function CampaignForm({ campaign }: { campaign?: CampaignFormValues }) {
 
         <TextField label="Title" name="title" defaultValue={campaign?.title} />
 
+        {!campaign && (
+          <SelectField
+            label="Type"
+            name="campaignType"
+            defaultValue="normal"
+            options={[
+              {
+                value: "normal",
+                label: "General: a fund with no book batches",
+              },
+              {
+                value: "batch",
+                label: "Batch-based: its funds buy batches of books",
+              },
+            ]}
+            hint="This cannot be changed once the campaign has batches."
+          />
+        )}
         <TextArea
           label="Description"
           name="description"
@@ -53,14 +77,21 @@ export function CampaignForm({ campaign }: { campaign?: CampaignFormValues }) {
           hint="Shown on the website under the campaign title."
         />
 
-        <TextField
-          label="Target amount (₦)"
-          name="targetNaira"
-          type="number"
-          min={1}
-          step="any"
-          defaultValue={campaign ? campaign.target_kobo / 100 : undefined}
-        />
+        {campaign?.campaignType !== "batch" && (
+          <TextField
+            label="Target amount (₦)"
+            name="targetNaira"
+            type="number"
+            min={1}
+            step="any"
+            defaultValue={campaign ? campaign.target_kobo / 100 : undefined}
+            hint={
+              campaign
+                ? undefined
+                : "Ignored for a batch-based campaign: each batch has its own target."
+            }
+          />
+        )}
 
         <div className="flex flex-col gap-3">
           {campaign?.image_url && (

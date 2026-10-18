@@ -41,6 +41,11 @@ export async function CampaignCard({
       )}
 
       <div className="flex w-full flex-1 flex-col border border-rule bg-white p-6 md:p-10">
+        {campaign.batch && (
+          <p className="mb-3 text-sm font-medium uppercase tracking-wider text-gold-deep">
+            Batch {campaign.batch.number}: {campaign.batch.title}
+          </p>
+        )}
         <h3 className="font-display text-3xl text-navy md:text-4xl">
           {campaign.title}
         </h3>
@@ -51,33 +56,44 @@ export async function CampaignCard({
           </p>
         )}
 
-        <div className="mt-8">
-          <ProgressBar
-            raisedKobo={campaign.raised_kobo}
-            targetKobo={campaign.target_kobo}
-            animated
-          />
+        {campaign.collecting ? (
+          <div className="mt-8">
+            <ProgressBar
+              raisedKobo={campaign.raised_kobo}
+              targetKobo={campaign.target_kobo}
+              animated
+            />
 
-          <StatGrid className="mt-6">
-            <StatCard
-              size="md"
-              tone="paper"
-              className={second}
-              label="Raised"
-              value={formatNaira(campaign.raised_kobo)}
-            />
-            <StatCard
-              size="md"
-              tone="paper"
-              className={second}
-              label="Target"
-              value={formatNaira(campaign.target_kobo)}
-            />
-          </StatGrid>
-        </div>
+            <StatGrid className="mt-6">
+              <StatCard
+                size="md"
+                tone="paper"
+                className={second}
+                label="Raised"
+                value={formatNaira(campaign.raised_kobo)}
+              />
+              <StatCard
+                size="md"
+                tone="paper"
+                className={second}
+                label="Target"
+                value={formatNaira(campaign.target_kobo)}
+              />
+            </StatGrid>
+          </div>
+        ) : (
+          <p className="mt-8 border-l-2 border-gold pl-4 leading-relaxed text-ink">
+            The next batch opens soon. You can still give to the Foundation in
+            the meantime.
+          </p>
+        )}
 
         <div className="mt-10">
-          <ButtonLink href="/support">Donate to this campaign</ButtonLink>
+          <ButtonLink href="/support">
+            {campaign.collecting
+              ? "Donate to this campaign"
+              : "Support the Foundation"}
+          </ButtonLink>
         </div>
 
         <div className="mt-8 border-t border-rule pt-6">

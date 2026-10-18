@@ -56,9 +56,14 @@ export default async function AdminOverviewPage() {
     supabase.from("admin_overview").select("*").single<Overview>(),
     supabase
       .from("campaigns")
-      .select("id, title, target_kobo")
+      .select("id, title, target_kobo, campaign_type")
       .eq("is_active", true)
-      .maybeSingle<{ id: string; title: string; target_kobo: number }>(),
+      .maybeSingle<{
+        id: string;
+        title: string;
+        target_kobo: number;
+        campaign_type: string;
+      }>(),
     supabase
       .from("donations")
       .select("id, created_at, type, donor_name, amount_kobo, is_paid")
@@ -73,19 +78,76 @@ export default async function AdminOverviewPage() {
       .returns<Activity[]>(),
   ]);
 
-  const campaign = campaignRes.data;
-  const totals = campaign
-    ? (
-        await supabase
-          .from("admin_campaign_totals")
-          .select("raised_kobo")
-          .eq("campaign_id", campaign.id)
-          .maybeSingle<{ raised_kobo: number }>()
-      ).data
-    : null;
+   const campaign = campaignRes.data;
+   const isBatch = campaign?.campaign_type === "batch";
 
-  const o = overview.data;
-  const raised = totals?.raised_kobo ?? 0;
+   const totals =
+     campaign && !isBatch
+       ? (
+           await supabase
+             .from("admin_campaign_totals")
+             .select("raised_kobo")
+             .eq("campaign_id", campaign.id)
+             .maybeSingle<{ raised_kobo: number }>()
+         ).data
+       : null;
+
+   // A batch-based campaign shows the batch that is taking donations
+   let collecting: {
+     number: number;
+     title: string;
+     target: number;
+     raised: number;
+   } | null = null;
+
+   if (campaign && isBatch) {
+     const { data: drafts } = await supabase
+       .from("batches")
+       .select("id, batch_number, title, target_kobo")
+       .eq("campaign_id", campaign.id)
+       .eq("status", "draft")
+       .order("batch_number")
+       .returns<
+         {
+           id: string;
+           batch_number: number;
+           title: string;
+           target_kobo: number;
+         }[]
+       >();
+
+     const { data: rows } = await supabase
+       .from("admin_batch_totals")
+       .select("batch_id, raised_kobo")
+       .in(
+         "batch_id",
+         (drafts ?? []).map((b) => b.id),
+       )
+       .returns<{ batch_id: string; raised_kobo: number }[]>();
+
+     const raisedBy = new Map(
+       (rows ?? []).map((r) => [r.batch_id, r.raised_kobo]),
+     );
+     const next = (drafts ?? []).find(
+       (b) => (raisedBy.get(b.id) ?? 0) < b.target_kobo,
+     );
+     if (next) {
+       collecting = {
+         number: next.batch_number,
+         title: next.title,
+         target: next.target_kobo,
+         raised: raisedBy.get(next.id) ?? 0,
+       };
+     }
+   }
+
+   const o = overview.data;
+   const raised = isBatch
+     ? (collecting?.raised ?? 0)
+     : (totals?.raised_kobo ?? 0);
+   const target = isBatch
+     ? (collecting?.target ?? 0)
+     : (campaign?.target_kobo ?? 0);
 
   return (
     <div className="flex flex-col gap-10">
@@ -130,15 +192,31 @@ export default async function AdminOverviewPage() {
         {campaign ? (
           <>
             <p className="font-display text-2xl text-navy">{campaign.title}</p>
-            <div className="mt-4">
-              <ProgressBar
-                raisedKobo={raised}
-                targetKobo={campaign.target_kobo}
-              />
-            </div>
-            <p className="mt-1 text-sm text-muted">
-              {formatNaira(raised)} of {formatNaira(campaign.target_kobo)}
-            </p>
+            {isBatch && (
+              <p className="mt-1 text-sm text-muted">
+                {collecting
+                  ? `Batch ${collecting.number}: ${collecting.title}`
+                  : "No batch is taking donations right now."}
+              </p>
+            )}
+            {(!isBatch || collecting) && (
+              <>
+                <div className="mt-4">
+                  <ProgressBar raisedKobo={raised} targetKobo={target} />
+                </div>
+                <p className="mt-1 text-sm text-muted">
+                  {formatNaira(raised)} of {formatNaira(target)}
+                </p>
+              </>
+            )}
+            {isBatch && !collecting && (
+              <Link
+                href={`/admin/batches/new?campaign=${campaign.id}`}
+                className="mt-4 inline-block text-sm text-navy underline decoration-gold underline-offset-4"
+              >
+                Create the next batch
+              </Link>
+            )}
           </>
         ) : (
           <EmptyState

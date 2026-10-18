@@ -64,8 +64,11 @@ export async function startGeneralDonation(
     };
   }
 
-  // The campaign is always looked up on the server, never taken from the form
-  const campaign = await getCurrentCampaign();
+  // The campaign is always looked up on the server, never taken from the form.
+  // A donation goes to the batch taking donations, or to a general campaign;
+  // between batches it is a plain gift to the Foundation.
+  const current = await getCurrentCampaign();
+  const campaign = current?.collecting ? current : null;
 
   const reference = newReference();
   const amountKobo = toKobo(input.amountNaira);
@@ -74,6 +77,7 @@ export async function startGeneralDonation(
   const { error } = await admin.rpc("create_general_donation", {
     p_reference: reference,
     p_campaign_id: campaign?.id ?? null,
+    p_batch_id: campaign?.batch?.id ?? null,
     p_donor_name: input.donorName,
     p_donor_email: input.donorEmail,
     p_display_publicly: input.displayPublicly,
@@ -193,11 +197,13 @@ export async function startBookOrder(
   const row = (data as { order_id: string; total_kobo: number }[] | null)?.[0];
   if (!row) return { error: GENERIC };
 
-    // A transfer order is saved first. The donor then sees the bank details.
+  // A transfer order is saved first. The donor then sees the bank details.
   if (method === "transfer") {
-    redirect(`/support/confirmation?reference=${encodeURIComponent(reference)}`);
+    redirect(
+      `/support/confirmation?reference=${encodeURIComponent(reference)}`,
+    );
   }
-  
+
   let authorizationUrl: string;
   try {
     const tx = await initializeTransaction({

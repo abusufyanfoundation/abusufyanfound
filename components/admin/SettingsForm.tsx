@@ -42,11 +42,6 @@ export function SettingsForm({ settings: s }: { settings: SettingsRow }) {
       onSubmit={onSubmit}
       className="flex max-w-2xl flex-col gap-8"
     >
-      <FormMessage
-        error={locked ? undefined : state?.error}
-        message={locked ? state?.message : undefined}
-      />
-
       <fieldset
         disabled={locked}
         className="m-0 flex min-w-0 flex-col gap-8 border-0 p-0"
@@ -262,6 +257,11 @@ export function SettingsForm({ settings: s }: { settings: SettingsRow }) {
           />
         </Group>
       </fieldset>
+
+      <FormMessage
+        error={locked ? undefined : state?.error}
+        message={locked ? state?.message : undefined}
+      />
 
       <div className="flex flex-wrap items-center gap-4">
         {locked ? (

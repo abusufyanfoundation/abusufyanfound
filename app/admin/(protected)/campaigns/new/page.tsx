@@ -15,7 +15,7 @@ export default async function NewCampaignPage() {
       <PageHeader
         back={{ label: "Back to campaigns", href: "/admin/campaigns" }}
         title="New campaign"
-        intro="A campaign is a general fund with a target. Donors give any amount and do not choose books."
+        intro="A campaign is a fund with a target. Donors give any amount and do not choose books. Choose Batch-based if its money will buy batches of books for applicants."
       />
       <CampaignForm />
     </div>

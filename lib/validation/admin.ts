@@ -11,6 +11,7 @@ export const campaignSchema = z.object({
   description: z.string().trim().max(5000).optional(),
   targetNaira: money("a target amount"),
   isActive: z.boolean(),
+  campaignType: z.enum(["normal", "batch"]),
 });
 
 export const bookSchema = z.object({
@@ -25,6 +26,7 @@ export const batchSchema = z.object({
   title: z.string().trim().min(3, "Please enter a title").max(150),
   description: z.string().trim().max(3000).optional(),
   campaignId: z.uuid({ error: "Please choose a campaign" }).optional(),
+  targetNaira: money("a target amount"),
   maxCopies: z
     .number({ error: "Please enter the copies allowed per applicant" })
     .int("Please enter a whole number")
@@ -177,51 +179,51 @@ export const siteSettingsSchema = z
     booksTransferEnabled: z.boolean(),
   })
   .superRefine((v, ctx) => {
-        const bankComplete = (b?: string, n?: string, a?: string) =>
-          Boolean(b) && Boolean(n) && Boolean(a);
+    const bankComplete = (b?: string, n?: string, a?: string) =>
+      Boolean(b) && Boolean(n) && Boolean(a);
 
-        if (
-          v.campaignTransferEnabled &&
-          !bankComplete(v.bankName, v.bankAccountNumber, v.bankAccountName)
-        ) {
-          ctx.addIssue({
-            code: "custom",
-            path: ["bankAccountNumber"],
-            message:
-              "Fill in the Foundation bank name, account number and account name, or switch campaign transfers off.",
-          });
-        }
-        if (
-          v.booksTransferEnabled &&
-          !bankComplete(
-            v.bookBankName,
-            v.bookBankAccountNumber,
-            v.bookBankAccountName,
-          )
-        ) {
-          ctx.addIssue({
-            code: "custom",
-            path: ["bookBankAccountNumber"],
-            message:
-              "Fill in the book pre-fund bank name, account number and account name, or switch book transfers off.",
-          });
-        }
-        if (!v.campaignOnlineEnabled && !v.campaignTransferEnabled) {
-          ctx.addIssue({
-            code: "custom",
-            path: ["campaignOnlineEnabled"],
-            message:
-              "Keep at least one way to give to campaigns on. To stop giving, use Pause donations.",
-          });
-        }
-        if (!v.booksOnlineEnabled && !v.booksTransferEnabled) {
-          ctx.addIssue({
-            code: "custom",
-            path: ["booksOnlineEnabled"],
-            message:
-              "Keep at least one way to pay for books on. To stop giving, use Pause donations.",
-          });
-        }
+    if (
+      v.campaignTransferEnabled &&
+      !bankComplete(v.bankName, v.bankAccountNumber, v.bankAccountName)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["bankAccountNumber"],
+        message:
+          "Fill in the Foundation bank name, account number and account name, or switch campaign transfers off.",
+      });
+    }
+    if (
+      v.booksTransferEnabled &&
+      !bankComplete(
+        v.bookBankName,
+        v.bookBankAccountNumber,
+        v.bookBankAccountName,
+      )
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["bookBankAccountNumber"],
+        message:
+          "Fill in the book pre-fund bank name, account number and account name, or switch book transfers off.",
+      });
+    }
+    if (!v.campaignOnlineEnabled && !v.campaignTransferEnabled) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["campaignOnlineEnabled"],
+        message:
+          "Keep at least one way to give to campaigns on. To stop giving, use Pause donations.",
+      });
+    }
+    if (!v.booksOnlineEnabled && !v.booksTransferEnabled) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["booksOnlineEnabled"],
+        message:
+          "Keep at least one way to pay for books on. To stop giving, use Pause donations.",
+      });
+    }
     if (v.announcementEnabled && !v.announcementText) {
       ctx.addIssue({
         code: "custom",
@@ -239,7 +241,7 @@ export const siteSettingsSchema = z
     }
   });
 
-  export const campaignRaisedSchema = z.object({
+export const campaignRaisedSchema = z.object({
   raisedNaira: z
     .number({ error: "Please enter the amount raised" })
     .min(0, "The amount cannot be negative")

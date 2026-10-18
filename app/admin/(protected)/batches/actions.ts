@@ -6,11 +6,13 @@ import { logAudit } from "@/lib/admin/audit";
 import { diffFields } from "@/lib/admin/diff";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import type { FormState } from "@/lib/forms/types";
+import { formatNaira, toKobo } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
 import {
   batchBookSchema,
   batchLocationSchema,
   batchSchema,
+  campaignRaisedSchema,
 } from "@/lib/validation/admin";
 
 const GENERIC = "The batch could not be saved. Please try again.";
@@ -25,8 +27,12 @@ const text = (formData: FormData, key: string) =>
   String(formData.get(key) ?? "").trim() || undefined;
 
 function refresh(id?: string) {
+  revalidatePath("/");
+  revalidatePath("/support");
+  revalidatePath("/campaigns", "layout");
   revalidatePath("/admin");
   revalidatePath("/admin/batches");
+  revalidatePath("/admin/campaigns", "layout");
   revalidatePath("/admin/activity");
   revalidatePath("/apply", "layout");
   if (id) revalidatePath(`/admin/batches/${id}`);
@@ -42,6 +48,7 @@ export async function saveBatch(
     title: formData.get("title"),
     description: text(formData, "description"),
     campaignId: text(formData, "campaignId"),
+    targetNaira: Number(formData.get("targetNaira")),
     maxCopies: Number(formData.get("maxCopies")),
     opensOn: text(formData, "opensOn"),
     closesOn: text(formData, "closesOn"),
@@ -57,6 +64,7 @@ export async function saveBatch(
     title: input.title,
     description: input.description ?? null,
     max_copies_per_applicant: input.maxCopies,
+    target_kobo: toKobo(input.targetNaira),
     opens_at: input.opensOn ? `${input.opensOn}T00:00:00+01:00` : null,
     closes_at: input.closesOn ? `${input.closesOn}T23:59:59+01:00` : null,
   };
@@ -68,13 +76,14 @@ export async function saveBatch(
     const { data: before } = await supabase
       .from("batches")
       .select(
-        "title, description, max_copies_per_applicant, opens_at, closes_at",
+        "title, description, max_copies_per_applicant, target_kobo, opens_at, closes_at",
       )
       .eq("id", id)
       .maybeSingle<{
         title: string;
         description: string | null;
         max_copies_per_applicant: number;
+        target_kobo: number;
         opens_at: string | null;
         closes_at: string | null;
       }>();
@@ -88,6 +97,7 @@ export async function saveBatch(
           Title: before.title,
           Description: before.description ?? "",
           "Copies per applicant": String(before.max_copies_per_applicant),
+          Target: formatNaira(before.target_kobo),
           Opens: before.opens_at ?? "",
           Closes: before.closes_at ?? "",
         },
@@ -95,6 +105,7 @@ export async function saveBatch(
           Title: row.title,
           Description: row.description ?? "",
           "Copies per applicant": String(row.max_copies_per_applicant),
+          Target: formatNaira(row.target_kobo),
           Opens: row.opens_at ?? "",
           Closes: row.closes_at ?? "",
         },
@@ -443,4 +454,68 @@ export async function deleteBatchLocation(formData: FormData) {
 
   refresh(batchId);
   return back("notice", "Location removed.");
+}
+
+export async function saveBatchRaised(formData: FormData) {
+  const actor = await requireAdmin();
+
+  const id = String(formData.get("id") ?? "");
+  const parsed = campaignRaisedSchema.safeParse({
+    raisedNaira: Number(formData.get("raisedNaira")),
+  });
+
+  const back = (key: "error" | "notice", message: string): never =>
+    redirect(`/admin/batches/${id}?${key}=${encodeURIComponent(message)}`);
+
+  if (!/^[0-9a-f-]{36}$/i.test(id) || !parsed.success) {
+    return back(
+      "error",
+      parsed.success
+        ? "The batch could not be found."
+        : parsed.error.issues[0].message,
+    );
+  }
+
+  const supabase = await createClient();
+
+  const [{ data: batch }, { data: before }] = await Promise.all([
+    supabase
+      .from("batches")
+      .select("title")
+      .eq("id", id)
+      .maybeSingle<{ title: string }>(),
+    supabase
+      .from("batch_funds")
+      .select("raised_kobo")
+      .eq("batch_id", id)
+      .maybeSingle<{ raised_kobo: number }>(),
+  ]);
+
+  const raisedKobo = toKobo(parsed.data.raisedNaira);
+
+  const { error } = await supabase.from("batch_funds").upsert({
+    batch_id: id,
+    raised_kobo: raisedKobo,
+    updated_at: new Date().toISOString(),
+    updated_by: actor.user.id,
+  });
+
+  if (error) {
+    console.error("saveBatchRaised:", error.message);
+    return back("error", "The amount could not be saved.");
+  }
+
+  await logAudit(supabase, actor, {
+    action: "batch.raised_updated",
+    entity: "batch",
+    entityId: id,
+    summary: `Set amount raised on “${batch?.title ?? "Unknown"}” to ${formatNaira(raisedKobo)}`,
+    details: {
+      from: formatNaira(before?.raised_kobo ?? 0),
+      to: formatNaira(raisedKobo),
+    },
+  });
+
+  refresh(id);
+  return back("notice", "Amount raised saved.");
 }

@@ -3,7 +3,6 @@ import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 import { SelectionProvider } from "@/components/site/selection/SelectionProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { AnnouncementBar } from "@/components/site/AnnouncementBanner";
 
 export default function SiteLayout({
   children,
@@ -18,7 +17,6 @@ export default function SiteLayout({
       >
         Skip to content
       </a>
-      <AnnouncementBar />
       <Header />
       <main id="main">{children}</main>
       <Footer />
