@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 
-const SHOW_AFTER_MS = 150; // instant actions never flash the loader
+const SHOW_AFTER_MS = 0; // instant actions never flash the loader
 const LINGER_MS = 400; // covers the gap before a redirect (e.g. to Paystack)
 
 // Only requests to our own site, and only ones that mean "the user did something"
@@ -94,7 +94,7 @@ export function ActivityIndicator() {
       role="status"
       aria-live="polite"
       aria-hidden={!active}
-      className={`fixed inset-0 z-[100] flex items-center justify-center bg-white/45 backdrop-blur-md transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[100] flex items-center justify-center bg-white transition-opacity duration-300 ${
         active ? "opacity-100" : "pointer-events-none opacity-0"
       }`}
     >
