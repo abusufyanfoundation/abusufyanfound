@@ -21,6 +21,7 @@ import {
   saveCampaignRaised,
   setCampaignActive,
 } from "../actions";
+import { RaisedAmountForm } from "@/components/admin/RaisedAmount";
 
 export const metadata = {
   title: "Edit campaign",
@@ -123,6 +124,14 @@ export default async function EditCampaignPage({
 
   const raised = totals?.raised_kobo ?? 0;
 
+  const { data: funds } = await supabase
+    .from("campaign_funds")
+    .select("raised_kobo")
+    .eq("campaign_id", id)
+    .maybeSingle<{ raised_kobo: number }>();
+  const outside = funds?.raised_kobo ?? 0;
+  const onSite = Math.max(0, raised - outside);
+
   const completed = campaign.completed_at !== null;
 
   const isBatch = campaign.campaign_type === "batch";
@@ -152,32 +161,23 @@ export default async function EditCampaignPage({
           <p className="mt-1 text-sm text-muted">
             {formatNaira(raised)} of {formatNaira(campaign.target_kobo)}
           </p>
+          <p className="mt-1 text-xs text-muted">
+            {formatNaira(onSite)} given on the website + {formatNaira(outside)}{" "}
+            received outside the site
+          </p>
 
-          <form
+          <RaisedAmountForm
             action={saveCampaignRaised}
-            className="mt-5 flex flex-wrap items-end gap-3"
-          >
-            <input type="hidden" name="id" value={campaign.id} />
-            <label className="flex flex-col gap-2 text-sm font-medium text-ink">
-              Total raised so far (₦)
-              <input
-                name="raisedNaira"
-                type="number"
-                min={0}
-                step="any"
-                required
-                defaultValue={raised / 100}
-                className="border border-rule bg-white px-3.5 py-3 text-base text-ink focus:border-navy"
-              />
-            </label>
-            <button type="submit" className={`${outline} py-3.5`}>
-              Save amount
-            </button>
-          </form>
+            id={campaign.id}
+            defaultNaira={outside / 100}
+            label="Gifts received outside the site (₦)"
+          />
 
           <p className="mt-4 max-w-md text-xs leading-relaxed text-muted">
-            Type the total from the bank account (Paystack payouts included).
-            The website shows the raised figure only once it reaches the target.
+            Gifts paid on the website through Paystack are added automatically.
+            Type here only what was received another way, such as bank
+            transfers. The website shows the raised figure only once it reaches
+            the target.
           </p>
         </Panel>
       )}

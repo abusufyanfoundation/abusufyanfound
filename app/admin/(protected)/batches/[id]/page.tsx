@@ -25,6 +25,7 @@ import {
   setBatchStatus,
   updateBatchBook,
 } from "../actions";
+import { RaisedAmountForm } from "@/components/admin/RaisedAmount";
 
 export const metadata = {
   title: "Batch",
@@ -144,53 +145,50 @@ export default async function BatchPage({
   const books = booksRes.data ?? [];
   const locations = locationsRes.data ?? [];
 
-    const { data: givenRows } = await supabase
-      .from("distribution_items")
-      .select("batch_book_id, quantity")
-      .in(
-        "batch_book_id",
-        books.map((b) => b.id),
-      )
-      .returns<{ batch_book_id: string; quantity: number }[]>();
+  const { data: givenRows } = await supabase
+    .from("distribution_items")
+    .select("batch_book_id, quantity")
+    .in(
+      "batch_book_id",
+      books.map((b) => b.id),
+    )
+    .returns<{ batch_book_id: string; quantity: number }[]>();
 
-    const given = new Map<string, number>();
-    for (const g of givenRows ?? []) {
-      given.set(
-        g.batch_book_id,
-        (given.get(g.batch_book_id) ?? 0) + g.quantity,
-      );
-    }
+  const given = new Map<string, number>();
+  for (const g of givenRows ?? []) {
+    given.set(g.batch_book_id, (given.get(g.batch_book_id) ?? 0) + g.quantity);
+  }
 
-    const stats = new Map<
-      string,
-      { allocated: number; pending: number; fulfilled: number }
-    >();
-    for (const item of itemsRes.data ?? []) {
-      const s = stats.get(item.batch_book_id) ?? {
-        allocated: 0,
-        pending: 0,
-        fulfilled: 0,
-      };
-      const status = item.applications?.status;
-      if (status === "pending") s.pending += item.quantity_requested;
-      if (status === "approved" || status === "fulfilled") {
-        s.allocated += item.quantity_approved;
-      }
-      if (status === "fulfilled") s.fulfilled += item.quantity_approved;
-      stats.set(item.batch_book_id, s);
+  const stats = new Map<
+    string,
+    { allocated: number; pending: number; fulfilled: number }
+  >();
+  for (const item of itemsRes.data ?? []) {
+    const s = stats.get(item.batch_book_id) ?? {
+      allocated: 0,
+      pending: 0,
+      fulfilled: 0,
+    };
+    const status = item.applications?.status;
+    if (status === "pending") s.pending += item.quantity_requested;
+    if (status === "approved" || status === "fulfilled") {
+      s.allocated += item.quantity_approved;
     }
+    if (status === "fulfilled") s.fulfilled += item.quantity_approved;
+    stats.set(item.batch_book_id, s);
+  }
 
-    // Copies recorded as handed out on the distributions page also count as
-    // allocated, beyond what fulfilled applications already account for
-    for (const book of books) {
-      const s = stats.get(book.id) ?? {
-        allocated: 0,
-        pending: 0,
-        fulfilled: 0,
-      };
-      s.allocated += Math.max(0, (given.get(book.id) ?? 0) - s.fulfilled);
-      stats.set(book.id, s);
-    }
+  // Copies recorded as handed out on the distributions page also count as
+  // allocated, beyond what fulfilled applications already account for
+  for (const book of books) {
+    const s = stats.get(book.id) ?? {
+      allocated: 0,
+      pending: 0,
+      fulfilled: 0,
+    };
+    s.allocated += Math.max(0, (given.get(book.id) ?? 0) - s.fulfilled);
+    stats.set(book.id, s);
+  }
 
   const totalCopies = books.reduce((s, b) => s + b.quantity_available, 0);
   const totalAllocated = [...stats.values()].reduce(
@@ -204,6 +202,14 @@ export default async function BatchPage({
     .maybeSingle<{ raised_kobo: number }>();
   const raised = totals?.raised_kobo ?? 0;
   const funded = raised >= batch.target_kobo;
+
+  const { data: funds } = await supabase
+    .from("batch_funds")
+    .select("raised_kobo")
+    .eq("batch_id", id)
+    .maybeSingle<{ raised_kobo: number }>();
+  const outside = funds?.raised_kobo ?? 0;
+  const onSite = Math.max(0, raised - outside);
 
   return (
     <div className="flex flex-col gap-10">
@@ -222,34 +228,25 @@ export default async function BatchPage({
           {formatNaira(raised)} of {formatNaira(batch.target_kobo)}
         </p>
 
+        <p className="mt-1 text-xs text-muted">
+          {formatNaira(onSite)} given on the website + {formatNaira(outside)}{" "}
+          received outside the site
+        </p>
+
         {batch.status !== "fulfilled" && (
-          <form
+          <RaisedAmountForm
             action={saveBatchRaised}
-            className="mt-5 flex flex-wrap items-end gap-3"
-          >
-            <input type="hidden" name="id" value={batch.id} />
-            <label className="flex flex-col gap-2 text-sm font-medium text-ink">
-              Total raised so far (₦)
-              <input
-                name="raisedNaira"
-                type="number"
-                min={0}
-                step="any"
-                required
-                defaultValue={raised / 100}
-                className="border border-rule bg-white px-3.5 py-3 text-base text-ink focus:border-navy"
-              />
-            </label>
-            <button type="submit" className={`${outline} py-3.5`}>
-              Save amount
-            </button>
-          </form>
+            id={batch.id}
+            defaultNaira={outside / 100}
+            label="Gifts received outside the site (₦)"
+          />
         )}
 
         <p className="mt-4 max-w-md text-xs leading-relaxed text-muted">
-          Type this batch&apos;s total from the bank account (Paystack payouts
-          included). The website takes donations for the earliest draft batch
-          that has not reached its target.
+          Gifts paid on the website through Paystack are added automatically.
+          Type here only what was received another way, such as bank transfers.
+          The website takes donations for the earliest draft batch that has not
+          reached its target.
         </p>
       </Panel>
 

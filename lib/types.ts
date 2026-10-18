@@ -28,7 +28,7 @@ export type ImpactStats = {
   campaign_funds_kobo: number;
   prefund_funds_kobo: number;
   books_distributed: number;
-  students_supported: number;
+  schools_supported: number;
   mosques_supported: number;
   completed_batches: number;
   active_campaigns: number;

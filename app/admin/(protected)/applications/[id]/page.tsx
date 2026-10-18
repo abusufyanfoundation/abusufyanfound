@@ -153,7 +153,11 @@ export default async function ApplicationPage({
         </p>
         <div className="flex flex-col gap-2 mb-6 rounded border border-rule bg-paper p-4">
           <p className="font-medium text-gold-deep">Why they want the book</p>
-          <p className="text-ink">{app.reason}</p>
+          {app.reason ? (
+            <p className="text-ink text-sm">{app.reason}</p>
+          ) : (
+            <p className="text-ink text-sm">—</p>
+          )}
         </div>
 
         <form action={reviewApplication} className="flex flex-col gap-6">

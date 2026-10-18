@@ -509,7 +509,7 @@ export async function saveBatchRaised(formData: FormData) {
     action: "batch.raised_updated",
     entity: "batch",
     entityId: id,
-    summary: `Set amount raised on “${batch?.title ?? "Unknown"}” to ${formatNaira(raisedKobo)}`,
+    summary: `Set gifts received outside the site on “${batch?.title ?? "Unknown"}” to ${formatNaira(raisedKobo)}`,
     details: {
       from: formatNaira(before?.raised_kobo ?? 0),
       to: formatNaira(raisedKobo),

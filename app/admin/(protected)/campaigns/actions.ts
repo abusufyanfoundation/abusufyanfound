@@ -296,7 +296,7 @@ export async function saveCampaignRaised(formData: FormData) {
     action: "campaign.raised_updated",
     entity: "campaign",
     entityId: id,
-    summary: `Set amount raised on “${campaign?.title ?? "Unknown"}” to ${formatNaira(raisedKobo)}`,
+    summary: `Set gifts received outside the site on “${campaign?.title ?? "Unknown"}” to ${formatNaira(raisedKobo)}`,
     details: {
       from: formatNaira(before?.raised_kobo ?? 0),
       to: formatNaira(raisedKobo),
