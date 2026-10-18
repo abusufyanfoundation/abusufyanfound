@@ -79,11 +79,15 @@ export const applicationSchema = z
       .array(
         z.object({
           batchBookId: z.string().uuid(),
-          quantity: z.number().int().min(1).max(100),
+          quantity: z
+            .number({ error: "Please enter how many copies you need" })
+            .int("Please enter a whole number of copies")
+            .min(1, "Please enter at least one copy")
+            .max(100),
         }),
       )
       .min(1, "Please choose the book you are applying for")
-      .max(1, "You can apply for only one book in each batch"),
+      .max(2, "You can apply for at most two books in each batch"),
   })
   .superRefine(needsOrganisation)
   .superRefine((v, ctx) => {
@@ -99,6 +103,21 @@ export const applicationSchema = z
         code: "custom",
         path: ["locationId"],
         message: "Please choose where you will collect your books",
+      });
+    }
+
+    if (v.applicantType === "individual" && v.items.length > 1) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["items"],
+        message: "Individuals can apply for only one book in each batch",
+      });
+    }
+    if (new Set(v.items.map((i) => i.batchBookId)).size !== v.items.length) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["items"],
+        message: "Please choose two different books",
       });
     }
 
@@ -159,21 +178,4 @@ export const bookRequestSchema = z
         message: "Individuals and mosques can request 1 copy",
       });
     }
-
-        if (v.applicantType === "individual" && v.items.length > 1) {
-          ctx.addIssue({
-            code: "custom",
-            path: ["items"],
-            message: "Individuals can apply for only one book in each batch",
-          });
-        }
-        if (
-          new Set(v.items.map((i) => i.batchBookId)).size !== v.items.length
-        ) {
-          ctx.addIssue({
-            code: "custom",
-            path: ["items"],
-            message: "Please choose two different books",
-          });
-        }
   });
