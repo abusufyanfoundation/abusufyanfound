@@ -48,12 +48,16 @@ export async function submitApplication(
     return { error: applications.message || PAUSED.applications };
   }
 
-  // Each person picks one book. Only schools choose how many copies of it.
-  const bookId = text(formData, "bookId");
-  const quantity =
-    formData.get("applicantType") === "school"
-      ? Number(formData.get("quantity"))
-      : 1;
+  // Individuals choose one book, mosques and schools up to two. Individuals
+  // and mosques get one copy of each. Only schools choose how many copies.
+  const school = formData.get("applicantType") === "school";
+  const items = formData.getAll("bookId").map((value) => {
+    const batchBookId = String(value);
+    return {
+      batchBookId,
+      quantity: school ? Number(formData.get(`quantity-${batchBookId}`)) : 1,
+    };
+  });
 
   const parsed = applicationSchema.safeParse({
     batchId: formData.get("batchId"),
@@ -71,10 +75,7 @@ export async function submitApplication(
     fulfilmentMethod: formData.get("fulfilmentMethod"),
     reason: formData.get("reason"),
     locationId: text(formData, "locationId"),
-    items:
-      bookId && Number.isInteger(quantity) && quantity > 0
-        ? [{ batchBookId: bookId, quantity }]
-        : [],
+    items: items,
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const input = parsed.data;
@@ -184,15 +185,13 @@ export async function trackSubmission(
     .toUpperCase();
   const phone = normalisePhone(String(formData.get("phone") ?? ""));
 
-    if (
-      !/^(ASAF-([A-Z0-9]+-B\d+|RQ)-\d{3,}|(APP|REQ)-[A-Z0-9]{8})$/.test(
-        reference,
-      )
-    ) {
-      return {
-        error: "Please enter your reference, for example ASAF-CDQC-B3-001.",
-      };
-    }
+  if (
+    !/^(ASAF-([A-Z0-9]+-B\d+|RQ)-\d{3,}|(APP|REQ)-[A-Z0-9]{8})$/.test(reference)
+  ) {
+    return {
+      error: "Please enter your reference, for example ASAF-CDQC-B3-001.",
+    };
+  }
   if (!phone)
     return { error: "Please enter the phone number you applied with." };
 

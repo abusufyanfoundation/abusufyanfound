@@ -305,6 +305,7 @@ export default async function BatchPage({
                 <th className={th}>Book</th>
                 <th className={th}>In stock</th>
                 <th className={th}>Allocated</th>
+                <th className={th}>Left</th>
                 <th className={th}>Awaiting review</th>
                 <th className={th}>Action</th>
               </tr>
@@ -346,6 +347,9 @@ export default async function BatchPage({
                       {book.quantity_available}
                     </td>
                     <td className={td}>{s.allocated}</td>
+                    <td className={td}>
+                      {Math.max(0, book.quantity_available - s.allocated)}
+                    </td>
                     <td className={td}>{s.pending}</td>
                     <td className={td}>
                       <form action={deleteBatchBook}>

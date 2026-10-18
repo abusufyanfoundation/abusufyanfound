@@ -29,10 +29,21 @@ export function ApplyForm({ batchId, maxCopies, books, locations }: Props) {
   const { state, pending, onSubmit } = useActionForm(submitApplication);
   const [type, setType] = useState<ApplicantType>("individual");
   const [wantsDelivery, setWantsDelivery] = useState<boolean | null>(null);
+  const [picked, setPicked] = useState<string[]>([]);
 
   const student = type === "individual";
   const school = type === "school";
   const organisation = !student;
+
+  // Individuals pick one book. Mosques and schools can pick up to two.
+  const maxBooks = student ? 1 : 2;
+  const chosen = picked.slice(0, maxBooks);
+  const toggleBook = (id: string) =>
+    setPicked((current) => {
+      if (maxBooks === 1) return [id];
+      if (current.includes(id)) return current.filter((x) => x !== id);
+      return current.length >= maxBooks ? current : [...current, id];
+    });
 
   // Students always collect. Mosques and schools choose.
   const method: "pickup" | "delivery" | "" = student
@@ -53,7 +64,7 @@ export function ApplyForm({ batchId, maxCopies, books, locations }: Props) {
       <ApplicantTypeFieldset
         value={type}
         onChange={setType}
-        schoolLimit={`Schools can request up to ${maxCopies} copies of the book they choose, for example one for each student in a class.`}
+        schoolLimit={`Schools can request up to ${maxCopies} copies of each book they choose, from up to two different books. For example, one copy for each student in a class.`}
       />
 
       {organisation && (
@@ -108,58 +119,71 @@ export function ApplyForm({ batchId, maxCopies, books, locations }: Props) {
 
       <fieldset className="flex flex-col gap-3">
         <legend className="text-sm font-medium text-ink">
-          Choose one book
+          {student ? "Choose one book" : "Choose up to two books"}
         </legend>
         <p className="text-xs text-muted">
-          You can apply for only one book in each batch.
+          {student
+            ? "You can apply for only one book in each batch."
+            : "You can choose up to two different books in each batch."}
         </p>
 
         <ul className="flex flex-col gap-3">
-          {books.map((book) => (
-            <li key={book.id}>
-              <label className={choice}>
-                <input
-                  type="radio"
-                  name="bookId"
-                  value={book.id}
-                  required
-                  className="mt-1 h-4 w-4 accent-navy"
-                />
-                <span>
-                  <span className="block font-display text-lg text-navy">
-                    {book.title}
+          {books.map((book) => {
+            const checked = chosen.includes(book.id);
+            const full = !student && chosen.length >= maxBooks && !checked;
+            return (
+              <li key={book.id}>
+                <label className={`${choice} ${full ? "opacity-50" : ""}`}>
+                  <input
+                    type={student ? "radio" : "checkbox"}
+                    name="bookId"
+                    value={book.id}
+                    checked={checked}
+                    disabled={full}
+                    onChange={() => toggleBook(book.id)}
+                    required={student}
+                    className="mt-1 h-4 w-4 accent-navy"
+                  />
+                  <span>
+                    <span className="block font-display text-lg text-navy">
+                      {book.title}
+                    </span>
+                    {book.author && (
+                      <span className="block text-muted">{book.author}</span>
+                    )}
                   </span>
-                  {book.author && (
-                    <span className="block text-muted">{book.author}</span>
-                  )}
-                </span>
-              </label>
-            </li>
-          ))}
-        </ul>
+                </label>
 
-        {school && (
-          <div className="mt-2 flex flex-col gap-1.5">
-            <label htmlFor="quantity" className="text-sm font-medium text-ink">
-              How many copies of this book?
-            </label>
-            <input
-              id="quantity"
-              name="quantity"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={maxCopies}
-              step={1}
-              defaultValue={1}
-              required
-              className={`${control} w-32`}
-            />
-            <p className="text-xs text-muted">
-              Up to {maxCopies}. For example, one for each student in a class.
-            </p>
-          </div>
-        )}
+                {school && checked && (
+                  <div className="mt-2 flex flex-col gap-1.5 pl-7">
+                    <label
+                      htmlFor={`quantity-${book.id}`}
+                      className="text-sm font-medium text-ink"
+                    >
+                      How many copies of this book?
+                    </label>
+                    <input
+                      id={`quantity-${book.id}`}
+                      name={`quantity-${book.id}`}
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={maxCopies}
+                      step={1}
+                      defaultValue={1}
+                      required
+                      className={`${control} w-32`}
+                    />
+                    <p className="text-xs text-muted">
+                      Up to {maxCopies}. For example, one for each student in a
+                      class.
+                    </p>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       </fieldset>
 
       <div className="flex flex-col gap-6 border-t border-rule pt-6">
@@ -256,7 +280,7 @@ export function ApplyForm({ batchId, maxCopies, books, locations }: Props) {
       <div className="flex flex-col gap-1.5">
         <label htmlFor="reason" className="text-sm font-medium text-ink">
           {organisation
-            ? "Why does your mosque or school need this book?"
+            ? "Why does your mosque or school need these books?"
             : "Why do you need this book?"}
         </label>
         <textarea

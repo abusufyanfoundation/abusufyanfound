@@ -159,4 +159,21 @@ export const bookRequestSchema = z
         message: "Individuals and mosques can request 1 copy",
       });
     }
+
+        if (v.applicantType === "individual" && v.items.length > 1) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["items"],
+            message: "Individuals can apply for only one book in each batch",
+          });
+        }
+        if (
+          new Set(v.items.map((i) => i.batchBookId)).size !== v.items.length
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["items"],
+            message: "Please choose two different books",
+          });
+        }
   });

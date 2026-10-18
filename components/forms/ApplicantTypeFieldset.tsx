@@ -45,7 +45,9 @@ export function ApplicantTypeFieldset({
       <p className="text-xs text-muted">
         {value === "school"
           ? schoolLimit
-          : "Individuals and mosques can request 1 copy of one book."}
+          : value === "mosque"
+            ? "Mosques can request 1 copy each of up to two different books."
+            : "Individuals can request 1 copy of one book."}
       </p>
     </fieldset>
   );
