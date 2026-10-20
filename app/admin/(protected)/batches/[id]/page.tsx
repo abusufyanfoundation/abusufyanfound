@@ -203,13 +203,13 @@ export default async function BatchPage({
   const raised = totals?.raised_kobo ?? 0;
   const funded = raised >= batch.target_kobo;
 
-  const { data: funds } = await supabase
-    .from("batch_funds")
-    .select("raised_kobo")
-    .eq("batch_id", id)
-    .maybeSingle<{ raised_kobo: number }>();
-  const outside = funds?.raised_kobo ?? 0;
-  const onSite = Math.max(0, raised - outside);
+    const { data: paidRows } = await supabase
+      .from("donations")
+      .select("amount_kobo")
+      .eq("batch_id", id)
+      .eq("is_paid", true)
+      .returns<{ amount_kobo: number }[]>();
+    const paid = (paidRows ?? []).reduce((s, d) => s + d.amount_kobo, 0);
 
   return (
     <div className="flex flex-col gap-10">
@@ -229,24 +229,24 @@ export default async function BatchPage({
         </p>
 
         <p className="mt-1 text-xs text-muted">
-          {formatNaira(onSite)} given on the website + {formatNaira(outside)}{" "}
-          received outside the site
+          {formatNaira(paid)} of this was paid through the website.
         </p>
 
         {batch.status !== "fulfilled" && (
           <RaisedAmountForm
             action={saveBatchRaised}
             id={batch.id}
-            defaultNaira={outside / 100}
-            label="Gifts received outside the site (₦)"
+            currentKobo={raised}
+            paidKobo={paid}
+            label="Total raised so far (₦)"
           />
         )}
 
         <p className="mt-4 max-w-md text-xs leading-relaxed text-muted">
-          Gifts paid on the website through Paystack are added automatically.
-          Type here only what was received another way, such as bank transfers.
-          The website takes donations for the earliest draft batch that has not
-          reached its target.
+          Donations paid on the website through Paystack are added
+          automatically. Type here only what was received another way, such as
+          bank transfers. The website takes donations for the earliest draft
+          batch that has not reached its target.
         </p>
       </Panel>
 
@@ -257,10 +257,11 @@ export default async function BatchPage({
         <p className="mt-2 text-sm text-muted">{STATUS_NOTE[batch.status]}</p>
 
         {batch.status === "draft" && !funded && (
-          <p className="mt-2 text-sm text-muted">
-            This batch has raised {formatNaira(raised)} of{" "}
-            {formatNaira(batch.target_kobo)}. It can be opened once the target
-            is reached.
+          <p className="mt-4 max-w-md text-xs leading-relaxed text-muted">
+            Type this batch&apos;s total from the bank account, Paystack payouts
+            included. The website takes donations for the earliest draft batch
+            that has not reached its target, and the figure updates when you
+            save.
           </p>
         )}
 

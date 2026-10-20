@@ -493,6 +493,21 @@ export async function saveBatchRaised(formData: FormData) {
 
   const raisedKobo = toKobo(parsed.data.raisedNaira);
 
+  const { data: paidRows } = await supabase
+    .from("donations")
+    .select("amount_kobo")
+    .eq("batch_id", id)
+    .eq("is_paid", true)
+    .returns<{ amount_kobo: number }[]>();
+  const paidKobo = (paidRows ?? []).reduce((s, d) => s + d.amount_kobo, 0);
+
+  if (raisedKobo < paidKobo) {
+    return back(
+      "error",
+      `The total cannot be less than the ${formatNaira(paidKobo)} already paid through the website.`,
+    );
+  }
+
   const { error } = await supabase.from("batch_funds").upsert({
     batch_id: id,
     raised_kobo: raisedKobo,
@@ -509,7 +524,7 @@ export async function saveBatchRaised(formData: FormData) {
     action: "batch.raised_updated",
     entity: "batch",
     entityId: id,
-    summary: `Set gifts received outside the site on “${batch?.title ?? "Unknown"}” to ${formatNaira(raisedKobo)}`,
+    summary: `Set amount raised on “${batch?.title ?? "Unknown"}” to ${formatNaira(raisedKobo)}`,
     details: {
       from: formatNaira(before?.raised_kobo ?? 0),
       to: formatNaira(raisedKobo),

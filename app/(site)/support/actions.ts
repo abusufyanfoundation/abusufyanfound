@@ -64,9 +64,9 @@ export async function startGeneralDonation(
     };
   }
 
-  // The donor picks where the gift goes, but the server decides what that
+  // The donor picks where the donation goes, but the server decides what that
   // choice means: only a campaign that is active and taking donations counts,
-  // and anything else becomes a plain gift to the Foundation.
+  // and anything else becomes a plain donation to the Foundation.
   const target = String(formData.get("target") ?? "");
   const campaign =
     (await getActiveCampaigns()).find((c) => c.id === target && c.collecting) ??

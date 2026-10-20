@@ -278,6 +278,21 @@ export async function saveCampaignRaised(formData: FormData) {
 
   const raisedKobo = toKobo(parsed.data.raisedNaira);
 
+  const { data: paidRows } = await supabase
+    .from("donations")
+    .select("amount_kobo")
+    .eq("campaign_id", id)
+    .is("batch_id", null)
+    .eq("is_paid", true)
+    .returns<{ amount_kobo: number }[]>();
+  const paidKobo = (paidRows ?? []).reduce((s, d) => s + d.amount_kobo, 0);
+
+  if (raisedKobo < paidKobo) {
+    redirect(
+      `/admin/campaigns/${id}?error=${encodeURIComponent(`The total cannot be less than the ${formatNaira(paidKobo)} already paid through the website.`)}`,
+    );
+  }
+
   const { error } = await supabase.from("campaign_funds").upsert({
     campaign_id: id,
     raised_kobo: raisedKobo,
@@ -296,7 +311,7 @@ export async function saveCampaignRaised(formData: FormData) {
     action: "campaign.raised_updated",
     entity: "campaign",
     entityId: id,
-    summary: `Set gifts received outside the site on “${campaign?.title ?? "Unknown"}” to ${formatNaira(raisedKobo)}`,
+    summary: `Set amount raised on “${campaign?.title ?? "Unknown"}” to ${formatNaira(raisedKobo)}`,
     details: {
       from: formatNaira(before?.raised_kobo ?? 0),
       to: formatNaira(raisedKobo),
@@ -304,6 +319,9 @@ export async function saveCampaignRaised(formData: FormData) {
   });
 
   refresh();
+  revalidatePath("/");
+  revalidatePath("/support");
+  revalidatePath("/campaigns", "layout");
   revalidatePath(`/admin/campaigns/${id}`);
   redirect(
     `/admin/campaigns/${id}?notice=${encodeURIComponent("Amount raised saved.")}`,

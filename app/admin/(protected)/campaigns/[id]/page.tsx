@@ -124,13 +124,14 @@ export default async function EditCampaignPage({
 
   const raised = totals?.raised_kobo ?? 0;
 
-  const { data: funds } = await supabase
-    .from("campaign_funds")
-    .select("raised_kobo")
-    .eq("campaign_id", id)
-    .maybeSingle<{ raised_kobo: number }>();
-  const outside = funds?.raised_kobo ?? 0;
-  const onSite = Math.max(0, raised - outside);
+    const { data: paidRows } = await supabase
+      .from("donations")
+      .select("amount_kobo")
+      .eq("campaign_id", id)
+      .is("batch_id", null)
+      .eq("is_paid", true)
+      .returns<{ amount_kobo: number }[]>();
+    const paid = (paidRows ?? []).reduce((s, d) => s + d.amount_kobo, 0);
 
   const completed = campaign.completed_at !== null;
 
@@ -162,22 +163,21 @@ export default async function EditCampaignPage({
             {formatNaira(raised)} of {formatNaira(campaign.target_kobo)}
           </p>
           <p className="mt-1 text-xs text-muted">
-            {formatNaira(onSite)} given on the website + {formatNaira(outside)}{" "}
-            received outside the site
+            {formatNaira(paid)} of this was paid through the website.
           </p>
 
           <RaisedAmountForm
             action={saveCampaignRaised}
             id={campaign.id}
-            defaultNaira={outside / 100}
-            label="Gifts received outside the site (₦)"
+            currentKobo={raised}
+            paidKobo={paid}
+            label="Total raised so far (₦)"
           />
 
           <p className="mt-4 max-w-md text-xs leading-relaxed text-muted">
-            Gifts paid on the website through Paystack are added automatically.
-            Type here only what was received another way, such as bank
-            transfers. The website shows the raised figure only once it reaches
-            the target.
+            Type the total from the bank account, Paystack payouts included.
+            This is the figure the website shows, and it updates when you save.
+            The website shows the raised figure only once it reaches the target.
           </p>
         </Panel>
       )}
