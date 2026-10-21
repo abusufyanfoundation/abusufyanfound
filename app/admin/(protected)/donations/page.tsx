@@ -25,6 +25,8 @@ type Donation = {
   type: "general" | "book";
   amount_kobo: number;
   is_paid: boolean;
+  campaign_id: string | null;
+  batch_id: string | null;
 };
 
 export default async function DonationsPage({
@@ -51,7 +53,7 @@ export default async function DonationsPage({
   let query = supabase
     .from("donations")
     .select(
-      "id, created_at, donor_name, donor_email, type, amount_kobo, is_paid",
+      "id, created_at, donor_name, donor_email, type, amount_kobo, is_paid, campaign_id, batch_id",
       { count: "exact" },
     );
 
@@ -79,6 +81,36 @@ export default async function DonationsPage({
     .returns<Donation[]>();
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
+
+  const campaignIds = [
+    ...new Set(
+      (data ?? []).flatMap((d) => (d.campaign_id ? [d.campaign_id] : [])),
+    ),
+  ];
+  const batchIds = [
+    ...new Set((data ?? []).flatMap((d) => (d.batch_id ? [d.batch_id] : []))),
+  ];
+
+  const campaignTitles = new Map<string, string>();
+  const batchNumbers = new Map<string, number>();
+
+  if (campaignIds.length) {
+    const { data: rows } = await supabase
+      .from("campaigns")
+      .select("id, title")
+      .in("id", campaignIds)
+      .returns<{ id: string; title: string }[]>();
+    for (const r of rows ?? []) campaignTitles.set(r.id, r.title);
+  }
+
+  if (batchIds.length) {
+    const { data: rows } = await supabase
+      .from("batches")
+      .select("id, batch_number")
+      .in("id", batchIds)
+      .returns<{ id: string; batch_number: number }[]>();
+    for (const r of rows ?? []) batchNumbers.set(r.id, r.batch_number);
+  }
 
   const exportParams = new URLSearchParams();
 
@@ -174,6 +206,7 @@ export default async function DonationsPage({
                 <th className={th}>Date</th>
                 <th className={th}>Donor</th>
                 <th className={th}>Type</th>
+                <th className={th}>Given to</th>
                 <th className={th}>Amount</th>
                 <th className={th}>Status</th>
               </tr>
@@ -198,6 +231,27 @@ export default async function DonationsPage({
                     {donation.type === "book" ? "Book pre-fund" : "Campaign"}
                   </td>
 
+                  <td className={td}>
+                    {donation.type === "book" ? (
+                      <span className="text-muted">Chosen books</span>
+                    ) : donation.campaign_id ? (
+                      <>
+                        <p>
+                          {campaignTitles.get(donation.campaign_id) ??
+                            "Campaign"}
+                        </p>
+                        {donation.batch_id && (
+                          <p className="mt-1 text-xs text-muted">
+                            Batch {batchNumbers.get(donation.batch_id) ?? ""}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-muted">
+                        The Foundation in general
+                      </span>
+                    )}
+                  </td>
                   <td className={td}>{formatNaira(donation.amount_kobo)}</td>
 
                   <td className={td}>

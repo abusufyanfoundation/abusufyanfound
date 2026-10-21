@@ -29,6 +29,9 @@ type Overview = {
   to_fulfil: number;
   completed_batches: number;
   active_campaigns: number;
+  pending_applications: number;
+  approved_applications: number;
+  pending_requests: number;
 };
 
 type RecentDonation = {
@@ -154,7 +157,7 @@ export default async function AdminOverviewPage() {
     <div className="flex flex-col gap-10">
       <PageHeader
         title="Overview"
-        intro="A quick look at donations, campaigns and books."
+        intro="What needs your attention, how the campaigns are doing, and the totals so far."
       />
 
       {overview.error && (
@@ -167,27 +170,44 @@ export default async function AdminOverviewPage() {
         </p>
       )}
 
-      <StatGrid>
-        <Stat
-          label="Total raised"
-          value={formatNaira(o?.total_raised_kobo ?? 0)}
-        />
-        <Stat label="Paid donations" value={String(o?.paid_donations ?? 0)} />
-        <Stat label="Books listed" value={String(o?.books_listed ?? 0)} />
-        <Stat
-          label="Books distributed"
-          value={String(o?.books_distributed ?? 0)}
-        />
-        <Stat label="Orders to fulfil" value={String(o?.to_fulfil ?? 0)} />
-        <Stat
-          label="Completed batches"
-          value={String(o?.completed_batches ?? 0)}
-        />
-        <Stat
-          label="Active campaigns"
-          value={String(o?.active_campaigns ?? 0)}
-        />
-      </StatGrid>
+      <section>
+        <h2 className="mb-4 font-display text-xl text-navy">
+          Needs your attention
+        </h2>
+        <StatGrid>
+          <Stat
+            label="Applications to review"
+            value={String(o?.pending_applications ?? 0)}
+          />
+          <Stat
+            label="Approved, not yet given out"
+            value={String(o?.approved_applications ?? 0)}
+          />
+          <Stat
+            label="Book requests to review"
+            value={String(o?.pending_requests ?? 0)}
+          />
+          <Stat label="Orders to fulfil" value={String(o?.to_fulfil ?? 0)} />
+        </StatGrid>
+      </section>
+
+      <section>
+        <h2 className="mb-4 font-display text-xl text-navy">Overall</h2>
+        <StatGrid>
+          <Stat
+            label="Total raised"
+            value={formatNaira(o?.total_raised_kobo ?? 0)}
+          />
+          <Stat
+            label="Books distributed"
+            value={String(o?.books_distributed ?? 0)}
+          />
+          <Stat
+            label="Completed batches"
+            value={String(o?.completed_batches ?? 0)}
+          />
+        </StatGrid>
+      </section>
 
       <Panel
         title={campaigns.length > 1 ? "Current campaigns" : "Current campaign"}

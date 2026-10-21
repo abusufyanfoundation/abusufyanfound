@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { BookCheckoutForm } from "@/components/forms/BookCheckoutForm";
 import { GeneralDonationForm } from "@/components/forms/GeneralDonationForm";
 import { Container } from "@/components/site/Container";
@@ -7,8 +8,10 @@ import { SectionHeading } from "@/components/site/SectionHeading";
 import { BankDetailsCard } from "@/components/site/support/BankDetails";
 import { getActiveCampaigns } from "@/lib/data/public";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { getSiteSettings, PAUSED } from "@/lib/data/settings";
 import { BackLink } from "@/components/ui/BackLink";
+import { formatNaira } from "@/lib/money";
 
 export const metadata: Metadata = {
   title: "Support the Foundation",
@@ -24,12 +27,44 @@ const tab = (active: boolean) =>
       : "border-transparent text-muted hover:text-navy"
   }`;
 
-const pill = (active: boolean) =>
-  `border px-4 py-2 text-sm transition-colors ${
-    active
-      ? "border-navy bg-navy text-white"
-      : "border-rule bg-white text-navy hover:border-navy"
-  }`;
+function Radio({ selected }: { selected: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+        selected ? "border-navy bg-navy" : "border-rule bg-white"
+      }`}
+    >
+      {selected && <span className="h-2 w-2 rounded-full bg-white" />}
+    </span>
+  );
+}
+
+function ChoiceCard({
+  href,
+  selected,
+  children,
+}: {
+  href: string;
+  selected: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      aria-current={selected ? "true" : undefined}
+      className={`flex gap-4 border p-5 transition-colors ${
+        selected
+          ? "border-navy bg-paper"
+          : "border-rule bg-white hover:border-navy"
+      }`}
+    >
+      <Radio selected={selected} />
+      <div className="flex min-w-0 flex-1 flex-col gap-2">{children}</div>
+    </Link>
+  );
+}
 
 export default async function SupportPage({
   searchParams,
@@ -76,6 +111,7 @@ export default async function SupportPage({
         open[0] ??
         null);
   const campaignOpen = campaign !== null;
+  const showWhere = !books && open.length > 0;
   const waiting =
     active.find((c) => c.kind === "batch" && !c.collecting) ?? null;
   const chosen = campaign?.slug ?? "foundation";
@@ -94,6 +130,7 @@ export default async function SupportPage({
       : `/support?to=${chosen}&method=${m}`;
   const giveHref = (slug: string) =>
     `/support?to=${slug}${method === "transfer" ? "&method=transfer" : ""}`;
+
   return (
     <section className="py-16 md:py-24">
       <Container>
@@ -113,9 +150,7 @@ export default async function SupportPage({
             className={tab(!books)}
             aria-current={!books ? "page" : undefined}
           >
-            {open.length > 0
-              ? "Give to a campaign"
-              : "Give to the Foundation"}{" "}
+            {open.length > 0 ? "Give to a campaign" : "Give to the Foundation"}
           </Link>
           <Link
             href="/support?type=books"
@@ -142,18 +177,24 @@ export default async function SupportPage({
             ) : campaignOpen ? (
               <>
                 <h2 className="font-display text-3xl text-navy">
-                  {campaign.title}
+                  Give to a campaign
                 </h2>
-                {campaign.batch && (
-                  <p className="mt-3 text-sm font-medium uppercase tracking-wider text-gold-deep">
-                    Giving towards Batch {campaign.batch.number}
-                  </p>
-                )}
                 <p className="mt-4 max-w-md leading-relaxed text-ink">
                   You are giving to a campaign fund. You do not choose the
                   books: once the target is reached, the Foundation chooses and
                   buys them, and gives them to students of knowledge and
                   mosques.
+                </p>
+              </>
+            ) : open.length > 0 ? (
+              <>
+                <h2 className="font-display text-3xl text-navy">
+                  Give to the Foundation
+                </h2>
+                <p className="mt-4 max-w-md leading-relaxed text-ink">
+                  Your gift goes to the Foundation&apos;s general work of
+                  providing books to students of knowledge and mosques. It is
+                  not tied to a campaign.
                 </p>
               </>
             ) : (
@@ -182,54 +223,113 @@ export default async function SupportPage({
           </div>
 
           <div className="max-w-xl lg:basis-7/12">
-            {!books && method === "paystack" && open.length > 0 && (
-              <div className="mb-8 flex flex-col gap-3">
-                <p className="text-sm font-medium text-ink">
+            {showWhere && (
+              <section
+                aria-labelledby="where-heading"
+                className="mb-10 flex flex-col gap-3"
+              >
+                <h2 id="where-heading" className="text-sm font-medium text-ink">
+                  <span className="text-muted">Step 1. </span>
                   Where should your gift go?
-                </p>
-                <div
-                  className="flex flex-wrap gap-2"
-                  aria-label="Where to give"
-                >
+                </h2>
+                <ul className="flex flex-col gap-3">
                   {open.map((c) => (
-                    <Link
-                      key={c.id}
-                      href={giveHref(c.slug)}
-                      className={pill(campaign?.id === c.id)}
-                    >
-                      {c.batch
-                        ? `Batch ${c.batch.number}: ${c.batch.title}`
-                        : c.title}
-                    </Link>
+                    <li key={c.id}>
+                      <ChoiceCard
+                        href={giveHref(c.slug)}
+                        selected={campaign?.id === c.id}
+                      >
+                        <p className="text-xs font-medium uppercase tracking-wider text-gold-deep">
+                          {c.batch
+                            ? `Batch ${c.batch.number}: ${c.batch.title}`
+                            : "General campaign"}
+                        </p>
+                        <p className="font-display text-xl text-navy">
+                          {c.title}
+                        </p>
+                        {c.description && (
+                          <p className="line-clamp-3 text-sm leading-relaxed text-muted">
+                            {c.description}
+                          </p>
+                        )}
+                        <div className="mt-1">
+                          <ProgressBar
+                            raisedKobo={c.raised_kobo}
+                            targetKobo={c.target_kobo}
+                          />
+                        </div>
+                        <p className="text-xs text-muted">
+                          {formatNaira(c.raised_kobo)} raised of{" "}
+                          {formatNaira(c.target_kobo)}
+                        </p>
+                      </ChoiceCard>
+                    </li>
                   ))}
-                  <Link
-                    href={giveHref("foundation")}
-                    className={pill(campaign === null)}
-                  >
-                    The Foundation in general
-                  </Link>
-                </div>
-              </div>
+                  <li>
+                    <ChoiceCard
+                      href={giveHref("foundation")}
+                      selected={campaign === null}
+                    >
+                      <p className="text-xs font-medium uppercase tracking-wider text-gold-deep">
+                        The Foundation
+                      </p>
+                      <p className="font-display text-xl text-navy">
+                        The Foundation in general
+                      </p>
+                      <p className="text-sm leading-relaxed text-muted">
+                        Supports the Foundation&apos;s day-to-day work of
+                        providing books to students of knowledge and mosques.
+                        Not tied to a campaign or a target.
+                      </p>
+                    </ChoiceCard>
+                  </li>
+                </ul>
+              </section>
             )}
 
             {both && (
-              <div
-                className="mb-8 flex flex-wrap gap-2"
-                aria-label="Payment method"
+              <section
+                aria-labelledby="how-heading"
+                className="mb-10 flex flex-col gap-3"
               >
-                <Link
-                  href={methodHref("paystack")}
-                  className={pill(method === "paystack")}
-                >
-                  Pay online (Paystack)
-                </Link>
-                <Link
-                  href={methodHref("transfer")}
-                  className={pill(method === "transfer")}
-                >
-                  Bank transfer
-                </Link>
-              </div>
+                <h2 id="how-heading" className="text-sm font-medium text-ink">
+                  {showWhere && <span className="text-muted">Step 2. </span>}
+                  {books
+                    ? "How would you like to pay?"
+                    : "How would you like to give?"}
+                </h2>
+                <ul className="grid gap-3 sm:grid-cols-2">
+                  <li>
+                    <ChoiceCard
+                      href={methodHref("paystack")}
+                      selected={method === "paystack"}
+                    >
+                      <p className="font-display text-xl text-navy">
+                        Pay online
+                      </p>
+                      <p className="text-sm leading-relaxed text-muted">
+                        Pay with your card or bank account through Paystack.
+                        Your payment is confirmed straight away.
+                      </p>
+                    </ChoiceCard>
+                  </li>
+                  <li>
+                    <ChoiceCard
+                      href={methodHref("transfer")}
+                      selected={method === "transfer"}
+                    >
+                      <p className="font-display text-xl text-navy">
+                        Bank transfer
+                      </p>
+                      <p className="text-sm leading-relaxed text-muted">
+                        Send the money from your bank app to the
+                        Foundation&apos;s account. We confirm it when the money
+                        arrives.
+                      </p>
+                    </ChoiceCard>
+                  </li>
+                </ul>
+              </section>
             )}
 
             {books ? (
@@ -246,8 +346,11 @@ export default async function SupportPage({
                 </h3>
                 <BankDetailsCard bank={payments.campaign.bank} />
                 <p className="text-xs leading-relaxed text-muted">
-                  Please put your name in the transfer narration. Donations made
-                  by transfer are added to the campaign total by the Foundation.
+                  {`Please put your name${
+                    campaign
+                      ? ` and “${campaign.batch ? `Batch ${campaign.batch.number}` : campaign.title}”`
+                      : ""
+                  } in the transfer narration. Gifts made by transfer are added to the total by the Foundation.`}
                 </p>
               </div>
             )}
