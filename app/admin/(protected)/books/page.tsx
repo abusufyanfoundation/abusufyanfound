@@ -13,6 +13,7 @@ import { BOOK_STATUSES, bookStatusLabel } from "@/lib/admin/labels";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatNaira } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
+import { FilterForm } from "@/components/admin/FilterForm";
 
 export const metadata = {
   title: "Books",
@@ -82,7 +83,7 @@ export default async function AdminBooksPage({
         action={{ label: "Add a book", href: "/admin/books/new" }}
       />
 
-      <form
+      <FilterForm
         action="/admin/books"
         role="search"
         className="flex flex-col gap-3 sm:flex-row"
@@ -120,7 +121,7 @@ export default async function AdminBooksPage({
         >
           Filter
         </button>
-      </form>
+      </FilterForm>
 
       {rows.length === 0 ? (
         <EmptyState

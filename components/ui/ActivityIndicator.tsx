@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 const SHOW_AFTER_MS = 0;
 const LINGER_MS = 800; // covers the gap before a redirect (e.g. to Paystack)
@@ -45,7 +45,9 @@ function subscribeReduced(onChange: () => void) {
 
 export function ActivityIndicator() {
   const [active, setActive] = useState(false);
-  const pathname = usePathname();
+   const pathname = usePathname();
+   const search = useSearchParams().toString();
+   const location = `${pathname}?${search}`;
   const count = useRef(0);
   const navigating = useRef(false);
   const showTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
@@ -129,7 +131,7 @@ export function ActivityIndicator() {
         setActive(false);
       }, PAINT_MS);
     }
-  }, [pathname]);
+  }, [location]);
 
   const outer = reduced ? "1.5s" : "1.1s";
   const inner = reduced ? "2.5s" : "1.6s";

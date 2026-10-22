@@ -14,6 +14,8 @@ import { cleanSearch, parsePage } from "@/lib/admin/filters";
 import { formatDateTime } from "@/lib/format";
 import { formatNaira } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
+import { FilterForm } from "@/components/admin/FilterForm";
+import { loadGivenTo } from "@/lib/admin/donation-targets";
 
 const PAGE_SIZE = 25;
 
@@ -82,6 +84,8 @@ export default async function DonationsPage({
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
+  const givenTo = await loadGivenTo(supabase, data ?? []);
+  
   const campaignIds = [
     ...new Set(
       (data ?? []).flatMap((d) => (d.campaign_id ? [d.campaign_id] : [])),
@@ -142,7 +146,7 @@ export default async function DonationsPage({
       />
 
       <Panel>
-        <form
+        <FilterForm
           method="GET"
           className="flex flex-col gap-3 md:flex-row md:items-end"
         >
@@ -188,7 +192,7 @@ export default async function DonationsPage({
           >
             Filter
           </button>
-        </form>
+        </FilterForm>
       </Panel>
 
       {error ? (
@@ -232,24 +236,14 @@ export default async function DonationsPage({
                   </td>
 
                   <td className={td}>
-                    {donation.type === "book" ? (
-                      <span className="text-muted">Chosen books</span>
-                    ) : donation.campaign_id ? (
-                      <>
-                        <p>
-                          {campaignTitles.get(donation.campaign_id) ??
-                            "Campaign"}
-                        </p>
-                        {donation.batch_id && (
-                          <p className="mt-1 text-xs text-muted">
-                            Batch {batchNumbers.get(donation.batch_id) ?? ""}
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <span className="text-muted">
-                        The Foundation in general
-                      </span>
+                    {donation.type === "book" ? "Book pre-fund" : "Campaign"}
+                  </td>
+                  <td className={td}>
+                    <p>{givenTo.get(donation.id)?.name}</p>
+                    {givenTo.get(donation.id)?.batch != null && (
+                      <p className="mt-1 text-xs text-muted">
+                        Batch {givenTo.get(donation.id)?.batch}
+                      </p>
                     )}
                   </td>
                   <td className={td}>{formatNaira(donation.amount_kobo)}</td>

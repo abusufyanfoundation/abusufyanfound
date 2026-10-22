@@ -12,6 +12,7 @@ import { titleCase } from "@/lib/admin/labels";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { FilterForm } from "@/components/admin/FilterForm";
 
 export const metadata = {
   title: "Book requests",
@@ -152,7 +153,7 @@ export default async function BookRequestsPage({
         intro="Requests for books that are not in any batch. Approve the ones you can supply, and mark them fulfilled once the books have been handed over."
       />
 
-      <form className="flex flex-wrap items-end gap-3">
+      <FilterForm className="flex flex-wrap items-end gap-3">
         <label className="text-sm text-muted">
           Status
           <select
@@ -175,7 +176,7 @@ export default async function BookRequestsPage({
         >
           Filter
         </button>
-      </form>
+      </FilterForm>
 
       {error ? (
         <p

@@ -1,3 +1,4 @@
+import { FilterForm } from "@/components/admin/FilterForm";
 import {
   AdminPagination,
   EmptyState,
@@ -109,7 +110,7 @@ export default async function ActivityPage({
         intro="A record of what administrators do on the site. Entries cannot be edited or deleted."
       />
 
-      <form
+      <FilterForm
         action="/admin/activity"
         className="flex flex-col gap-3 lg:flex-row lg:items-end"
       >
@@ -183,7 +184,7 @@ export default async function ActivityPage({
         >
           Filter
         </button>
-      </form>
+      </FilterForm>
 
       {rows.length === 0 ? (
         <EmptyState

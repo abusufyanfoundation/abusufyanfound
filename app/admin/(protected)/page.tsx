@@ -15,6 +15,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatDateTime } from "@/lib/format";
 import { formatNaira } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
+import { loadGivenTo } from "@/lib/admin/donation-targets";
 
 export const metadata = {
   title: "Overview",
@@ -41,6 +42,8 @@ type RecentDonation = {
   donor_name: string;
   amount_kobo: number;
   is_paid: boolean;
+  campaign_id: string | null;
+  batch_id: string | null;
 };
 
 type Activity = {
@@ -72,7 +75,9 @@ export default async function AdminOverviewPage() {
       >(),
     supabase
       .from("donations")
-      .select("id, created_at, type, donor_name, amount_kobo, is_paid")
+      .select(
+        "id, created_at, type, donor_name, amount_kobo, is_paid, campaign_id, batch_id",
+      )
       .order("created_at", { ascending: false })
       .limit(8)
       .returns<RecentDonation[]>(),
@@ -84,6 +89,8 @@ export default async function AdminOverviewPage() {
       .returns<Activity[]>(),
   ]);
 
+  const givenTo = await loadGivenTo(supabase, donations.data ?? []);
+  
   const campaigns = campaignRes.data ?? [];
 
   const generalIds = campaigns
@@ -275,6 +282,7 @@ export default async function AdminOverviewPage() {
                 <th className={th}>Date</th>
                 <th className={th}>Donor</th>
                 <th className={th}>Type</th>
+                <th className={th}>Given to</th>
                 <th className={th}>Amount</th>
                 <th className={th}>Status</th>
               </tr>
@@ -286,6 +294,14 @@ export default async function AdminOverviewPage() {
                   <td className={td}>{d.donor_name}</td>
                   <td className={td}>
                     {d.type === "book" ? "Book pre-fund" : "Campaign"}
+                  </td>
+                  <td className={td}>
+                    <p>{givenTo.get(d.id)?.name}</p>
+                    {givenTo.get(d.id)?.batch != null && (
+                      <p className="mt-1 text-xs text-muted">
+                        Batch {givenTo.get(d.id)?.batch}
+                      </p>
+                    )}
                   </td>
                   <td className={td}>{formatNaira(d.amount_kobo)}</td>
                   <td className={td}>

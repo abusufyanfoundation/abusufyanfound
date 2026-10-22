@@ -12,6 +12,7 @@ import { titleCase } from "@/lib/admin/labels";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { FilterForm } from "@/components/admin/FilterForm";
 
 export const metadata = {
   title: "Applications",
@@ -86,7 +87,7 @@ export default async function ApplicationsPage({
         intro="Review what students, mosques and schools have applied for, approve the copies they receive, and mark them fulfilled once handed over."
       />
 
-      <form className="flex flex-wrap items-end gap-3">
+      <FilterForm className="flex flex-wrap items-end gap-3">
         <label className="text-sm text-muted">
           Status
           <select
@@ -125,7 +126,7 @@ export default async function ApplicationsPage({
         >
           Filter
         </button>
-      </form>
+      </FilterForm>
 
       {list.error ? (
         <p

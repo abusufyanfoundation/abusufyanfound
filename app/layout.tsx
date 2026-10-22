@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { siteConfig, siteUrl } from "@/lib/site";
 import { ActivityIndicator } from "@/components/ui/ActivityIndicator";
 import "./globals.css";
+import { Suspense } from "react";
 
 const clashDisplay = localFont({
   src: "./fonts/ClashDisplay-Variable.woff2",
@@ -46,7 +47,9 @@ export default function RootLayout({
       className={`${clashDisplay.variable} ${publicSans.variable}`}
     >
       <body>
-        <ActivityIndicator />
+        <Suspense fallback={null}>
+          <ActivityIndicator />
+        </Suspense>
         {children}
       </body>
     </html>

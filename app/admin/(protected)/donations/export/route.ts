@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { cleanSearch } from "@/lib/admin/filters";
 import { createClient } from "@/lib/supabase/server";
+import { loadGivenTo } from "@/lib/admin/donation-targets";
 
 const csv = (value: unknown) => {
   let text = String(value ?? "");
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
   let query = supabase
     .from("donations")
     .select(
-      "id, created_at, donor_name, donor_email, type, amount_kobo, is_paid",
+      "id, created_at, donor_name, donor_email, type, amount_kobo, is_paid, campaign_id, batch_id",
     );
 
   if (q) {
@@ -56,19 +57,33 @@ export async function GET(request: Request) {
     });
   }
 
-  const rows = [
-    ["ID", "Date", "Donor", "Email", "Type", "Amount (kobo)", "Paid"],
+   const givenTo = await loadGivenTo(supabase, data ?? []);
 
-    ...(data ?? []).map((donation) => [
-      donation.id,
-      donation.created_at,
-      donation.donor_name,
-      donation.donor_email,
-      donation.type,
-      donation.amount_kobo,
-      donation.is_paid ? "Yes" : "No",
-    ]),
-  ];
+   const rows = [
+     [
+       "ID",
+       "Date",
+       "Donor",
+       "Email",
+       "Type",
+       "Given to",
+       "Batch",
+       "Amount (kobo)",
+       "Paid",
+     ],
+
+     ...(data ?? []).map((donation) => [
+       donation.id,
+       donation.created_at,
+       donation.donor_name,
+       donation.donor_email,
+       donation.type,
+       givenTo.get(donation.id)?.name ?? "",
+       givenTo.get(donation.id)?.batch ?? "",
+       donation.amount_kobo,
+       donation.is_paid ? "Yes" : "No",
+     ]),
+   ];
 
   const body = rows.map((row) => row.map(csv).join(",")).join("\r\n");
 
