@@ -14,6 +14,7 @@ import {
 import { allowRequest } from "@/lib/rate-limit";
 import { getSiteSettings, PAUSED } from "@/lib/data/settings";
 import { siteUrl } from "@/lib/site";
+import { queue, emailTransferInstructions } from "@/lib/email/notify";
 
 const GENERIC =
   "Something went wrong while starting your payment. Please try again.";
@@ -200,11 +201,12 @@ export async function startBookOrder(
   if (!row) return { error: GENERIC };
 
   // A transfer order is saved first. The donor then sees the bank details.
-  if (method === "transfer") {
-    redirect(
-      `/support/confirmation?reference=${encodeURIComponent(reference)}`,
-    );
-  }
+   if (method === "transfer") {
+     queue(() => emailTransferInstructions(reference));
+     redirect(
+       `/support/confirmation?reference=${encodeURIComponent(reference)}`,
+     );
+   }
 
   let authorizationUrl: string;
   try {

@@ -14,6 +14,7 @@ import {
   batchSchema,
   campaignRaisedSchema,
 } from "@/lib/validation/admin";
+import { queue, emailBatchUpdate } from "@/lib/email/notify";
 
 const GENERIC = "The batch could not be saved. Please try again.";
 
@@ -211,6 +212,8 @@ export async function setBatchStatus(formData: FormData) {
     summary: `Changed batch “${batch.title}” to ${status}`,
     details: { from: batch.status, to: status },
   });
+
+  if (status === "open") queue(() => emailBatchUpdate(id, "opened"));
 
   refresh(id);
   return back("notice", `Batch is now ${status}.`);
@@ -481,9 +484,9 @@ export async function saveBatchRaised(formData: FormData) {
   const [{ data: batch }, { data: before }] = await Promise.all([
     supabase
       .from("batches")
-      .select("title")
+      .select("title, target_kobo")
       .eq("id", id)
-      .maybeSingle<{ title: string }>(),
+      .maybeSingle<{ title: string; target_kobo: number }>(),
     supabase
       .from("batch_funds")
       .select("raised_kobo")
@@ -530,6 +533,15 @@ export async function saveBatchRaised(formData: FormData) {
       to: formatNaira(raisedKobo),
     },
   });
+
+  // Tell donors once, when the total crosses the target
+  if (
+    batch &&
+    (before?.raised_kobo ?? 0) < batch.target_kobo &&
+    raisedKobo >= batch.target_kobo
+  ) {
+    queue(() => emailBatchUpdate(id, "funded"));
+  }
 
   refresh(id);
   return back("notice", "Amount raised saved.");

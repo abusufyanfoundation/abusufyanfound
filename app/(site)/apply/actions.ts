@@ -11,6 +11,11 @@ import {
 } from "@/lib/validation/apply";
 import { allowRequest } from "@/lib/rate-limit";
 import { getSiteSettings, PAUSED } from "@/lib/data/settings";
+import {
+  queue,
+  emailApplicationReceived,
+  emailBookRequestReceived,
+} from "@/lib/email/notify";
 
 const TOO_MANY =
   "Too many attempts from this connection. Please wait a little and try again.";
@@ -111,7 +116,9 @@ export async function submitApplication(
     return { error: friendly(error) };
   }
 
-  redirect(`/apply/confirmation?reference=${encodeURIComponent(String(data))}`);
+   const reference = String(data);
+   queue(() => emailApplicationReceived(reference));
+   redirect(`/apply/confirmation?reference=${encodeURIComponent(reference)}`);
 }
 
 export async function submitBookRequest(
@@ -172,8 +179,9 @@ export async function submitBookRequest(
     return { error: friendly(error) };
   }
 
-  redirect(`/apply/confirmation?reference=${encodeURIComponent(String(data))}`);
-}
+   const reference = String(data);
+   queue(() => emailBookRequestReceived(reference));
+   redirect(`/apply/confirmation?reference=${encodeURIComponent(reference)}`);}
 
 export async function trackSubmission(
   _prev: TrackState,

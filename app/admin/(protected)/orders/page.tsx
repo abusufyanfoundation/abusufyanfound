@@ -13,6 +13,12 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatDateTime } from "@/lib/format";
 import { formatNaira } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
+import {
+  queue,
+  emailOrderStatus,
+  emailOrderCancelled,
+  emailPaymentReceipt,
+} from "@/lib/email/notify";
 
 const STATUSES = [
   "paid",
@@ -92,17 +98,17 @@ async function updateOrder(formData: FormData) {
     return;
   }
 
-    if (!before) {
-      return;
-    }
+  if (!before) {
+    return;
+  }
 
-    // Only a funded order moves along the fulfilment steps
-    if (
-      !STATUSES.includes(before.status as OrderStatus) ||
-      before.status === "cancelled_payment"
-    ) {
-      return;
-    }
+  // Only a funded order moves along the fulfilment steps
+  if (
+    !STATUSES.includes(before.status as OrderStatus) ||
+    before.status === "cancelled_payment"
+  ) {
+    return;
+  }
 
   const { error } = await supabase
     .from("orders")
@@ -127,6 +133,8 @@ async function updateOrder(formData: FormData) {
       to: status,
     },
   });
+
+  if (status !== before.status) queue(() => emailOrderStatus(id));
 
   refresh();
 }
@@ -162,6 +170,8 @@ async function confirmTransfer(formData: FormData) {
     details: { note: note || null },
   });
 
+  queue(() => emailPaymentReceipt(reference));
+
   refresh();
 }
 
@@ -190,6 +200,8 @@ async function cancelTransfer(formData: FormData) {
     entityId: id,
     summary: `Cancelled unpaid transfer order ${reference}`,
   });
+
+  queue(() => emailOrderCancelled(id));
 
   refresh();
 }

@@ -2,6 +2,7 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyTransaction, type PaystackTransaction } from "./verify";
+import { queue, emailPaymentReceipt } from "@/lib/email/notify";
 
 export type RecordResult =
   | "success"
@@ -87,6 +88,7 @@ export async function verifyAndRecord(
 
   switch (data as string) {
     case "SUCCESS":
+      queue(() => emailPaymentReceipt(reference));
       return "success";
     case "ALREADY_PROCESSED":
       return "already_processed";

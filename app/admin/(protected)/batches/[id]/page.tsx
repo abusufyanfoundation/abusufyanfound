@@ -27,6 +27,8 @@ import {
 } from "../actions";
 import { RaisedAmountForm } from "@/components/admin/RaisedAmount";
 
+export const maxDuration = 60;
+
 export const metadata = {
   title: "Batch",
   robots: { index: false, follow: false },
@@ -203,13 +205,13 @@ export default async function BatchPage({
   const raised = totals?.raised_kobo ?? 0;
   const funded = raised >= batch.target_kobo;
 
-    const { data: paidRows } = await supabase
-      .from("donations")
-      .select("amount_kobo")
-      .eq("batch_id", id)
-      .eq("is_paid", true)
-      .returns<{ amount_kobo: number }[]>();
-    const paid = (paidRows ?? []).reduce((s, d) => s + d.amount_kobo, 0);
+  const { data: paidRows } = await supabase
+    .from("donations")
+    .select("amount_kobo")
+    .eq("batch_id", id)
+    .eq("is_paid", true)
+    .returns<{ amount_kobo: number }[]>();
+  const paid = (paidRows ?? []).reduce((s, d) => s + d.amount_kobo, 0);
 
   return (
     <div className="flex flex-col gap-10">

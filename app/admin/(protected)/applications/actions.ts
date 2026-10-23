@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { logAudit } from "@/lib/admin/audit";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { createClient } from "@/lib/supabase/server";
+import { queue, emailApplicationDecision } from "@/lib/email/notify";
 
 type App = {
   id: string;
@@ -145,6 +146,16 @@ export async function reviewApplication(formData: FormData) {
       summary: `Approved application ${app.reference} (${total} copies)`,
     });
 
+    // in the "approve" branch (only the first approval, not a later change of copies)
+    if (app.status === "pending")
+      queue(() => emailApplicationDecision(id, "approved"));
+
+    // in the "reject" branch
+    queue(() => emailApplicationDecision(id, "rejected"));
+
+    // in the "fulfil" branch
+    queue(() => emailApplicationDecision(id, "fulfilled"));
+
     refresh(id);
     return back("notice", "Application approved.");
   }
@@ -172,6 +183,16 @@ export async function reviewApplication(formData: FormData) {
       entityId: id,
       summary: `Rejected application ${app.reference}`,
     });
+
+    // in the "approve" branch (only the first approval, not a later change of copies)
+    if (app.status === "pending")
+      queue(() => emailApplicationDecision(id, "approved"));
+
+    // in the "reject" branch
+    queue(() => emailApplicationDecision(id, "rejected"));
+
+    // in the "fulfil" branch
+    queue(() => emailApplicationDecision(id, "fulfilled"));
 
     refresh(id);
     return back("notice", "Application rejected. Its copies are free again.");
@@ -288,6 +309,16 @@ export async function reviewApplication(formData: FormData) {
         beneficiary_id: beneficiaryId,
       },
     });
+
+    // in the "approve" branch (only the first approval, not a later change of copies)
+    if (app.status === "pending")
+      queue(() => emailApplicationDecision(id, "approved"));
+
+    // in the "reject" branch
+    queue(() => emailApplicationDecision(id, "rejected"));
+
+    // in the "fulfil" branch
+    queue(() => emailApplicationDecision(id, "fulfilled"));
 
     revalidatePath(`/admin/campaigns/${campaignId}/distributions`);
     refresh(id);

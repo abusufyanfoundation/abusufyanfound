@@ -13,6 +13,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { FilterForm } from "@/components/admin/FilterForm";
+import { queue, emailBookRequestOutcome } from "@/lib/email/notify";
 
 export const metadata = {
   title: "Book requests",
@@ -113,6 +114,15 @@ async function updateRequest(formData: FormData) {
       summary: `Changed book request ${before.reference} to ${titleCase(status)}`,
       details: { from: before.status, to: status },
     });
+  }
+
+  if (status !== "pending") {
+    queue(() =>
+      emailBookRequestOutcome(
+        id,
+        status as "approved" | "rejected" | "fulfilled",
+      ),
+    );
   }
 
   revalidatePath("/admin/book-requests");
