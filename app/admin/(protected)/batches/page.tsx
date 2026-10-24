@@ -11,6 +11,7 @@ import { campaignStatus, titleCase } from "@/lib/admin/labels";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/uuid";
 
 export const metadata = {
   title: "Batches",
@@ -45,9 +46,7 @@ export default async function AdminBatchesPage({
   await requireAdmin();
   const sp = await searchParams;
   const campaignId =
-    sp.campaign && /^[0-9a-f-]{36}$/i.test(sp.campaign)
-      ? sp.campaign
-      : undefined;
+    sp.campaign && isUuid(sp.campaign) ? sp.campaign : undefined;
   const supabase = await createClient();
 
   let query = supabase

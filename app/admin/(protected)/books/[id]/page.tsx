@@ -34,7 +34,7 @@ export default async function EditBookPage({
 }) {
   await requireAdmin();
   const { id } = await params;
-  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
+  if (!isUuid(id)) notFound();
 
   const supabase = await createClient();
 

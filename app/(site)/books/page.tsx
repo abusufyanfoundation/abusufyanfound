@@ -83,7 +83,7 @@ export default async function BooksPage({
 
           {books.length === 0 ? (
             <div className="mt-14 max-w-xl border-l-2 border-gold pl-6">
-              <p className="font-serif text-2xl text-navy">
+              <p className="font-display text-2xl text-navy">
                 {query
                   ? "No books match your search."
                   : "No books are listed yet."}

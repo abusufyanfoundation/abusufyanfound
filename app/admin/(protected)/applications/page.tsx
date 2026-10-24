@@ -13,6 +13,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { FilterForm } from "@/components/admin/FilterForm";
+import { isUuid } from "@/lib/uuid";
 
 export const metadata = {
   title: "Applications",
@@ -21,7 +22,7 @@ export const metadata = {
 
 const PAGE_SIZE = 25;
 const STATUSES = ["pending", "approved", "rejected", "fulfilled"];
-const UUID = /^[0-9a-f-]{36}$/i;
+
 
 type Row = {
   id: string;
@@ -51,7 +52,7 @@ export default async function ApplicationsPage({
 
   const sp = await searchParams;
   const status = STATUSES.includes(sp.status ?? "") ? sp.status : undefined;
-  const batch = sp.batch && UUID.test(sp.batch) ? sp.batch : undefined;
+  const batch = sp.batch && isUuid(sp.batch) ? sp.batch : undefined;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
   const supabase = await createClient();

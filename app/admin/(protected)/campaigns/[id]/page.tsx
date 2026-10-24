@@ -73,7 +73,7 @@ export default async function EditCampaignPage({
   const { id } = await params;
   const { error, notice } = await searchParams;
 
-  if (!/^[0-9a-f-]{36}$/i.test(id)) {
+  if (!isUuid(id)) {
     notFound();
   }
 
@@ -124,14 +124,14 @@ export default async function EditCampaignPage({
 
   const raised = totals?.raised_kobo ?? 0;
 
-    const { data: paidRows } = await supabase
-      .from("donations")
-      .select("amount_kobo")
-      .eq("campaign_id", id)
-      .is("batch_id", null)
-      .eq("is_paid", true)
-      .returns<{ amount_kobo: number }[]>();
-    const paid = (paidRows ?? []).reduce((s, d) => s + d.amount_kobo, 0);
+  const { data: paidRows } = await supabase
+    .from("donations")
+    .select("amount_kobo")
+    .eq("campaign_id", id)
+    .is("batch_id", null)
+    .eq("is_paid", true)
+    .returns<{ amount_kobo: number }[]>();
+  const paid = (paidRows ?? []).reduce((s, d) => s + d.amount_kobo, 0);
 
   const completed = campaign.completed_at !== null;
 

@@ -14,13 +14,12 @@ import { flash } from "@/lib/admin/flash";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/uuid";
 
 export const metadata = {
   title: "Distributions",
   robots: { index: false, follow: false },
 };
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function recordDistribution(formData: FormData) {
   "use server";
@@ -34,15 +33,15 @@ async function recordDistribution(formData: FormData) {
   const quantity = Number(formData.get("quantity"));
   const notes = String(formData.get("notes") ?? "").trim();
 
-  if (!UUID.test(campaignId)) {
+  if (!isUuid(campaignId)) {
     return flash("/admin/campaigns", "error", "Campaign not found.");
   }
 
   const path = `/admin/campaigns/${campaignId}/distributions`;
   const fail = (message: string): never => flash(path, "error", message);
 
-  if (!UUID.test(beneficiaryId)) return fail("Please choose a beneficiary.");
-  if (!UUID.test(bookId ?? "") || (kind !== "batch" && kind !== "book")) {
+  if (!isUuid(beneficiaryId)) return fail("Please choose a beneficiary.");
+  if (!isUuid(bookId ?? "") || (kind !== "batch" && kind !== "book")) {
     return fail("Please choose a book.");
   }
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100000) {
@@ -134,7 +133,7 @@ export default async function DistributionsPage({
 
   await requireAdmin();
 
-  if (!UUID.test(id)) notFound();
+  if (!isUuid(id)) notFound();
 
   const supabase = await createClient();
 

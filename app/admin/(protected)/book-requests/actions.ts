@@ -6,6 +6,7 @@ import { flash } from "@/lib/admin/flash";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { emailBookRequestOutcome, queue } from "@/lib/email/notify";
 import { createClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/uuid";
 
 type RequestRow = {
   reference: string;
@@ -34,7 +35,7 @@ export async function reviewBookRequest(formData: FormData) {
     .trim()
     .slice(0, 1000);
 
-  if (!/^[0-9a-f-]{36}$/i.test(id)) {
+  if (!isUuid(id)) {
     return flash("/admin/book-requests", "error", "Book request not found.");
   }
 

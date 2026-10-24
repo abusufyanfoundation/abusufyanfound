@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth/require-admin";
-import { cleanSearch } from "@/lib/admin/filters";
-import { createClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/admin/audit";
 import { loadGivenTo } from "@/lib/admin/donation-targets";
+import { cleanSearch } from "@/lib/admin/filters";
+import { requireAdmin } from "@/lib/auth/require-admin";
+import { createClient } from "@/lib/supabase/server";
 
 const csv = (value: unknown) => {
   let text = String(value ?? "");
@@ -12,7 +13,7 @@ const csv = (value: unknown) => {
 };
 
 export async function GET(request: Request) {
-  await requireAdmin();
+  const actor = await requireAdmin();
 
   const supabase = await createClient();
 
@@ -57,33 +58,45 @@ export async function GET(request: Request) {
     });
   }
 
-   const givenTo = await loadGivenTo(supabase, data ?? []);
+  const givenTo = await loadGivenTo(supabase, data ?? []);
 
-   const rows = [
-     [
-       "ID",
-       "Date",
-       "Donor",
-       "Email",
-       "Type",
-       "Given to",
-       "Batch",
-       "Amount (kobo)",
-       "Paid",
-     ],
+  const rows = [
+    [
+      "ID",
+      "Date",
+      "Donor",
+      "Email",
+      "Type",
+      "Given to",
+      "Batch",
+      "Amount (kobo)",
+      "Paid",
+    ],
 
-     ...(data ?? []).map((donation) => [
-       donation.id,
-       donation.created_at,
-       donation.donor_name,
-       donation.donor_email,
-       donation.type,
-       givenTo.get(donation.id)?.name ?? "",
-       givenTo.get(donation.id)?.batch ?? "",
-       donation.amount_kobo,
-       donation.is_paid ? "Yes" : "No",
-     ]),
-   ];
+    ...(data ?? []).map((donation) => [
+      donation.id,
+      donation.created_at,
+      donation.donor_name,
+      donation.donor_email,
+      donation.type,
+      givenTo.get(donation.id)?.name ?? "",
+      givenTo.get(donation.id)?.batch ?? "",
+      donation.amount_kobo,
+      donation.is_paid ? "Yes" : "No",
+    ]),
+  ];
+
+  await logAudit(supabase, actor, {
+    action: "donation.exported",
+    entity: "donation",
+    summary: `Exported ${data?.length ?? 0} donations to CSV`,
+    details: {
+      rows: data?.length ?? 0,
+      status: status ?? "all",
+      type: type ?? "all",
+      searched: Boolean(q),
+    },
+  });
 
   const body = rows.map((row) => row.map(csv).join(",")).join("\r\n");
 

@@ -26,8 +26,6 @@
   --color-rule: var(--color-rule);
 
   --font-display: var(--font-clash-display), system-ui, sans-serif;
-  /* Temporary alias so existing font-serif classes keep working */
-  --font-serif: var(--font-clash-display), system-ui, sans-serif;
   --font-sans: var(--font-public-sans), system-ui, sans-serif;
 }
 
@@ -74,7 +72,6 @@
     scroll-behavior: auto !important;
   }
 }
-
 
 @keyframes progress-grow {
   from {

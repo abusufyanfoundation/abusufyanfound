@@ -17,6 +17,11 @@ import { createClient } from "@/lib/supabase/server";
 import { FilterForm } from "@/components/admin/FilterForm";
 import { loadGivenTo } from "@/lib/admin/donation-targets";
 
+export const metadata = {
+  title: "Donations",
+  robots: { index: false, follow: false },
+};
+
 const PAGE_SIZE = 25;
 
 type Donation = {
@@ -85,7 +90,7 @@ export default async function DonationsPage({
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
   const givenTo = await loadGivenTo(supabase, data ?? []);
-  
+
   const campaignIds = [
     ...new Set(
       (data ?? []).flatMap((d) => (d.campaign_id ? [d.campaign_id] : [])),

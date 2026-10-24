@@ -65,7 +65,7 @@ export function GeneralDonationForm({
         </p>
       </div>
 
-      <DonorFields />
+      <DonorFields askPhone={false} />
 
       <div className="flex flex-col items-start gap-3 pt-1">
         <SubmitButton pending={pending} pendingText="Preparing payment…">

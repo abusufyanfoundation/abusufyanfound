@@ -15,6 +15,7 @@ import {
   campaignRaisedSchema,
 } from "@/lib/validation/admin";
 import { queue, emailBatchUpdate } from "@/lib/email/notify";
+import { isUuid } from "@/lib/uuid";
 
 const GENERIC = "The batch could not be saved. Please try again.";
 
@@ -470,7 +471,7 @@ export async function saveBatchRaised(formData: FormData) {
   const back = (key: "error" | "notice", message: string): never =>
     redirect(`/admin/batches/${id}?${key}=${encodeURIComponent(message)}`);
 
-  if (!/^[0-9a-f-]{36}$/i.test(id) || !parsed.success) {
+  if (!isUuid(id) || !parsed.success) {
     return back(
       "error",
       parsed.success

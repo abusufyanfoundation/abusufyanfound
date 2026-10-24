@@ -254,7 +254,7 @@ export async function saveCampaignRaised(formData: FormData) {
   const parsed = campaignRaisedSchema.safeParse({
     raisedNaira: Number(formData.get("raisedNaira")),
   });
-  if (!/^[0-9a-f-]{36}$/i.test(id) || !parsed.success) {
+  if (!isUuid(id) || !parsed.success) {
     const message = parsed.success
       ? "The campaign could not be found."
       : parsed.error.issues[0].message;

@@ -26,6 +26,7 @@ import {
   updateBatchBook,
 } from "../actions";
 import { RaisedAmountForm } from "@/components/admin/RaisedAmount";
+import { isUuid } from "@/lib/uuid";
 
 export const maxDuration = 60;
 
@@ -108,7 +109,7 @@ export default async function BatchPage({
   const { id } = await params;
   const { error, notice } = await searchParams;
 
-  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
+  if (!isUuid(id)) notFound();
 
   const supabase = await createClient();
 

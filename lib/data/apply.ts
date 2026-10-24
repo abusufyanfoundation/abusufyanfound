@@ -1,4 +1,5 @@
 import { createPublicClient } from "@/lib/supabase/public";
+import { isUuid } from "../uuid";
 
 export type OpenBatch = {
   id: string;
@@ -14,8 +15,6 @@ type Row = OpenBatch & { opens_at: string | null };
 
 const FIELDS =
   "id, title, description, max_copies_per_applicant, opens_at, closes_at, batch_books(id, title, author), batch_locations(id, name, address)";
-
-const UUID = /^[0-9a-f-]{36}$/i;
 
 // The database only checks that a batch is "open"; the dates are checked here too
 const inWindow = (b: Row) => {
@@ -60,7 +59,7 @@ export async function getOpenBatches(): Promise<OpenBatch[]> {
 }
 
 export async function getOpenBatch(id: string): Promise<OpenBatch | null> {
-  if (!UUID.test(id)) return null;
+  if (!isUuid(id)) return null;
 
   const supabase = createPublicClient();
 

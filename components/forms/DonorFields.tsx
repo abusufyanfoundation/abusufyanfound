@@ -3,8 +3,10 @@ import { Field } from "./Field";
 
 export function DonorFields({
   phoneRequired = false,
+  askPhone = true,
 }: {
   phoneRequired?: boolean;
+  askPhone?: boolean;
 }) {
   return (
     <>
@@ -16,18 +18,20 @@ export function DonorFields({
         autoComplete="email"
         hint="Needed to process your payment."
       />
-      <Field
-        label={phoneRequired ? "Phone number" : "Phone number (optional)"}
-        name="donorPhone"
-        type="tel"
-        autoComplete="tel"
-        required={phoneRequired}
-        hint={
-          phoneRequired
-            ? "So we can reach you if there is a problem with your transfer."
-            : undefined
-        }
-      />
+      {askPhone && (
+        <Field
+          label={phoneRequired ? "Phone number" : "Phone number (optional)"}
+          name="donorPhone"
+          type="tel"
+          autoComplete="tel"
+          required={phoneRequired}
+          hint={
+            phoneRequired
+              ? "So we can reach you if there is a problem with your transfer."
+              : undefined
+          }
+        />
+      )}
 
       <p className="text-xs text-muted">
         How we use your details is explained in our{" "}

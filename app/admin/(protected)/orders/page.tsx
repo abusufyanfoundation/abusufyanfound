@@ -28,6 +28,7 @@ import {
 import { formatDateTime } from "@/lib/format";
 import { formatNaira } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/uuid";
 
 export const metadata = {
   title: "Orders",
@@ -35,7 +36,6 @@ export const metadata = {
 };
 
 const PATH = "/admin/orders";
-const UUID = /^[0-9a-f-]{36}$/i;
 
 const STATUSES = [
   "paid",
@@ -92,7 +92,7 @@ async function updateOrder(formData: FormData) {
   const keep = { page: pageField(formData) };
   const fail = (message: string): never => flash(PATH, "error", message, keep);
 
-  if (!UUID.test(id) || !STATUSES.includes(status as OrderStatus)) {
+  if (!isUuid(id) || !STATUSES.includes(status as OrderStatus)) {
     return fail("That status is not valid.");
   }
 
@@ -160,7 +160,7 @@ async function confirmTransfer(formData: FormData) {
   const keep = { page: pageField(formData) };
   const fail = (message: string): never => flash(PATH, "error", message, keep);
 
-  if (!UUID.test(id)) return fail("Order not found.");
+  if (!isUuid(id)) return fail("Order not found.");
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("confirm_transfer_payment", {
@@ -204,7 +204,7 @@ async function cancelTransfer(formData: FormData) {
   const keep = { page: pageField(formData) };
   const fail = (message: string): never => flash(PATH, "error", message, keep);
 
-  if (!UUID.test(id)) return fail("Order not found.");
+  if (!isUuid(id)) return fail("Order not found.");
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("cancel_transfer_order", {

@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { reviewBookRequest } from "../actions";
+import { isUuid } from "@/lib/uuid";
 
 export const metadata = {
   title: "Book request",
@@ -59,7 +60,7 @@ export default async function BookRequestPage({
   const { id } = await params;
   const { error, notice } = await searchParams;
 
-  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
+  if (!isUuid(id)) notFound();
 
   const supabase = await createClient();
 
