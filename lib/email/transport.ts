@@ -1,6 +1,6 @@
 import "server-only";
 import nodemailer, { type Transporter } from "nodemailer";
-import { siteConfig } from "@/lib/site";
+import { siteName } from "./site-name";
 
 export type Mail = {
   to: string | string[];
@@ -35,7 +35,7 @@ export async function sendMail(mail: Mail): Promise<boolean> {
 
   try {
     await getTransporter(user, pass).sendMail({
-      from: { name: siteConfig.name, address: user },
+      from: { name: await siteName(), address: user },
       replyTo: user,
       ...mail,
     });

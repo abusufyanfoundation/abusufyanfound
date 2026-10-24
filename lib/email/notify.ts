@@ -6,6 +6,7 @@ import { siteUrl } from "@/lib/site";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { compose, type Content } from "./layout";
 import { sendMail } from "./transport";
+import { siteName } from "./site-name";
 
 /* ───────── Helpers ───────── */
 
@@ -26,8 +27,8 @@ export function queue(task: () => Promise<unknown>) {
   }
 }
 
-const deliver = (to: string | null | undefined, content: Content) =>
-  to ? sendMail({ to, ...compose(content) }) : Promise.resolve(false);
+const deliver = async (to: string | null | undefined, content: Content) =>
+  to ? sendMail({ to, ...compose(content, await siteName()) }) : false;
 
 const copies = (n: number) => `${n} ${n === 1 ? "copy" : "copies"}`;
 

@@ -1,18 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { getSiteSettings } from "@/lib/data/settings";
 import { siteConfig } from "@/lib/site";
 import { Container } from "./Container";
 import { MobileMenu } from "./MobileMenu";
 import { AnnouncementBar } from "./AnnouncementBanner";
 
-export function Header() {
+export async function Header() {
+  const { site } = await getSiteSettings();
+
   return (
     <header className="sticky top-0 z-40 border-b border-rule bg-paper">
       <Container className="flex h-20 items-center justify-between gap-6">
         <Link
           href="/"
-          aria-label={siteConfig.name}
+          aria-label={site.name}
           className="flex items-center gap-3"
         >
           <Image
@@ -27,7 +30,7 @@ export function Header() {
             aria-hidden="true"
             className="hidden max-w-[14rem] font-display text-lg font-normal leading-tight text-navy sm:block"
           >
-            {siteConfig.name}
+            {site.name}
           </span>
         </Link>
 

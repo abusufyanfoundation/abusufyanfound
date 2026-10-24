@@ -3,7 +3,7 @@ import Link from "next/link";
 import { signOut } from "@/app/admin/actions";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { siteConfig } from "@/lib/site";
+import { getSiteSettings } from "@/lib/data/settings";
 
 export default async function AdminLayout({
   children,
@@ -11,6 +11,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const { profile, isSuperAdmin } = await requireAdmin();
+  const { site } = await getSiteSettings();
 
   return (
     <div className="flex min-h-screen flex-col bg-paper lg:flex-row">
@@ -34,7 +35,7 @@ export default async function AdminLayout({
                 aria-hidden="true"
                 className="max-w-56 font-display text-lg font-normal leading-tight text-white sm:block"
               >
-                {siteConfig.name}
+                {site.name}
               </span>
             </Link>
             <form action={signOut} className="lg:hidden">

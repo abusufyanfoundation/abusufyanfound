@@ -6,7 +6,7 @@ import { siteConfig } from "@/lib/site";
 import { Container } from "./Container";
 
 export async function Footer() {
-  const { contact, social } = await getSiteSettings();
+  const { contact, social, site } = await getSiteSettings();
   const hasContact =
     contact.email || contact.phones.length > 0 || contact.address;
 
@@ -16,7 +16,7 @@ export async function Footer() {
         <div className="max-w-sm">
           <Link
             href="/"
-            aria-label={siteConfig.name}
+            aria-label={site.name}
             className="flex items-center gap-3"
           >
             <Image
@@ -30,11 +30,11 @@ export async function Footer() {
               aria-hidden="true"
               className="hidden max-w-56 font-display text-lg font-normal leading-tight text-white sm:block"
             >
-              {siteConfig.name}
+              {site.name}
             </span>
           </Link>
           <p className="mt-6 text-sm leading-relaxed text-white/80">
-            {siteConfig.description}
+            {site.description}
           </p>
           <ButtonLink
             href={siteConfig.cta.href}
@@ -128,7 +128,7 @@ export async function Footer() {
       <div className="border-t border-white/15">
         <Container className="flex flex-col gap-2 py-6 text-xs text-white/55 sm:flex-row sm:justify-between">
           <p>
-            © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
+            © {new Date().getFullYear()} {site.name}. All rights reserved.
           </p>
           <Link href="/privacy" className="transition-colors hover:text-gold">
             Privacy notice

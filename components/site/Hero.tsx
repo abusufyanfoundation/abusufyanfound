@@ -1,28 +1,22 @@
 import Image from "next/image";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { getSiteSettings } from "@/lib/data/settings";
 import { siteConfig } from "@/lib/site";
 import { Container } from "./Container";
 
-export function Hero() {
+export async function Hero() {
+  const { site } = await getSiteSettings();
+
   return (
     <section className="overflow-hidden bg-navy text-white">
       <Container className="flex flex-col gap-12 py-14 md:gap-16 md:py-20 lg:flex-row lg:items-center lg:gap-16 lg:py-28">
         <div className="lg:basis-1/2">
-          {/* <div className="flex items-center gap-4">
-            <p className="text-xs tracking-[0.18em] text-gold font-bold uppercase sm:text-sm">
-              {siteConfig.name}
-            </p>
-          </div> */}
-
           <h1 className="mt-8 max-w-2xl font-display text-4xl leading-[1.1] text-white md:text-6xl">
             Beneficial books for students of knowledge.
           </h1>
 
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-            The Abu Sufyan Al-Alma&apos;iyy Foundation is a non-profit foundation
-            dedicated to the donation of the noble Qur&apos;an and beneficial Islamic
-            books to students of knowledge, Islamic schools, and to mosques to
-            promote the understanding of Islam amongst all.
+            {site.description}
           </p>
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -39,7 +33,7 @@ export function Hero() {
         <div className="relative lg:basis-1/2">
           <Image
             src="/banner.png"
-            alt={`${siteConfig.name} banner`}
+            alt={`${site.name} banner`}
             width={1200}
             height={800}
             priority

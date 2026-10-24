@@ -15,7 +15,7 @@ import { ConsentLine } from "./ConsentLine";
 const control =
   "border border-rule bg-white px-3.5 py-3 text-base text-ink transition-colors focus:border-navy";
 
-export function BookRequestForm() {
+export function BookRequestForm({ schoolMax }: { schoolMax: number }) {
   const { state, pending, onSubmit } = useActionForm(submitBookRequest);
   const [type, setType] = useState<ApplicantType>("individual");
 
@@ -29,7 +29,7 @@ export function BookRequestForm() {
       <ApplicantTypeFieldset
         value={type}
         onChange={setType}
-        schoolLimit="Schools can request up to 50 copies of a book, for example one for each student in a class."
+        schoolLimit={`Schools can request up to ${schoolMax} ${schoolMax === 1 ? "copy" : "copies"} of a book, for example one for each student in a class.`}
       />
 
       {organisation && (
@@ -96,9 +96,9 @@ export function BookRequestForm() {
               type="number"
               inputMode="numeric"
               min={1}
-              max={50}
+              max={schoolMax}
               step={1}
-              defaultValue={10}
+              defaultValue={Math.min(10, schoolMax)}
               required
               className={`${control} w-32`}
             />

@@ -15,7 +15,7 @@ export async function CampaignCard({
 }: {
   campaign: CampaignWithStats;
 }) {
-  const { payments } = await getSiteSettings();
+  const { payments, site } = await getSiteSettings();
   const bank = payments.campaign.bank;
   const showBank =
     payments.campaign.transfer && bank.bank && bank.number && bank.name;
@@ -24,6 +24,7 @@ export async function CampaignCard({
     campaign.title,
     campaignUrl(campaign.slug),
     showBank ? bank : null,
+    site.name,
   );
 
   return (

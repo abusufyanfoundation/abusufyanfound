@@ -77,6 +77,21 @@ const httpsLink = z
 
 export const siteSettingsSchema = z
   .object({
+    siteName: z
+      .string({ error: "Please enter the site name" })
+      .trim()
+      .min(2, "The site name is too short")
+      .max(120, "The site name can be up to 120 characters"),
+    siteDescription: z
+      .string({ error: "Please enter the site description" })
+      .trim()
+      .min(10, "The description is too short")
+      .max(400, "The description can be up to 400 characters"),
+    schoolRequestMaxCopies: z
+      .number({ error: "Please enter the school copy limit" })
+      .int("Please enter a whole number of copies")
+      .min(1, "The limit must be at least 1")
+      .max(50, "The limit cannot be more than 50"),
     contactEmail: z
       .string()
       .trim()

@@ -47,6 +47,24 @@ export function SettingsForm({ settings: s }: { settings: SettingsRow }) {
         className="m-0 flex min-w-0 flex-col gap-8 border-0 p-0"
       >
         <Group
+          title="Site name and description"
+          intro="Used in the header, footer, browser tab titles, search results, link previews and emails."
+        >
+          <TextField
+            label="Site name"
+            name="siteName"
+            defaultValue={s.site_name}
+            hint="Up to 120 characters."
+          />
+          <TextArea
+            label="Site description"
+            name="siteDescription"
+            rows={4}
+            defaultValue={s.site_description}
+            hint="Shown in the footer and on the home page, and used by search engines. 10 to 400 characters."
+          />
+        </Group>
+        <Group
           title="Contact details"
           intro="Shown in the website footer. Leave a field blank to hide it."
         >
@@ -254,6 +272,15 @@ export function SettingsForm({ settings: s }: { settings: SettingsRow }) {
             rows={3}
             defaultValue={s.applications_paused_message ?? ""}
             hint="Leave blank to use the standard wording."
+          />
+          <TextField
+            label="Book requests: copies a school can ask for"
+            name="schoolRequestMaxCopies"
+            type="number"
+            min={1}
+            step={1}
+            defaultValue={s.school_request_max_copies}
+            hint="Between 1 and 50. Individuals and mosques can always request 1 copy."
           />
         </Group>
       </fieldset>

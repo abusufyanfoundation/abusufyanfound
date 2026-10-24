@@ -166,7 +166,7 @@ export const bookRequestSchema = z
       .number({ error: "Please enter how many copies you need" })
       .int("Please enter a whole number")
       .min(1, "Please enter how many copies you need")
-      .max(50, "Schools can request up to 50 copies"),
+      .max(50, "That is too many copies"),
     reason: required("why you need this book", 5, 1000),
   })
   .superRefine(needsOrganisation)

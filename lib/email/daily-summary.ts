@@ -4,6 +4,7 @@ import { siteUrl } from "@/lib/site";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { compose } from "./layout";
 import { sendMail } from "./transport";
+import { siteName } from "./site-name";
 
 const head = { count: "exact", head: true } as const;
 
@@ -70,6 +71,7 @@ export async function sendDailySummary() {
 
   let sent = 0;
 
+  const name = await siteName();
   for (const person of admins ?? []) {
     const { data } = await admin.auth.admin.getUserById(person.id);
     const email = data.user?.email;
@@ -96,7 +98,7 @@ export async function sendDailySummary() {
           ["Transfers waiting to be confirmed", String(n(awaitingTransfers))],
         ],
         button: { label: "Open the dashboard", href: `${siteUrl}/admin` },
-      }),
+      }, name),
     });
     if (ok) sent += 1;
   }

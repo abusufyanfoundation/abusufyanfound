@@ -27,6 +27,8 @@ const lines = (formData: FormData, key: string) =>
 // Plain-language values for the activity log
 function describe(r: SettingsRow): Record<string, string> {
   return {
+    "Site name": r.site_name,
+    "Site description": r.site_description,
     "Contact email": r.contact_email ?? "",
     "Contact phone": (r.contact_phone ?? "").split("\n").join(", "),
     "Contact address": r.contact_address ?? "",
@@ -42,6 +44,7 @@ function describe(r: SettingsRow): Record<string, string> {
     "Donations paused message": r.donations_paused_message ?? "",
     "Applications paused": onOff(r.applications_paused),
     "Applications paused message": r.applications_paused_message ?? "",
+    "School copy limit (book requests)": String(r.school_request_max_copies),
     "Minimum donation": `₦${r.min_donation_naira.toLocaleString("en-NG")}`,
     "Foundation bank": r.bank_name ?? "",
     "Foundation account number": r.bank_account_number ?? "",
@@ -63,6 +66,9 @@ export async function saveSettings(
   const actor = await requireSuperAdmin();
 
   const parsed = siteSettingsSchema.safeParse({
+    siteName: text(formData, "siteName"),
+    siteDescription: text(formData, "siteDescription"),
+    schoolRequestMaxCopies: Number(formData.get("schoolRequestMaxCopies")),
     contactEmail: text(formData, "contactEmail"),
     contactPhone: lines(formData, "contactPhone"),
     contactAddress: text(formData, "contactAddress"),
@@ -109,6 +115,9 @@ export async function saveSettings(
   }
 
   const after: SettingsRow = {
+    site_name: v.siteName,
+    site_description: v.siteDescription,
+    school_request_max_copies: v.schoolRequestMaxCopies,
     contact_email: v.contactEmail ?? null,
     contact_phone: v.contactPhone ?? null,
     contact_address: v.contactAddress ?? null,

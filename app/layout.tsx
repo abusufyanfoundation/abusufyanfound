@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Public_Sans } from "next/font/google";
 import localFont from "next/font/local";
-import { siteConfig, siteUrl } from "@/lib/site";
+import { getSiteSettings } from "@/lib/data/settings";
+import { siteUrl } from "@/lib/site";
 import { ActivityIndicator } from "@/components/ui/ActivityIndicator";
 import "./globals.css";
 import { Suspense } from "react";
@@ -19,22 +20,26 @@ const publicSans = Public_Sans({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: siteConfig.name,
-    template: `%s | ${siteConfig.name}`,
-  },
-  description: siteConfig.description,
-  openGraph: {
-    type: "website",
-    siteName: siteConfig.name,
-    title: siteConfig.name,
-    description: siteConfig.description,
-    url: siteUrl,
-  },
-  twitter: { card: "summary_large_image" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site } = await getSiteSettings();
+
+  return {
+    metadataBase: new URL(siteUrl),
+    title: {
+      default: site.name,
+      template: `%s | ${site.name}`,
+    },
+    description: site.description,
+    openGraph: {
+      type: "website",
+      siteName: site.name,
+      title: site.name,
+      description: site.description,
+      url: siteUrl,
+    },
+    twitter: { card: "summary_large_image" },
+  };
+}
 
 export default function RootLayout({
   children,

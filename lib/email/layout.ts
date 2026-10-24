@@ -24,11 +24,14 @@ const MUTED = "#5f6368";
 const RULE = "#e6e1d3";
 
 // One content object produces both the HTML and the plain-text version
-export function compose(c: Content): Omit<Mail, "to"> {
+export function compose(
+  c: Content,
+  siteName: string = siteConfig.name,
+): Omit<Mail, "to"> {
   const greeting = c.name
     ? `As-salamu alaykum ${c.name},`
     : "As-salamu alaykum,";
-  const signOff = ["Wassalamu alaykum,", siteConfig.name];
+  const signOff = ["Was-salamu alaykum,", siteName];
 
   const para = (text: string) =>
     `<p style="margin:0 0 16px;line-height:1.65;">${esc(text)}</p>`;
@@ -51,7 +54,7 @@ export function compose(c: Content): Omit<Mail, "to"> {
 <body style="margin:0;background:#f5f3ec;font-family:Georgia,'Times New Roman',serif;color:#1b1b1b;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px;">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;">
-<tr><td style="background:${NAVY};border-bottom:3px solid ${GOLD};padding:20px 28px;color:${GOLD};font-size:18px;">${esc(siteConfig.name)}</td></tr>
+<tr><td style="background:${NAVY};border-bottom:3px solid ${GOLD};padding:20px 28px;color:${GOLD};font-size:18px;">${esc(siteName)}</td></tr>
 <tr><td style="padding:28px;font-size:16px;">
 ${para(greeting)}
 ${c.intro.map(para).join("")}

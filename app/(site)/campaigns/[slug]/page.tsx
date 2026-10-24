@@ -4,8 +4,8 @@ import { CampaignCard } from "@/components/site/CampaignCard";
 import { Container } from "@/components/site/Container";
 import { getCampaignBySlug } from "@/lib/data/public";
 import { campaignPath } from "@/lib/share";
-import { siteConfig } from "@/lib/site";
 import { BackLink } from "@/components/ui/BackLink";
+import { getSiteSettings } from "@/lib/data/settings";
 
 export const revalidate = 60;
 
@@ -28,6 +28,8 @@ export async function generateMetadata({
     return { title: "Campaign not found", robots: { index: false } };
   }
 
+  const { site } = await getSiteSettings();
+
   const description = describe(campaign.description);
   const images = campaign.image_url
     ? [{ url: campaign.image_url, alt: campaign.title }]
@@ -41,7 +43,7 @@ export async function generateMetadata({
     alternates: { canonical: campaignPath(campaign.slug) },
     openGraph: {
       type: "website",
-      siteName: siteConfig.name,
+      siteName: site.name,
       title: campaign.title,
       description,
       url: campaignPath(campaign.slug),

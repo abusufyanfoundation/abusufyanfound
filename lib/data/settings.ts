@@ -3,7 +3,7 @@ import { createPublicClient } from "@/lib/supabase/public";
 import { siteConfig } from "@/lib/site";
 
 export const SETTINGS_FIELDS =
-  "contact_email, contact_phone, contact_address, facebook_url, whatsapp_url, instagram_url, youtube_url, announcement_enabled, announcement_text, announcement_link_label, announcement_link_href, donations_paused, donations_paused_message, applications_paused, applications_paused_message, min_donation_naira, bank_name, bank_account_number, bank_account_name, book_bank_name, book_bank_account_number, book_bank_account_name, campaign_online_enabled, campaign_transfer_enabled, books_online_enabled, books_transfer_enabled";
+  "contact_email, contact_phone, contact_address, facebook_url, whatsapp_url, instagram_url, youtube_url, announcement_enabled, announcement_text, announcement_link_label, announcement_link_href, donations_paused, donations_paused_message, applications_paused, applications_paused_message, min_donation_naira, bank_name, bank_account_number, bank_account_name, book_bank_name, book_bank_account_number, book_bank_account_name, campaign_online_enabled, campaign_transfer_enabled, books_online_enabled, books_transfer_enabled, site_name, site_description, school_request_max_copies";
 
 export type SettingsRow = {
   contact_email: string | null;
@@ -32,11 +32,15 @@ export type SettingsRow = {
   campaign_transfer_enabled: boolean;
   books_online_enabled: boolean;
   books_transfer_enabled: boolean;
+  site_name: string;
+  site_description: string;
+  school_request_max_copies: number;
 };
 
 export type BankDetails = { bank: string; number: string; name: string };
 
 export type SiteSettings = {
+  site: { name: string; description: string };
   contact: { email: string; phones: string[]; address: string };
   social: { label: string; href: string }[];
   announcement: {
@@ -47,6 +51,7 @@ export type SiteSettings = {
   };
   donations: { paused: boolean; message: string; minNaira: number };
   applications: { paused: boolean; message: string };
+  requests: { schoolMaxCopies: number };
   payments: {
     campaign: { online: boolean; transfer: boolean; bank: BankDetails };
     books: { online: boolean; transfer: boolean; bank: BankDetails };
@@ -65,6 +70,10 @@ const clean = (value: string | null | undefined) => value?.trim() ?? "";
 
 export function fromRow(row: SettingsRow): SiteSettings {
   return {
+    site: {
+      name: clean(row.site_name) || siteConfig.name,
+      description: clean(row.site_description) || siteConfig.description,
+    },
     contact: {
       email: clean(row.contact_email),
       phones: clean(row.contact_phone)
@@ -94,6 +103,7 @@ export function fromRow(row: SettingsRow): SiteSettings {
       paused: row.applications_paused,
       message: clean(row.applications_paused_message),
     },
+    requests: { schoolMaxCopies: row.school_request_max_copies },
     payments: {
       campaign: {
         online: row.campaign_online_enabled,
@@ -119,6 +129,7 @@ export function fromRow(row: SettingsRow): SiteSettings {
 
 // Used only if the settings row cannot be read
 const FALLBACK: SiteSettings = {
+  site: { name: siteConfig.name, description: siteConfig.description },
   contact: {
     email: siteConfig.contact.email ?? "",
     phones: siteConfig.contact.phone ? [siteConfig.contact.phone] : [],
@@ -128,6 +139,7 @@ const FALLBACK: SiteSettings = {
   announcement: { enabled: false, text: "", linkLabel: "", linkHref: "" },
   donations: { paused: false, message: "", minNaira: 100 },
   applications: { paused: false, message: "" },
+  requests: { schoolMaxCopies: 10 },
   payments: {
     campaign: {
       online: true,

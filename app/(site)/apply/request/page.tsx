@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RequestBookPage() {
-  const { applications } = await getSiteSettings();
+  const { applications, requests } = await getSiteSettings();
   return (
     <section className="py-16 md:py-24">
       <Container>
@@ -33,7 +33,7 @@ export default async function RequestBookPage() {
               text={applications.message || PAUSED.applications}
             />
           ) : (
-            <BookRequestForm />
+            <BookRequestForm schoolMax={requests.schoolMaxCopies}/>
           )}
         </div>
       </Container>

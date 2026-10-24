@@ -10,12 +10,13 @@ export function campaignCaption(
   title: string,
   url: string,
   bank: BankDetails | null,
+  siteName: string = siteConfig.name,
 ) {
   const short = title.length > 90 ? `${title.slice(0, 87)}...` : title;
 
   const lines = [
     `Support “${short}”.`,
-    `Help the ${siteConfig.name} give beneficial books to students of knowledge and mosques.`,
+    `Help the ${siteName} give beneficial books to students of knowledge and mosques.`,
     "",
     `Give online: ${url}`,
   ];

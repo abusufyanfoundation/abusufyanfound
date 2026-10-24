@@ -1,8 +1,8 @@
-import { siteConfig } from "@/lib/site";
 import Image from "next/image";
 import Link from "next/link";
+import { getSiteSettings } from "@/lib/data/settings";
 
-export function AuthShell({
+export async function AuthShell({
   title,
   intro,
   children,
@@ -11,6 +11,8 @@ export function AuthShell({
   intro: string;
   children: React.ReactNode;
 }) {
+  const { site } = await getSiteSettings();
+
   return (
     <main className="flex min-h-screen flex-col md:flex-row">
       <aside className="flex flex-col justify-between bg-navy px-8 py-8 md:w-5/12 md:px-14 md:py-16">
@@ -31,7 +33,7 @@ export function AuthShell({
             aria-hidden="true"
             className="max-w-56 font-display text-lg font-normal leading-tight text-white sm:block"
           >
-            {siteConfig.name}
+            {site.name}
           </span>
         </Link>
 

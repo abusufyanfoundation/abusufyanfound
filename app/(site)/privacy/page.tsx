@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/site/Container";
 import { SectionHeading } from "@/components/site/SectionHeading";
-import { siteConfig } from "@/lib/site";
 import { BackLink } from "@/components/ui/BackLink";
 import { getSiteSettings } from "@/lib/data/settings";
 import { PRIVACY_UPDATED } from "@/lib/privacy";
@@ -31,7 +30,7 @@ function Block({
 }
 
 export default async function PrivacyPage() {
-  const { contact } = await getSiteSettings();
+  const { contact, site } = await getSiteSettings();
   const email = contact.email;
 
   return (
@@ -44,13 +43,13 @@ export default async function PrivacyPage() {
           as="h1"
           title="Privacy notice"
           // The last updated is found in the /lib/privacy.ts file
-          intro={`How the ${siteConfig.name} uses the personal information you give us. Last updated ${PRIVACY_UPDATED}.`}
+          intro={`How the ${site.name} uses the personal information you give us. Last updated ${PRIVACY_UPDATED}.`}
         />
 
         <div className="max-w-2xl">
           <Block title="Who we are">
             <p>
-              The {siteConfig.name} is responsible for the information described
+              The {site.name} is responsible for the information described
               here. You can reach us at{" "}
               {email ? (
                 <a
