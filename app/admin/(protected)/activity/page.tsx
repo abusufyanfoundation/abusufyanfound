@@ -13,13 +13,13 @@ import { ENTITY_LABELS } from "@/lib/admin/labels";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { ADMIN_PAGE_SIZE as PAGE_SIZE } from "@/lib/admin/pagination";
 
 export const metadata = {
   title: "Activity log",
   robots: { index: false, follow: false },
 };
 
-const PAGE_SIZE = 30;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 type Entry = {

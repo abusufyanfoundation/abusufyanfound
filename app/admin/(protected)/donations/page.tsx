@@ -16,13 +16,12 @@ import { formatNaira } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
 import { FilterForm } from "@/components/admin/FilterForm";
 import { loadGivenTo } from "@/lib/admin/donation-targets";
+import { ADMIN_PAGE_SIZE as PAGE_SIZE } from "@/lib/admin/pagination";
 
 export const metadata = {
   title: "Donations",
   robots: { index: false, follow: false },
 };
-
-const PAGE_SIZE = 25;
 
 type Donation = {
   id: string;

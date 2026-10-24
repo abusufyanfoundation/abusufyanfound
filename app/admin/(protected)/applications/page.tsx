@@ -14,15 +14,14 @@ import { formatDate } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { FilterForm } from "@/components/admin/FilterForm";
 import { isUuid } from "@/lib/uuid";
+import { ADMIN_PAGE_SIZE as PAGE_SIZE } from "@/lib/admin/pagination";
 
 export const metadata = {
   title: "Applications",
   robots: { index: false, follow: false },
 };
 
-const PAGE_SIZE = 25;
 const STATUSES = ["pending", "approved", "rejected", "fulfilled"];
-
 
 type Row = {
   id: string;
