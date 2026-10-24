@@ -83,18 +83,18 @@ async function recordDistribution(formData: FormData) {
     return fail("The distribution could not be recorded.");
   }
 
-  await logAudit(supabase, actor, {
-    action: "distribution.created",
-    entity: "campaign",
-    entityId: campaignId,
-    summary: `Recorded distribution of ${quantity} book(s)`,
-    details: {
-      campaign_id: campaignId,
-      beneficiary_id: beneficiaryId,
-      [kind === "batch" ? "batch_book_id" : "book_id"]: bookId,
-      quantity,
-    },
-  });
+    await logAudit(supabase, actor, {
+      action: "distribution.created",
+      entity: "distribution",
+      entityId: distribution.id,
+      summary: `Recorded distribution of ${quantity} book(s)`,
+      details: {
+        campaign_id: campaignId,
+        beneficiary_id: beneficiaryId,
+        [kind === "batch" ? "batch_book_id" : "book_id"]: bookId,
+        quantity,
+      },
+    });
 
   revalidatePath(`/admin/campaigns/${campaignId}`);
   revalidatePath(path);

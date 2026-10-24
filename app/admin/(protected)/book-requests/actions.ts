@@ -5,8 +5,10 @@ import { logAudit } from "@/lib/admin/audit";
 import { flash } from "@/lib/admin/flash";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { emailBookRequestOutcome, queue } from "@/lib/email/notify";
+import { formatNaira, toKobo } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/uuid";
+import { batchBookSchema, bookSchema } from "@/lib/validation/admin";
 
 type RequestRow = {
   reference: string;
@@ -208,4 +210,223 @@ export async function reviewBookRequest(formData: FormData) {
   }
 
   return back("error", "Unknown action.");
+}
+
+/* ───────── Supplying the requested book ───────── */
+
+type SupplyRow = {
+  reference: string;
+  status: string;
+  book_id: string | null;
+  batch_book_id: string | null;
+};
+
+async function loadSupplyRequest(id: string) {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("book_requests")
+    .select("reference, status, book_id, batch_book_id")
+    .eq("id", id)
+    .maybeSingle<SupplyRow>();
+
+  return { supabase, request: data };
+}
+
+// Adds the requested book to the pre-fund list, as a draft
+export async function addRequestToBooks(formData: FormData) {
+  const actor = await requireAdmin();
+
+  const id = String(formData.get("id") ?? "");
+
+  if (!isUuid(id)) {
+    return flash("/admin/book-requests", "error", "Book request not found.");
+  }
+
+  const back = (key: "error" | "notice", message: string): never =>
+    flash(`/admin/book-requests/${id}`, key, message);
+
+  const parsed = bookSchema
+    .pick({ title: true, author: true, priceNaira: true })
+    .safeParse({
+      title: formData.get("bookTitle"),
+      author: formData.get("bookAuthor"),
+      priceNaira: Number(formData.get("priceNaira")),
+    });
+
+  if (!parsed.success) return back("error", parsed.error.issues[0].message);
+  const input = parsed.data;
+
+  const { supabase, request } = await loadSupplyRequest(id);
+
+  if (!request) return back("error", "Book request not found.");
+  if (request.status !== "approved") {
+    return back("error", "Approve the request first.");
+  }
+  if (request.book_id || request.batch_book_id) {
+    return back("error", "This request has already been added to a list.");
+  }
+
+  const { data: book, error } = await supabase
+    .from("books")
+    .insert({
+      title: input.title,
+      author: input.author,
+      price_kobo: toKobo(input.priceNaira),
+      status: "draft",
+    })
+    .select("id")
+    .single<{ id: string }>();
+
+  if (error || !book) {
+    console.error("addRequestToBooks:", error?.message);
+    return back("error", "The book could not be added. Please try again.");
+  }
+
+  // Link it to the request; if the request changed meanwhile, undo the new book
+  const { data: linked, error: linkError } = await supabase
+    .from("book_requests")
+    .update({ book_id: book.id })
+    .eq("id", id)
+    .is("book_id", null)
+    .is("batch_book_id", null)
+    .select("id")
+    .maybeSingle<{ id: string }>();
+
+  if (linkError || !linked) {
+    await supabase.from("books").delete().eq("id", book.id);
+    return back(
+      "error",
+      "The request changed while saving, so nothing was added. Reload and try again.",
+    );
+  }
+
+  await logAudit(supabase, actor, {
+    action: "book.created",
+    entity: "book",
+    entityId: book.id,
+    summary: `Added book “${input.title}” from request ${request.reference}`,
+    details: {
+      price: formatNaira(toKobo(input.priceNaira)),
+      status: "Draft",
+    },
+  });
+
+  await logAudit(supabase, actor, {
+    action: "book_request.book_added",
+    entity: "book_request",
+    entityId: id,
+    summary: `Added request ${request.reference} to the pre-fund list`,
+    details: { book_id: book.id },
+  });
+
+  revalidatePath("/admin/books");
+  refresh(id);
+  return back(
+    "notice",
+    "Added to the pre-fund list as a draft. Open the book to add a cover and list it.",
+  );
+}
+
+// Adds the requested book to a batch that is still in draft
+export async function addRequestToBatch(formData: FormData) {
+  const actor = await requireAdmin();
+
+  const id = String(formData.get("id") ?? "");
+
+  if (!isUuid(id)) {
+    return flash("/admin/book-requests", "error", "Book request not found.");
+  }
+
+  const back = (key: "error" | "notice", message: string): never =>
+    flash(`/admin/book-requests/${id}`, key, message);
+
+  const batchId = String(formData.get("batchId") ?? "");
+  if (!isUuid(batchId)) return back("error", "Please choose a batch.");
+
+  const parsed = batchBookSchema.safeParse({
+    title: formData.get("bookTitle"),
+    author: String(formData.get("bookAuthor") ?? "").trim() || undefined,
+    copies: Number(formData.get("copies")),
+  });
+
+  if (!parsed.success) return back("error", parsed.error.issues[0].message);
+  const input = parsed.data;
+
+  const { supabase, request } = await loadSupplyRequest(id);
+
+  if (!request) return back("error", "Book request not found.");
+  if (request.status !== "approved") {
+    return back("error", "Approve the request first.");
+  }
+  if (request.book_id || request.batch_book_id) {
+    return back("error", "This request has already been added to a list.");
+  }
+
+  const { data: batch } = await supabase
+    .from("batches")
+    .select("batch_number, title, status")
+    .eq("id", batchId)
+    .maybeSingle<{ batch_number: number; title: string; status: string }>();
+
+  if (!batch || batch.status !== "draft") {
+    return back("error", "Please choose a batch that is still in draft.");
+  }
+
+  const { data: batchBook, error } = await supabase
+    .from("batch_books")
+    .insert({
+      batch_id: batchId,
+      title: input.title,
+      author: input.author ?? null,
+      quantity_available: input.copies,
+    })
+    .select("id")
+    .single<{ id: string }>();
+
+  if (error || !batchBook) {
+    console.error("addRequestToBatch:", error?.message);
+    return back("error", "The book could not be added. Please try again.");
+  }
+
+  // Link it to the request; if the request changed meanwhile, undo the new book
+  const { data: linked, error: linkError } = await supabase
+    .from("book_requests")
+    .update({ batch_book_id: batchBook.id })
+    .eq("id", id)
+    .is("book_id", null)
+    .is("batch_book_id", null)
+    .select("id")
+    .maybeSingle<{ id: string }>();
+
+  if (linkError || !linked) {
+    await supabase.from("batch_books").delete().eq("id", batchBook.id);
+    return back(
+      "error",
+      "The request changed while saving, so nothing was added. Reload and try again.",
+    );
+  }
+
+  await logAudit(supabase, actor, {
+    action: "batch.book_added",
+    entity: "batch",
+    entityId: batchId,
+    summary: `Added “${input.title}” (${input.copies} copies) to a batch from request ${request.reference}`,
+  });
+
+  await logAudit(supabase, actor, {
+    action: "book_request.book_added",
+    entity: "book_request",
+    entityId: id,
+    summary: `Added request ${request.reference} to Batch ${batch.batch_number}`,
+    details: { batch_id: batchId, batch_book_id: batchBook.id },
+  });
+
+  revalidatePath("/admin/batches");
+  revalidatePath(`/admin/batches/${batchId}`);
+  refresh(id);
+  return back(
+    "notice",
+    `Added to Batch ${batch.batch_number}. Open the batch to see it with the other books.`,
+  );
 }

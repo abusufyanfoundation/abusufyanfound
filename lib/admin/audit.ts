@@ -10,8 +10,8 @@ export type AuditEntity =
   | "batch"
   | "application"
   | "book_request"
+  | "distribution"
   | "session"
-  | "book_request"
   | "team"
   | "profile"
   | "settings";

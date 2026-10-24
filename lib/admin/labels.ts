@@ -24,9 +24,10 @@ export const ENTITY_LABELS: Record<string, string> = {
   batch: "Batches",
   application: "Applications",
   book_request: "Book requests",
+  distribution: "Distributions",
   team: "Team",
   profile: "Profiles",
-  settings:"Site settings"
+  settings: "Site settings",
 };
 
 export const titleCase = (value: string) =>
