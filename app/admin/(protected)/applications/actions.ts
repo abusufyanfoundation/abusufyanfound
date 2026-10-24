@@ -62,7 +62,7 @@ export async function reviewApplication(formData: FormData) {
     .maybeSingle<App>();
 
   if (!app) return back("error", "Application not found.");
-
+    
   // ---- Approve (or change approved quantities) ----
   if (intent === "approve") {
     if (app.status !== "pending" && app.status !== "approved") {

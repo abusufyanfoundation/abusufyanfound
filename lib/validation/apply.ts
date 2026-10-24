@@ -39,8 +39,8 @@ const contact = {
   email: z
     .string()
     .trim()
-    .email("Please enter a valid email address")
-    .optional(),
+    .min(1, "Please enter your email address")
+    .email("Please enter a valid email address"),
   state: required("your state", 2, 80),
   city: required("your city or town", 2, 80),
   address: required("your address", 5, 300),

@@ -49,11 +49,10 @@ export function BookRequestForm() {
       />
       <Field label="Phone number" name="phone" type="tel" autoComplete="tel" />
       <Field
-        label="Email address (optional)"
+        label="Email address"
         name="email"
         type="email"
         autoComplete="email"
-        required={false}
       />
 
       <div className="flex flex-col gap-6 sm:flex-row">
