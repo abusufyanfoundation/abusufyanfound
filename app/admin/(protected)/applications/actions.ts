@@ -62,7 +62,10 @@ export async function reviewApplication(formData: FormData) {
     .maybeSingle<App>();
 
   if (!app) return back("error", "Application not found.");
-    
+
+  // Read before the status checks below, so TypeScript does not narrow it
+  const wasPending = app.status === "pending";
+
   // ---- Approve (or change approved quantities) ----
   if (intent === "approve") {
     if (app.status !== "pending" && app.status !== "approved") {
@@ -146,15 +149,8 @@ export async function reviewApplication(formData: FormData) {
       summary: `Approved application ${app.reference} (${total} copies)`,
     });
 
-    // in the "approve" branch (only the first approval, not a later change of copies)
-    if (app.status === "pending")
-      queue(() => emailApplicationDecision(id, "approved"));
-
-    // in the "reject" branch
-    queue(() => emailApplicationDecision(id, "rejected"));
-
-    // in the "fulfil" branch
-    queue(() => emailApplicationDecision(id, "fulfilled"));
+    // Only the first approval sends an email, not a later change of copies
+    if (wasPending) queue(() => emailApplicationDecision(id, "approved"));
 
     refresh(id);
     return back("notice", "Application approved.");
@@ -184,15 +180,7 @@ export async function reviewApplication(formData: FormData) {
       summary: `Rejected application ${app.reference}`,
     });
 
-    // in the "approve" branch (only the first approval, not a later change of copies)
-    if (app.status === "pending")
-      queue(() => emailApplicationDecision(id, "approved"));
-
-    // in the "reject" branch
     queue(() => emailApplicationDecision(id, "rejected"));
-
-    // in the "fulfil" branch
-    queue(() => emailApplicationDecision(id, "fulfilled"));
 
     refresh(id);
     return back("notice", "Application rejected. Its copies are free again.");
@@ -310,14 +298,6 @@ export async function reviewApplication(formData: FormData) {
       },
     });
 
-    // in the "approve" branch (only the first approval, not a later change of copies)
-    if (app.status === "pending")
-      queue(() => emailApplicationDecision(id, "approved"));
-
-    // in the "reject" branch
-    queue(() => emailApplicationDecision(id, "rejected"));
-
-    // in the "fulfil" branch
     queue(() => emailApplicationDecision(id, "fulfilled"));
 
     revalidatePath(`/admin/campaigns/${campaignId}/distributions`);

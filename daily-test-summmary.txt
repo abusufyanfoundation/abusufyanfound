@@ -1,0 +1,1 @@
+curl.exe -H "Authorization: Bearer mysecret123" http://localhost:3000/api/cron/daily-summary
