@@ -84,7 +84,7 @@ export default async function ApplicationsPage({
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Applications"
-        intro="Review what students, mosques and schools have applied for, approve the copies they receive, and mark them fulfilled once handed over."
+        intro="Review what individuals, mosques and schools have applied for, approve the copies they receive, and mark them fulfilled once handed over."
       />
 
       <FilterForm className="flex flex-wrap items-end gap-3">

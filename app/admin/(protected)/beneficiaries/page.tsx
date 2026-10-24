@@ -1,5 +1,6 @@
-import { createBeneficiary } from "./actions";
+import { FormMessage } from "@/components/admin/auth/FormMessage";
 import {
+  AdminPagination,
   EmptyState,
   PageHeader,
   Panel,
@@ -7,9 +8,16 @@ import {
   td,
   th,
 } from "@/components/admin/ui";
+import { pageFrom, pagesFor, rangeFor } from "@/lib/admin/pagination";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { createBeneficiary } from "./actions";
+
+export const metadata = {
+  title: "Beneficiaries",
+  robots: { index: false, follow: false },
+};
 
 type Beneficiary = {
   id: string;
@@ -28,11 +36,10 @@ type Beneficiary = {
   }[];
 };
 
-const label = (value: string) => {
-  return value
+const label = (value: string) =>
+  value
     .replaceAll("_", " ")
     .replace(/\b\w/g, (character) => character.toUpperCase());
-};
 
 const source = (b: Beneficiary) =>
   b.application_id
@@ -55,12 +62,20 @@ const booksReceived = (b: Beneficiary) => {
   return [...totals.entries()];
 };
 
-export default async function BeneficiariesPage() {
+export default async function BeneficiariesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; error?: string; notice?: string }>;
+}) {
   await requireAdmin();
+
+  const sp = await searchParams;
+  const page = pageFrom(sp.page);
+  const { from, to } = rangeFor(page);
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  const { data, count, error } = await supabase
     .from("beneficiaries")
     .select(
       `id, name, type, location, application_id, book_request_id, created_at,
@@ -71,10 +86,10 @@ export default async function BeneficiariesPage() {
            batch_book:batch_books(title)
          )
        )`,
+      { count: "exact" },
     )
-    .order("created_at", {
-      ascending: false,
-    })
+    .order("created_at", { ascending: false })
+    .range(from, to)
     .returns<Beneficiary[]>();
 
   return (
@@ -84,6 +99,9 @@ export default async function BeneficiariesPage() {
         intro="Keep the individuals, mosques and schools served by the Foundation in one place, with the books each has received."
       />
 
+      {sp.error && <FormMessage error={sp.error} />}
+      {sp.notice && <FormMessage message={sp.notice} />}
+
       <Panel title="Add beneficiary">
         <form action={createBeneficiary} className="grid gap-4 md:grid-cols-2">
           <label className="text-sm text-muted">
@@ -91,6 +109,7 @@ export default async function BeneficiariesPage() {
             <input
               required
               name="name"
+              maxLength={200}
               className="mt-1 w-full border border-rule px-3 py-2 text-sm text-ink"
             />
           </label>
@@ -103,9 +122,7 @@ export default async function BeneficiariesPage() {
               className="mt-1 w-full border border-rule bg-white px-3 py-2 text-sm text-ink"
             >
               <option value="individual">Individual</option>
-
               <option value="mosque">Mosque</option>
-
               <option value="school">School</option>
             </select>
           </label>
@@ -114,6 +131,7 @@ export default async function BeneficiariesPage() {
             Location
             <input
               name="location"
+              maxLength={200}
               className="mt-1 w-full border border-rule px-3 py-2 text-sm text-ink"
             />
           </label>
@@ -135,52 +153,56 @@ export default async function BeneficiariesPage() {
           Beneficiaries could not be loaded.
         </p>
       ) : data?.length ? (
-        <TableWrap>
-          <thead className="border-b border-rule bg-paper">
-            <tr>
-              <th className={th}>Name</th>
-              <th className={th}>Type</th>
-              <th className={th}>Location</th>
-              <th className={th}>Books received</th>
-              <th className={th}>Source</th>
-              <th className={th}>Added</th>
-            </tr>
-          </thead>
+        <>
+          <TableWrap>
+            <thead className="border-b border-rule bg-paper">
+              <tr>
+                <th className={th}>Name</th>
+                <th className={th}>Type</th>
+                <th className={th}>Location</th>
+                <th className={th}>Books received</th>
+                <th className={th}>Source</th>
+                <th className={th}>Added</th>
+              </tr>
+            </thead>
 
-          <tbody className="divide-y divide-rule">
-            {data.map((beneficiary) => {
-              const books = booksReceived(beneficiary);
+            <tbody className="divide-y divide-rule">
+              {data.map((beneficiary) => {
+                const books = booksReceived(beneficiary);
 
-              return (
-                <tr key={beneficiary.id}>
-                  <td className={td}>{beneficiary.name}</td>
+                return (
+                  <tr key={beneficiary.id}>
+                    <td className={td}>{beneficiary.name}</td>
+                    <td className={td}>{label(beneficiary.type)}</td>
+                    <td className={td}>{beneficiary.location ?? "N/A"}</td>
+                    <td className={td}>
+                      {books.length ? (
+                        books.map(([title, quantity]) => (
+                          <div key={title}>
+                            {quantity} × {title}
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-muted">None yet</span>
+                      )}
+                    </td>
+                    <td className={td}>{source(beneficiary)}</td>
+                    <td className={td}>
+                      {formatDateTime(beneficiary.created_at)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </TableWrap>
 
-                  <td className={td}>{label(beneficiary.type)}</td>
-
-                  <td className={td}>{beneficiary.location ?? "N/A"}</td>
-
-                  <td className={td}>
-                    {books.length ? (
-                      books.map(([title, quantity]) => (
-                        <div key={title}>
-                          {quantity} × {title}
-                        </div>
-                      ))
-                    ) : (
-                      <span className="text-muted">None yet</span>
-                    )}
-                  </td>
-
-                  <td className={td}>{source(beneficiary)}</td>
-
-                  <td className={td}>
-                    {formatDateTime(beneficiary.created_at)}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </TableWrap>
+          <AdminPagination
+            basePath="/admin/beneficiaries"
+            params={{}}
+            page={page}
+            totalPages={pagesFor(count)}
+          />
+        </>
       ) : (
         <EmptyState
           title="No beneficiaries yet"

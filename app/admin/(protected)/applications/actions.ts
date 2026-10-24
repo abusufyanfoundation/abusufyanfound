@@ -207,7 +207,7 @@ export async function reviewApplication(formData: FormData) {
     // Acts as a lock: only one click can move it from approved to fulfilled
     const { data: locked, error: lockError } = await supabase
       .from("applications")
-      .update({ status: "fulfilled", admin_notes: notes || app.reference })
+      .update({ status: "fulfilled", admin_notes: notes || null })
       .eq("id", id)
       .eq("status", "approved")
       .select("id")

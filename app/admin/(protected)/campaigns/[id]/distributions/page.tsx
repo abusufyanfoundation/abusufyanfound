@@ -1,5 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
+import { FormMessage } from "@/components/admin/auth/FormMessage";
 import {
   EmptyState,
   PageHeader,
@@ -9,9 +10,15 @@ import {
   th,
 } from "@/components/admin/ui";
 import { logAudit } from "@/lib/admin/audit";
+import { flash } from "@/lib/admin/flash";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata = {
+  title: "Distributions",
+  robots: { index: false, follow: false },
+};
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -27,16 +34,19 @@ async function recordDistribution(formData: FormData) {
   const quantity = Number(formData.get("quantity"));
   const notes = String(formData.get("notes") ?? "").trim();
 
-  if (
-    !UUID.test(campaignId) ||
-    !UUID.test(beneficiaryId) ||
-    !UUID.test(bookId ?? "") ||
-    (kind !== "batch" && kind !== "book") ||
-    !Number.isInteger(quantity) ||
-    quantity < 1 ||
-    quantity > 100000
-  ) {
-    return;
+  if (!UUID.test(campaignId)) {
+    return flash("/admin/campaigns", "error", "Campaign not found.");
+  }
+
+  const path = `/admin/campaigns/${campaignId}/distributions`;
+  const fail = (message: string): never => flash(path, "error", message);
+
+  if (!UUID.test(beneficiaryId)) return fail("Please choose a beneficiary.");
+  if (!UUID.test(bookId ?? "") || (kind !== "batch" && kind !== "book")) {
+    return fail("Please choose a book.");
+  }
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100000) {
+    return fail("Quantity must be a whole number of at least 1.");
   }
 
   const supabase = await createClient();
@@ -50,14 +60,11 @@ async function recordDistribution(formData: FormData) {
       recorded_by: actor.user.id,
     })
     .select("id")
-    .single<{
-      id: string;
-    }>();
+    .single<{ id: string }>();
 
   if (error || !distribution) {
     console.error("recordDistribution:", error?.message);
-
-    return;
+    return fail("The distribution could not be recorded.");
   }
 
   const { error: itemError } = await supabase
@@ -74,7 +81,7 @@ async function recordDistribution(formData: FormData) {
     // do not leave an empty distribution behind
     await supabase.from("distributions").delete().eq("id", distribution.id);
 
-    return;
+    return fail("The distribution could not be recorded.");
   }
 
   await logAudit(supabase, actor, {
@@ -91,21 +98,17 @@ async function recordDistribution(formData: FormData) {
   });
 
   revalidatePath(`/admin/campaigns/${campaignId}`);
-  revalidatePath(`/admin/campaigns/${campaignId}/distributions`);
+  revalidatePath(path);
   revalidatePath("/admin");
   revalidatePath("/admin/activity");
+  return flash(path, "notice", "Distribution recorded.");
 }
 
 type DistributionRow = {
   id: string;
   distributed_at: string;
   notes: string | null;
-
-  beneficiary: {
-    name: string;
-    type: string;
-  } | null;
-
+  beneficiary: { name: string; type: string } | null;
   distribution_items: {
     quantity: number;
     book: { title: string } | null;
@@ -121,23 +124,27 @@ type Option = {
 
 export default async function DistributionsPage({
   params,
+  searchParams,
 }: {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string; notice?: string }>;
 }) {
   const { id } = await params;
+  const { error, notice } = await searchParams;
 
   await requireAdmin();
+
+  if (!UUID.test(id)) notFound();
 
   const supabase = await createClient();
 
   const [campaign, beneficiaries, books, batchBooks, distributions] =
     await Promise.all([
-      supabase.from("campaigns").select("id, title").eq("id", id).maybeSingle<{
-        id: string;
-        title: string;
-      }>(),
+      supabase
+        .from("campaigns")
+        .select("id, title")
+        .eq("id", id)
+        .maybeSingle<{ id: string; title: string }>(),
 
       supabase
         .from("beneficiaries")
@@ -161,42 +168,31 @@ export default async function DistributionsPage({
       supabase
         .from("distributions")
         .select(
-          `
-            id,
-            distributed_at,
-            notes,
-            beneficiary:beneficiaries(
-              name,
-              type
-            ),
-            distribution_items(
-              quantity,
-              book:books(title),
-              batch_book:batch_books(title)
-            )
-          `,
+          `id, distributed_at, notes,
+           beneficiary:beneficiaries(name, type),
+           distribution_items(
+             quantity,
+             book:books(title),
+             batch_book:batch_books(title)
+           )`,
         )
         .eq("campaign_id", id)
-        .order("distributed_at", {
-          ascending: false,
-        })
+        .order("distributed_at", { ascending: false })
         .returns<DistributionRow[]>(),
     ]);
 
-  if (!campaign.data) {
-    notFound();
-  }
+  if (!campaign.data) notFound();
 
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Campaign distributions"
         intro={`Record books purchased with funds from "${campaign.data.title}" and where they went.`}
-        back={{
-          label: "Back to campaign",
-          href: `/admin/campaigns/${id}`,
-        }}
+        back={{ label: "Back to campaign", href: `/admin/campaigns/${id}` }}
       />
+
+      {error && <FormMessage error={error} />}
+      {notice && <FormMessage message={notice} />}
 
       <Panel title="Record distribution">
         <form action={recordDistribution} className="grid gap-4 md:grid-cols-2">
@@ -210,7 +206,6 @@ export default async function DistributionsPage({
               className="mt-1 w-full border border-rule bg-white px-3 py-2 text-sm text-ink"
             >
               <option value="">Select beneficiary</option>
-
               {(beneficiaries.data ?? []).map((beneficiary) => (
                 <option key={beneficiary.id} value={beneficiary.id}>
                   {beneficiary.name}
@@ -294,11 +289,9 @@ export default async function DistributionsPage({
                 <td className={td}>
                   {formatDateTime(distribution.distributed_at)}
                 </td>
-
                 <td className={td}>
                   {distribution.beneficiary?.name ?? "Unknown beneficiary"}
                 </td>
-
                 <td className={td}>
                   {distribution.distribution_items.map((item, index) => (
                     <div key={index}>
@@ -309,7 +302,6 @@ export default async function DistributionsPage({
                     </div>
                   ))}
                 </td>
-
                 <td className={td}>{distribution.notes ?? "—"}</td>
               </tr>
             ))}

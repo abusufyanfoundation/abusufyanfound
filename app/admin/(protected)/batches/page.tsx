@@ -88,7 +88,7 @@ export default async function AdminBatchesPage({
     <div className="flex flex-col gap-8">
       <PageHeader
         title="Batches"
-        intro="A batch is the list of books bought with a campaign's funds. Students, mosques and schools apply for copies from an open batch."
+        intro="A batch is the list of books bought with a campaign's funds. Individuals, mosques and schools apply for copies from an open batch."
         action={{ label: "New batch", href: "/admin/batches/new" }}
       />
 
