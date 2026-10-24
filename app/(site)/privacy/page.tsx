@@ -4,6 +4,7 @@ import { SectionHeading } from "@/components/site/SectionHeading";
 import { siteConfig } from "@/lib/site";
 import { BackLink } from "@/components/ui/BackLink";
 import { getSiteSettings } from "@/lib/data/settings";
+import { PRIVACY_UPDATED } from "@/lib/privacy";
 
 export const metadata: Metadata = {
   title: "Privacy notice",
@@ -42,7 +43,8 @@ export default async function PrivacyPage() {
         <SectionHeading
           as="h1"
           title="Privacy notice"
-          intro={`How the ${siteConfig.name} uses the personal information you give us. Last updated 11 October 2026.`}
+          // The last updated is found in the /lib/privacy.ts file
+          intro={`How the ${siteConfig.name} uses the personal information you give us. Last updated ${PRIVACY_UPDATED}.`}
         />
 
         <div className="max-w-2xl">
@@ -91,7 +93,9 @@ export default async function PrivacyPage() {
               </li>
               <li>To give out books and keep a record of who received them.</li>
               <li>To stop the same person applying twice for one batch.</li>
-              <li>To process payments and contact donors about their donations.</li>
+              <li>
+                To process payments and contact donors about their donations.
+              </li>
             </ul>
             {/* <p>
               The website shows only totals for the people we serve. A

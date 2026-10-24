@@ -14,6 +14,7 @@ import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { reviewApplication } from "../actions";
 import { isUuid } from "@/lib/uuid";
+import { consentText } from "@/lib/admin/consent";
 
 export const metadata = {
   title: "Application",
@@ -49,6 +50,8 @@ type Application = {
     quantity_approved: number;
     batch_book: { title: string } | null;
   }[];
+  consent_at: string | null;
+  consent_version: string | null;
 };
 
 const primary =
@@ -86,7 +89,7 @@ export default async function ApplicationPage({
     .select(
       `id, reference, status, applicant_type, applicant_name, organisation_name, email, phone,
        state, city, address, verifier_name, verifier_role, verifier_phone, reason, admin_notes,
-       created_at, reviewed_at, fulfilled_at, fulfilment_method,
+       created_at, reviewed_at, fulfilled_at, fulfilment_method, consent_at, consent_version,
        batch:batches(id, title),
        pickup_location:batch_locations(name, address),
        application_items(id, quantity_requested, quantity_approved, batch_book:batch_books(title))`,
@@ -133,6 +136,10 @@ export default async function ApplicationPage({
           <Detail label="Reference person" value={app.verifier_name} />
           <Detail label="Reference position" value={app.verifier_role} />
           <Detail label="Reference phone" value={app.verifier_phone} />
+          <Detail
+            label="Privacy consent"
+            value={consentText(app.consent_at, app.consent_version)}
+          />{" "}
         </dl>
       </Panel>
 

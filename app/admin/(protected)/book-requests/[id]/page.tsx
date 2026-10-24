@@ -7,6 +7,7 @@ import { formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import { reviewBookRequest } from "../actions";
 import { isUuid } from "@/lib/uuid";
+import { consentText } from "@/lib/admin/consent";
 
 export const metadata = {
   title: "Book request",
@@ -32,6 +33,8 @@ type BookRequest = {
   quantity: number;
   reason: string | null;
   admin_notes: string | null;
+  consent_at: string | null;
+  consent_version: string | null;
 };
 
 const primary =
@@ -69,7 +72,7 @@ export default async function BookRequestPage({
     .select(
       `id, reference, status, created_at, reviewed_at, requester_type, requester_name,
        organisation_name, email, phone, state, city, address, book_title, book_author,
-       quantity, reason, admin_notes`,
+      quantity, reason, admin_notes, consent_at, consent_version`,
     )
     .eq("id", id)
     .maybeSingle<BookRequest>();
@@ -98,6 +101,10 @@ export default async function BookRequestPage({
           <Detail
             label="Address"
             value={`${r.address}, ${r.city}, ${r.state}`}
+          />
+          <Detail
+            label="Privacy consent"
+            value={consentText(r.consent_at, r.consent_version)}
           />
         </dl>
       </Panel>

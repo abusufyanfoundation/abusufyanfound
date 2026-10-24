@@ -16,6 +16,7 @@ import {
   emailApplicationReceived,
   emailBookRequestReceived,
 } from "@/lib/email/notify";
+import { PRIVACY_VERSION } from "@/lib/privacy";
 
 const TOO_MANY =
   "Too many attempts from this connection. Please wait a little and try again.";
@@ -108,6 +109,7 @@ export async function submitApplication(
       quantity: i.quantity,
     })),
     p_reason: input.reason,
+    p_consent_version: PRIVACY_VERSION,
   });
 
   if (error) {
@@ -171,6 +173,7 @@ export async function submitBookRequest(
     p_book_author: input.bookAuthor ?? null,
     p_quantity: input.quantity,
     p_reason: input.reason ?? null,
+    p_consent_version: PRIVACY_VERSION,
   });
 
   if (error) {
