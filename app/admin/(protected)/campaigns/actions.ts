@@ -11,6 +11,7 @@ import { formatNaira, toKobo } from "@/lib/money";
 import { slugify } from "@/lib/slug";
 import { createClient } from "@/lib/supabase/server";
 import { campaignRaisedSchema, campaignSchema } from "@/lib/validation/admin";
+import { isUuid } from "@/lib/uuid";
 
 const GENERIC = "The campaign could not be saved. Please try again.";
 const ACTIVE_CONFLICT =

@@ -22,6 +22,7 @@ import {
   setCampaignActive,
 } from "../actions";
 import { RaisedAmountForm } from "@/components/admin/RaisedAmount";
+import { isUuid } from "@/lib/uuid";
 
 export const metadata = {
   title: "Edit campaign",
