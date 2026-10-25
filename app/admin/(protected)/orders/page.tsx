@@ -109,7 +109,8 @@ async function updateOrder(formData: FormData) {
   // Only a funded order moves along the fulfilment steps
   if (
     !STATUSES.includes(before.status as OrderStatus) ||
-    before.status === "cancelled_payment"
+    before.status === "cancelled_payment" ||
+    before.status === "cancelled"
   ) {
     return fail("This order cannot be changed.");
   }
@@ -294,7 +295,8 @@ export default async function OrdersPage({
                   order.status === "pending_payment";
                 const closed =
                   order.status === "pending_payment" ||
-                  order.status === "cancelled_payment";
+                  order.status === "cancelled_payment" ||
+                  order.status === "cancelled";
                 const updatable = !awaiting && !closed;
                 const formId = `order-${order.id}`;
 
