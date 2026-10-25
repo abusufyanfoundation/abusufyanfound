@@ -144,7 +144,7 @@ Long lists show 25 rows at a time, with page buttons at the bottom.
 
 - The raised amount. It is the number the public sees. Check it against the bank before you confirm.
 - Switching a campaign off while a batch is collecting. The website stops taking donations for it.
-- Saving the raised amount of a batch more than once around its target. Each time it crosses the target, the donors of that batch are emailed, so type the final figure.
+- The emails to a batch's donors ("target reached" and "applications open"). Each is sent once per batch and never repeated, even if you change the status or the amount again.
 
 ## For the developer
 

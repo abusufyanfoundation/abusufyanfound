@@ -492,6 +492,22 @@ export async function emailBatchUpdate(
 ) {
   const admin = createAdminClient();
 
+  // Each kind of email goes out at most once per batch, however often the
+  // status or the raised amount is changed afterwards
+  const { data: claimed, error: claimError } = await admin
+    .from("batch_email_log")
+    .upsert(
+      { batch_id: batchId, kind },
+      { onConflict: "batch_id,kind", ignoreDuplicates: true },
+    )
+    .select("batch_id");
+
+  if (claimError) {
+    console.error("emailBatchUpdate claim:", claimError.message);
+    return;
+  }
+  if (!claimed?.length) return;
+
   const { data: batch } = await admin
     .from("batches")
     .select("title")
