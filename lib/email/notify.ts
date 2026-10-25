@@ -445,7 +445,7 @@ const ORDER_STEPS: Record<string, { subject: string; intro: string[] }> = {
       "The books you funded have been bought and are ready to be given to students of knowledge and mosques.",
     ],
   },
-  book_distributed: {
+  distributed: {
     subject: "The books you funded have been given out",
     intro: [
       "Alhamdulillah, the books you funded have been given out. May Allah accept it from you and reward you.",
