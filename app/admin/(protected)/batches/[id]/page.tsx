@@ -23,7 +23,6 @@ import {
   deleteBatchLocation,
   saveBatchRaised,
   setBatchStatus,
-  updateBatchBook,
 } from "../actions";
 import { RaisedAmountForm } from "@/components/admin/RaisedAmount";
 import { isUuid } from "@/lib/uuid";

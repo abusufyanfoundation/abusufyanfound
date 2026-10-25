@@ -6,7 +6,7 @@ import { FormMessage } from "@/components/admin/auth/FormMessage";
 import { SubmitButton } from "@/components/forms/SubmitButton";
 import { useActionForm } from "@/lib/forms/use-action-form";
 import { useEditMode } from "@/lib/forms/use-edit-mode";
-import { SelectField, TextArea, TextField } from "./forms/fields";
+import { SelectField, TextField } from "./forms/fields";
 
 export type BatchFormValues = {
   id: string;

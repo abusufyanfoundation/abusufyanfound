@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/site/Container";
 import { Footer } from "@/components/site/Footer";
-import { Header } from "@/components/site/Header";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 
 export const metadata: Metadata = {
